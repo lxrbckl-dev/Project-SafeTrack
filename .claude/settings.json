@@ -24,7 +24,17 @@
       "Bash(go build:*)",
       "Bash(flutter pub:*)",
       "Bash(flutter clean:*)",
-      "Bash(grep -ri \"POC\\\\|validate this week\\\\|before friday\\\\|2026-03-2[0-6]\" /Users/highlander/Desktop/highlander/docs/ /Users/highlander/Desktop/highlander/CLAUDE.md /Users/highlander/Desktop/highlander/.claude/agents/ --include=*.md)"
+      "Bash(grep -ri \"POC\\\\|validate this week\\\\|before friday\\\\|2026-03-2[0-6]\" /Users/highlander/Desktop/highlander/docs/ /Users/highlander/Desktop/highlander/CLAUDE.md /Users/highlander/Desktop/highlander/.claude/agents/ --include=*.md)",
+      "Bash(grep -r tasks/board.md /Users/highlander/Desktop/highlander --include=*.md)",
+      "Bash(grep -n \"port 3000\\\\|port 3001\\\\|port 8000\\\\|port 8001\" /Users/highlander/Desktop/highlander/.claude/agents/*.md)",
+      "Bash(grep -n \"task lifecycle\\\\|in_progress\\\\|in_review\" /Users/highlander/Desktop/highlander/.claude/agents/*.md)",
+      "Bash(grep -n \"NumberInt\\\\|gorm\\\\|AllModels\" /Users/highlander/Desktop/highlander/.claude/agents/*.md)",
+      "Bash(grep -n \"models.go\\\\|AllModels\" /Users/highlander/Desktop/highlander/.claude/agents/*.md)",
+      "Bash(npx playwright:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
+      "Bash(pkill -f \"flutter.*web-port=3000\")",
+      "Bash(grep -ri \"\\\\bfuck\\\\b\\\\|\\\\bshit\\\\b\\\\|\\\\bdamn\\\\b\\\\|\\\\bass\\\\b\\\\|\\\\bbitch\\\\b\\\\|\\\\bFUU\" /Users/highlander/Desktop/highlander --include=*.md --include=*.dart --include=*.go --include=*.ts --include=*.json --include=*.html)",
+      "Bash(grep -ri bPOCb /Users/highlander/Desktop/highlander --include=*.md --include=*.html)"
     ],
     "deny": [],
     "defaultMode": "bypassPermissions",

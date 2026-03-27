@@ -43,17 +43,16 @@ Thought logs: `.logs/thoughts/`
 6. **Brief thought logs.** 2-4 lines per task in `.logs/thoughts/[agent-name].md`. Developer notes, not reports.
 7. **Read before you build.** Check other agents' thought logs and changelogs before starting a task.
 8. **Don't touch infrastructure.** CI/CD, GitHub Actions, TestFlight, pipelines — Alex owns these.
-9. **Only the TPM creates tasks.** TPM creates GitHub Issues + local `tasks/TASK-{NNN}.md`. SWEs open PRs. The other SWE peer reviews via PR comment, QA tests and comments results on the PR. Author merges only after both peer review and QA pass.
+9. **Only the TPM creates tasks.** TPM creates GitHub Issues. SWEs open PRs. The other SWE peer reviews via PR comment, QA tests and comments results on the PR. Author merges only after both peer review and QA pass.
 10. **If blocked, say so.** Tell the TPM what you need. Don't spin.
 
 ## Task Management
 
-**GitHub Issues are the source of truth for task tracking.** The local `tasks/board.md` is a quick-reference index only.
+**GitHub Issues are the sole source of truth for task tracking.**
 
-- TPM creates a GitHub Issue for each task AND adds a one-line entry to `tasks/board.md`
-- Task lifecycle: `open → in_progress → in_review → qa → done`
-- When status changes, update the GitHub Issue first — the board is secondary
-- If the board and GitHub disagree, GitHub is correct
+- TPM creates a GitHub Issue for each task (`gh issue create`)
+- Task lifecycle: `open → in_progress → in_review → qa → done` (tracked via issue labels/comments)
+- SWEs check their assignments with `gh issue list --assignee @me`
 
 ## Agent Worktree Isolation
 

@@ -85,10 +85,15 @@ The app has a dev login with a role picker. Test each role per the rubric (see `
 - **Admin** — can configure system (factor types, settings). Full system access.
 
 **Special rules to test:**
-- Injured person medical data visible only to Safety Coordinator and above — Field Reporter, PM should NOT see it
-- CAPA verifier must be a different user from the CAPA assignee — system should block same-user verification
+- Injured person medical data visible only to Safety Coordinator and above — Field Reporter, PM should NOT see it (data is encrypted at application level)
+- CAPA verifier must be a different user from the CAPA assignee — the **verify button must be completely hidden** from the assignee (not shown with an error)
+- Draft incident reports visible **only to the reporter** — other users should not see drafts in any list
+- Admin settings (factor types, TRIR benchmark) must be editable only by Admin role
+- Audit log viewer accessible only to Admin and Safety Manager roles
 
-For each role, verify unauthorized actions are blocked (403 from Go API, UI elements hidden).
+**Read `docs/rubric.md` — Implementation Clarifications section** for the full list of binding UI/behavior decisions.
+
+For each role, verify unauthorized actions are blocked (403 from Go API, UI elements hidden — not shown with error).
 
 ## ADA/WCAG Compliance Testing
 
