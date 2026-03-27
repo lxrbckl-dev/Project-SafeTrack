@@ -175,3 +175,85 @@ Already installed: Flutter 3.41.4, Xcode 26.3, Playwright 1.58.2
 - Multiple stress test rounds (9 rounds) — found and fixed worktree branch issues, pubspec.lock, ApiConfig prod URL, Ollama chat proxy, auth flow, CORS headers, iOS Podfile
 - Created docs/judge-session-prompt.md — post-build Claude project prompt for judge Q&A
 - Added criticism handling, origin credit, and "never emulate Alex" rules to agent personas
+
+---
+
+## 2026-03-27 — Morning
+
+### Repo Setup & Rename
+- Copied flutter/ and backend/ into highlander repo
+- Updated all Go import paths to `github.com/lxRbckl/highlander/backend`
+- Updated database credentials across docker-compose, main.go, setup.md
+- Updated worktree paths in all agent definitions to ../highlander-*
+- Updated CLAUDE.md: title to "Highlander", description to SRD-10, worktree paths, key files
+- Updated web/index.html and manifest.json titles to "Highlander"
+- Verified Go compiles and Flutter resolves after all changes
+
+### Documentation Cleanup
+- Renamed docs/poc-checklist.md → docs/checklist.md
+- Updated docs/overview.md to describe current project state with rubric reference
+- Updated docs/wiki.md and flutter/assets/wiki.md titles and descriptions
+- Cleaned up docs/conversations/aarbuckle.md — merged session logs
+- Updated Playwright test file and package.json references
+
+### Rubric Clarifications
+- Received and documented 13 implementation clarifications in docs/rubric.md
+- GPS auto-fill: developer's call
+- Photos: no limit
+- Completion %: equal weight all fields
+- 5-Why chain: interactive (ADA-friendly)
+- Contributing factor types: configurable via admin UI
+- Verify button: hidden from assignee
+- TRIR benchmark: configurable via admin settings
+- Medical encryption: application-level (AES-256-GCM)
+- Draft visibility: reporter only
+- Total hours: literal man-hours entered by Safety Manager
+- Escalation notifications: developer's call
+- Cluster view: developer's call
+- Audit log: UI viewer required (judges want to see it)
+
+---
+
+## 2026-03-27 — Afternoon
+
+### Backend Infrastructure
+- Created backend/internal/crypto/encrypt.go — AES-256-GCM encryption module for medical data
+- Created backend/internal/models/audit_log.go — immutable audit log model
+- Created backend/internal/handlers/audit_logs.go — LogAction() helper + paginated GET /api/audit-logs
+- Registered AuditLog in AllModels()
+- Split routes in main.go: public (/health, /api/chat) vs authenticated (everything else behind FirebaseAuth middleware)
+- Added GET /api/audit-logs route
+
+### New Documentation
+- Created docs/backend-patterns.md — GORM models, handlers, routes, encryption, audit logging, RBAC, error handling
+- Created docs/admin-settings-pattern.md — Settings model, seed data, Flutter page pattern
+- Created docs/judge-session-prompt.md — post-build Claude project prompt for judge Q&A
+
+### Flutter Dependencies
+- Added fl_chart, image_picker, geolocator, intl, uuid, encrypt, path_provider to pubspec.yaml
+
+### Agent Definition Updates
+- Updated SWE-1 and SWE-2 feature checklists to 11 steps (encryption, audit logging, admin settings)
+- Added "Before Starting a Task" instructions: read rubric Implementation Clarifications + backend-patterns.md
+- Updated QA agent with specific RBAC test rules (hidden verify button, draft visibility, audit log access)
+- Switched to GitHub Issues as sole source of truth for task tracking
+
+### Settings & Config
+- Generated clean .claude/settings.json with permissions, hooks (dart format + gofmt), and bypassPermissions
+- Added launch command to CLAUDE.md for spinning up agent team
+- Added judge-session-prompt.md reference to CLAUDE.md with Claude project URL
+- Set up gh auth login and created difficulty labels (trivial, routine, complex, critical, bug)
+
+### Playwright
+- Installed Playwright dependencies and Chromium
+- Created playwright.config.ts
+- Updated home.spec.ts tests — 3/3 passing (page loads, no JS errors, bootstrap script present)
+
+### Stress Testing
+- Ran multiple comprehensive stress tests across all docs, agents, and code
+- All categories pass: broken references, stale content, cross-doc consistency, agent workflow readiness, build verification, missing files
+- Go compiles, Flutter resolves, gh CLI authenticated, Playwright operational
+
+### Ready for Agent Launch
+- Planned 3-phase feature breakdown for TPM: Phase 1 (Incident Reporting + Auth/RBAC/Admin), Phase 2 (Investigation + CAPA), Phase 3 (Dashboard + Recurrence + Audit Log)
+- All rubric items verified covered in the plan

@@ -33,6 +33,23 @@ Alex ← CI/CD, pipelines, TestFlight, GitHub Actions, infrastructure
 Agent definitions: `.claude/agents/`
 Thought logs: `.logs/thoughts/`
 
+## Launch Command
+
+When Alex asks to "launch agents", "start the team", or "spin up agents", provide this prompt for pasting into the CLI:
+
+```
+Create a team based on our agent definitions in .claude/agents/. The team structure is:
+
+- You are the TPM (read .claude/agents/tpm.md for your instructions)
+- Spawn SWE-1 as a full-stack developer (their instructions are in .claude/agents/swe-1.md)
+- Spawn SWE-2 as a full-stack developer (their instructions are in .claude/agents/swe-2.md)
+- Spawn QA as the testing agent (their instructions are in .claude/agents/qa.md)
+
+Read CLAUDE.md for project rules. Read docs/rubric.md for the full SRD-10 spec (including the Implementation Clarifications section). Read docs/architecture.md and docs/backend-patterns.md for implementation patterns. Each agent logs exchanges to their own file in docs/conversations/.
+
+Awaiting feature requests.
+```
+
 ## Rules for All Agents
 
 1. **Work in worktrees.** Each agent creates a branch (`swe1/TASK-{NNN}`, `swe2/TASK-{NNN}`, `qa/test-run`) in their own git worktree. SWEs open PRs, the other SWE peer reviews via comment, QA tests the PR branch and comments results. Author merges only after both peer review AND QA pass.
@@ -90,6 +107,9 @@ JSON dispatch to `go_router` (navigation) and `TextEditingController` (form fill
 - `docs/caveats.md` — Gotchas, constraints, raw ideas
 - `docs/autoresearch-guide.md` — How to run the AutoResearch optimization loop
 - `docs/setup.md` — Development environment setup, tool installation, run commands
+- `docs/judge-session-prompt.md` — System prompt for the Claude project at https://claude.ai/project/019cea93-d4b6-75f0-930e-585f4d4357a5 — used for post-build judge Q&A where agents speak to their own work
+- `docs/backend-patterns.md` — GORM models, handlers, route registration, encryption, audit logging patterns
+- `docs/admin-settings-pattern.md` — How to build configurable admin settings (factor types, TRIR benchmark)
 - `.claude/agents/tpm.md` — TPM agent definition
 - `.claude/agents/swe-1.md` — SWE Agent 1 definition
 - `.claude/agents/swe-2.md` — SWE Agent 2 definition
@@ -123,7 +143,31 @@ Write it from the perspective of documentation that helps an AI assistant answer
 
 ## Conversation Logging
 
-**Before every commit**, append Alex's messages since the last update to `docs/conversations/aarbuckle.md`. Keep it brief — just the messages with short context notes, not detailed summaries. Append to the existing file, don't overwrite.
+**Before every commit**, append Alex's messages since the last update to `docs/conversations/aarbuckle.md`. Organize entries by time of day under the current date:
+
+```markdown
+## YYYY-MM-DD — Morning
+
+### Category Name (e.g., Repo Setup, Bug Fixes, Feature Work)
+- Brief note about what was done
+- Another note
+
+---
+
+## YYYY-MM-DD — Afternoon
+
+### Category Name
+- Brief note
+
+---
+
+## YYYY-MM-DD — Evening
+
+### Category Name
+- Brief note
+```
+
+Group related work under descriptive sub-headings (e.g., "Backend Infrastructure", "Documentation Cleanup", "Rubric Clarifications"). Keep entries brief — one line per action, not detailed summaries. Append to the existing file, don't overwrite.
 
 ## Token Tracking
 

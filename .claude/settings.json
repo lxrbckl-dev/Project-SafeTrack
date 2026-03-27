@@ -34,7 +34,13 @@
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
       "Bash(pkill -f \"flutter.*web-port=3000\")",
       "Bash(grep -ri \"\\\\bfuck\\\\b\\\\|\\\\bshit\\\\b\\\\|\\\\bdamn\\\\b\\\\|\\\\bass\\\\b\\\\|\\\\bbitch\\\\b\\\\|\\\\bFUU\" /Users/highlander/Desktop/highlander --include=*.md --include=*.dart --include=*.go --include=*.ts --include=*.json --include=*.html)",
-      "Bash(grep -ri bPOCb /Users/highlander/Desktop/highlander --include=*.md --include=*.html)"
+      "Bash(grep -ri bPOCb /Users/highlander/Desktop/highlander --include=*.md --include=*.html)",
+      "Bash(grep -r TheMarchProject /Users/highlander/Desktop/highlander --include=*.md --include=*.dart --include=*.go --include=*.json)",
+      "Bash(grep -r \"marchproject\\\\|marchuser\" /Users/highlander/Desktop/highlander --include=*.md --include=*.dart --include=*.go --include=*.json)",
+      "Bash(grep -r \"POC\\\\|before friday\\\\|once the brief\\\\|waiting on rubric\\\\|throwaway\" /Users/highlander/Desktop/highlander --include=*.md --include=*.dart --include=*.go)",
+      "Bash(grep -r \"NFC\\\\|business card\" /Users/highlander/Desktop/highlander --include=*.md --include=*.dart --include=*.go)",
+      "Bash(grep -l \"docs/features.md\\\\|tasks/board.md\\\\|tasks/\\\\|instructions.md\\\\|docs/poc-checklist.md\\\\|docs/judge-session-prompt.md\" /Users/highlander/Desktop/highlander/*.md /Users/highlander/Desktop/highlander/.claude/agents/*.md)",
+      "Bash(grep -n 'database name' /Users/highlander/Desktop/highlander/docs/*.md /Users/highlander/Desktop/highlander/.claude/agents/*.md)"
     ],
     "deny": [],
     "defaultMode": "bypassPermissions",
