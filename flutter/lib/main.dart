@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'The March Project — POC',
+      title: 'Highlander',
       theme: herzogTheme(),
       routerConfig: appRouter,
     );

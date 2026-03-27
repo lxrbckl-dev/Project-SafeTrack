@@ -8,9 +8,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('THE MARCH PROJECT'),
-      ),
+      appBar: AppBar(title: const Text('HIGHLANDER')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -18,7 +16,7 @@ class HomePage extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: 16),
             child: Text(
-              'POC VALIDATION',
+              'INFRASTRUCTURE STATUS',
               style: HerzogText.heading(fontSize: 24),
             ),
           ),
@@ -26,11 +24,23 @@ class HomePage extends StatelessWidget {
           // KPI row
           Row(
             children: [
-              _KpiCard(label: 'PASSING', value: '9', color: HerzogColors.successGreen),
+              _KpiCard(
+                label: 'PASSING',
+                value: '9',
+                color: HerzogColors.successGreen,
+              ),
               const SizedBox(width: 12),
-              _KpiCard(label: 'REMAINING', value: '4', color: HerzogColors.warningAmber),
+              _KpiCard(
+                label: 'REMAINING',
+                value: '4',
+                color: HerzogColors.warningAmber,
+              ),
               const SizedBox(width: 12),
-              _KpiCard(label: 'PLATFORMS', value: '5', color: HerzogColors.infoTeal),
+              _KpiCard(
+                label: 'PLATFORMS',
+                value: '5',
+                color: HerzogColors.infoTeal,
+              ),
             ],
           ),
           const SizedBox(height: 24),
@@ -38,7 +48,10 @@ class HomePage extends StatelessWidget {
           // Section heading
           Text(
             'INFRASTRUCTURE TESTS',
-            style: HerzogText.heading(fontSize: 16, color: HerzogColors.darkGray),
+            style: HerzogText.heading(
+              fontSize: 16,
+              color: HerzogColors.darkGray,
+            ),
           ),
           const SizedBox(height: 12),
 
@@ -110,7 +123,11 @@ class _KpiCard extends StatelessWidget {
   final String value;
   final Color color;
 
-  const _KpiCard({required this.label, required this.value, required this.color});
+  const _KpiCard({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -143,7 +160,10 @@ class _KpiCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              Text(value, style: HerzogText.heading(fontSize: 32, color: color)),
+              Text(
+                value,
+                style: HerzogText.heading(fontSize: 32, color: color),
+              ),
               const SizedBox(height: 4),
               Text(label, style: HerzogText.label()),
             ],
@@ -212,7 +232,10 @@ class _TestCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Row(
               children: [
-                Icon(icon, color: HerzogColors.navyBlue, size: 24,
+                Icon(
+                  icon,
+                  color: HerzogColors.navyBlue,
+                  size: 24,
                   semanticLabel: title,
                 ),
                 const SizedBox(width: 16),
@@ -222,12 +245,21 @@ class _TestCard extends StatelessWidget {
                     children: [
                       Text(title, style: HerzogText.heading(fontSize: 14)),
                       const SizedBox(height: 2),
-                      Text(subtitle, style: HerzogText.body(color: HerzogColors.midGray, fontSize: 13)),
+                      Text(
+                        subtitle,
+                        style: HerzogText.body(
+                          color: HerzogColors.midGray,
+                          fontSize: 13,
+                        ),
+                      ),
                     ],
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: _statusBg,
                     borderRadius: BorderRadius.circular(3),

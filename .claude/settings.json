@@ -1,0 +1,51 @@
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git pull:*)",
+      "Bash(git checkout:*)",
+      "Bash(git branch:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git status:*)",
+      "Bash(gh pr:*)",
+      "Bash(gh issue:*)",
+      "Bash(gh auth:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(npm test:*)",
+      "WebSearch",
+      "WebFetch",
+      "Bash(go build:*)",
+      "Bash(flutter pub:*)",
+      "Bash(flutter clean:*)",
+      "Bash(grep -ri \"POC\\\\|validate this week\\\\|before friday\\\\|2026-03-2[0-6]\" /Users/highlander/Desktop/highlander/docs/ /Users/highlander/Desktop/highlander/CLAUDE.md /Users/highlander/Desktop/highlander/.claude/agents/ --include=*.md)"
+    ],
+    "deny": [],
+    "defaultMode": "bypassPermissions",
+    "additionalDirectories": []
+  },
+  "hooks": {
+    "PreToolUse": [],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_response.filePath // .tool_input.file_path' | { read -r f; case \"$f\" in *.dart) dart format \"$f\" ;; *.go) gofmt -w \"$f\" ;; esac; } 2>/dev/null || true",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Notification": [],
+    "Stop": []
+  },
+  "skipDangerousModePermissionPrompt": true
+}

@@ -1,0 +1,137 @@
+# Highlander
+
+Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutter/Dart app built for a hackathon. Solo developer (Alex) + multi-agent Claude Code team.
+
+## Quick Reference
+
+| Item | Value |
+|---|---|
+| Frontend | Flutter / Dart (`flutter/`) |
+| Backend | Go (`backend/`) |
+| Navigation | `go_router` |
+| Local DB | Drift (SQLite mobile, WASM web) |
+| Remote DB | PostgreSQL (via Go API) |
+| Auth | Three-layer: Dev login (role picker for demo) + Firebase Auth (real SSO) + Azure AD-ready (provider-agnostic JWT middleware) |
+| Offline detection | `connectivity_plus` |
+| Local LLM | Ollama — Qwen 2.5 7B |
+| Testing (Primary) | Playwright |
+| Testing (Secondary) | Claude Browser Agent |
+| Distribution | TestFlight (iOS + macOS, single link), Flutter web (fallback) |
+| Styling | Herzog brand system (docs/branding.md) |
+| Local dev | `docker-compose.yml` (Go + PostgreSQL + Ollama) |
+
+## Team Structure
+
+```
+Alex ← CI/CD, pipelines, TestFlight, GitHub Actions, infrastructure
+ └── TPM (sole point of contact for Alex)
+       ├── SWE 1 (Full-Stack)
+       ├── SWE 2 (Full-Stack)
+       └── QA (Playwright + exploratory)
+```
+
+Agent definitions: `.claude/agents/`
+Thought logs: `.logs/thoughts/`
+
+## Rules for All Agents
+
+1. **Work in worktrees.** Each agent creates a branch (`swe1/TASK-{NNN}`, `swe2/TASK-{NNN}`, `qa/test-run`) in their own git worktree. SWEs open PRs, the other SWE peer reviews via comment, QA tests the PR branch and comments results. Author merges only after both peer review AND QA pass.
+2. **Offline-first.** Write to Drift first, sync to Go API → PostgreSQL when online.
+3. **ADA/WCAG compliant.** Every widget, every page, no exceptions. See `docs/accessibility.md`.
+4. **Herzog branding.** Oswald headings, Roboto body, color palette per `docs/branding.md`.
+5. **Web + mobile compatible.** No platform-specific forks.
+6. **Brief thought logs.** 2-4 lines per task in `.logs/thoughts/[agent-name].md`. Developer notes, not reports.
+7. **Read before you build.** Check other agents' thought logs and changelogs before starting a task.
+8. **Don't touch infrastructure.** CI/CD, GitHub Actions, TestFlight, pipelines — Alex owns these.
+9. **Only the TPM creates tasks.** TPM creates GitHub Issues + local `tasks/TASK-{NNN}.md`. SWEs open PRs. The other SWE peer reviews via PR comment, QA tests and comments results on the PR. Author merges only after both peer review and QA pass.
+10. **If blocked, say so.** Tell the TPM what you need. Don't spin.
+
+## Task Management
+
+**GitHub Issues are the source of truth for task tracking.** The local `tasks/board.md` is a quick-reference index only.
+
+- TPM creates a GitHub Issue for each task AND adds a one-line entry to `tasks/board.md`
+- Task lifecycle: `open → in_progress → in_review → qa → done`
+- When status changes, update the GitHub Issue first — the board is secondary
+- If the board and GitHub disagree, GitHub is correct
+
+## Agent Worktree Isolation
+
+All agents work in git worktrees to prevent interference:
+- SWE-1 worktree: `../highlander-swe1/`
+- SWE-2 worktree: `../highlander-swe2/`
+- QA worktree: `../highlander-qa/`
+
+Each agent commits to their worktree branch. SWEs open PRs, peer review each other, and merge their own PRs after approval.
+
+QA tests PR branches directly (not main), so SWEs can continue working on new tasks while QA tests. Main stays clean until QA passes and the author merges.
+
+## Data Flow
+
+```
+User Action → Drift (local SQLite/WASM) → Sync Queue → Go API → PostgreSQL (when online)
+Firebase Auth handles login/signup/2FA independently
+```
+
+## In-App Agent Actions
+
+JSON dispatch to `go_router` (navigation) and `TextEditingController` (form filling). No MCP in-app — MCP is CI-side only. App Store compatible.
+
+## Key Files
+
+- `docs/rubric.md` — **THE SPEC.** SRD-10 Incident Investigation & Corrective Action System. All features, RBAC roles, formulas, status flows. Agents build against this.
+- `docs/overview.md` — Project overview, tech stack, engineering principles
+- `docs/architecture.md` — Data architecture, multi-agent system, task/ticket system, QA strategy
+- `docs/requirements.md` — Feature requirements, distribution, judge experience
+- `docs/progress.md` — What's built vs what's not (updated before every commit)
+- `docs/branding.md` — Full Herzog brand system (typography, colors, components, dark mode)
+- `docs/accessibility.md` — ADA/WCAG specs, contrast ratios, focus indicators
+- `docs/presentation.md` — Judge-facing narratives and talking points
+- `docs/checklist.md` — Validation items, open decisions, resolved contingencies
+- `docs/caveats.md` — Gotchas, constraints, raw ideas
+- `docs/autoresearch-guide.md` — How to run the AutoResearch optimization loop
+- `docs/setup.md` — Development environment setup, tool installation, run commands
+- `.claude/agents/tpm.md` — TPM agent definition
+- `.claude/agents/swe-1.md` — SWE Agent 1 definition
+- `.claude/agents/swe-2.md` — SWE Agent 2 definition
+- `.claude/agents/qa.md` — QA agent definition
+- `.logs/thoughts/` — Agent thought logs
+
+## Wiki Generation
+
+**Before every commit**, regenerate `docs/wiki.md` and copy it to `flutter/assets/wiki.md`. When Alex asks you to commit, always regenerate the wiki first, stage it, then commit — so the wiki is always included and up to date.
+
+The wiki is injected into Qwen 2.5 7B's system prompt as RAG context for the in-app assistant. It should be concise, accurate, and cover:
+- What the app does
+- All pages/routes and their purpose
+- How data is stored and synced (Drift → Go API → PostgreSQL)
+- Key features and how to use them
+- Keyboard shortcuts (if any)
+
+Write it from the perspective of documentation that helps an AI assistant answer user questions about the app. Do NOT hallucinate features that don't exist — only document what's actually in the code.
+
+## Feature Progress Tracking
+
+**Before every commit**, review the code changes and update `docs/progress.md`:
+- Check if any features from `docs/requirements.md` have been completed, partially completed, or started
+- Mark their status accordingly (Done, In Progress, Not Started)
+- Add any new features that were built but weren't originally planned
+- Stage `docs/progress.md` with the commit
+
+## Setup Documentation
+
+**Whenever you install a tool, add a dependency, configure a platform, or run any setup command**, update `docs/setup.md` with the instructions so the environment can be reproduced from scratch.
+
+## Conversation Logging
+
+**Before every commit**, append Alex's messages since the last update to `docs/conversations/aarbuckle.md`. Keep it brief — just the messages with short context notes, not detailed summaries. Append to the existing file, don't overwrite.
+
+## Token Tracking
+
+TPM runs `/cost` after each major delegation and appends results below.
+
+---
+
+### Cost Log
+
+<!-- TPM appends /cost output here -->
