@@ -1,0 +1,65 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+*.iml
+
+# Flutter / Dart
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+# pubspec.lock — committed for apps (ensures consistent deps across agents)
+*.dart.js
+*.js_
+*.js.deps
+*.js.map
+*.iml
+.metadata
+devtools_options.yaml
+
+# Firebase
+.firebase/
+firebase-debug.log
+
+# Ollama / LLM
+*.gguf
+*.bin
+
+# Logs (thought logs stay local, not committed)
+.logs/
+
+# Node (Playwright)
+node_modules/
+test-results/
+playwright-report/
+
+# Go
+backend/server
+backend/tmp/
+
+# PostgreSQL
+postgres_data/
+
+# Docker
+.docker/
+
+# Environment / Secrets
+.env
+.env.*
+*.key
+*.pem
+credentials.json

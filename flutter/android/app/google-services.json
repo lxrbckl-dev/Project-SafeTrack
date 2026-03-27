@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "142712906657",
+    "project_id": "project-175f3",
+    "storage_bucket": "project-175f3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:142712906657:android:072d84cad169705d3f21e0",
+        "android_client_info": {
+          "package_name": "com.herzog.the_march_project"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC-dmpIne-SN6j_kvb1qtI9vIlVR-3IZoA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
