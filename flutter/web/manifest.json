@@ -1,11 +1,11 @@
 {
-    "name": "the_march_project",
-    "short_name": "the_march_project",
+    "name": "Highlander",
+    "short_name": "Highlander",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Incident Investigation & Corrective Action System",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
