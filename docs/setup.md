@@ -68,7 +68,7 @@ highlander/
 | Local Flutter (dev) | `http://localhost:3000` | SWE dev server |
 | Local Flutter (QA) | `http://localhost:3001` | QA test server |
 | Local Go API | `http://localhost:8000` | Backend API |
-| Local PostgreSQL | `localhost:5432` | Database (marchuser/marchpass) |
+| Local PostgreSQL | `localhost:5432` | Database (highlander/marchpass) |
 | Local Ollama | `http://localhost:11434` | LLM (direct, dev only) |
 | Go Chat Proxy | `http://localhost:8000/api/chat` | LLM via Go (production path) |
 
@@ -195,7 +195,7 @@ services:
         condition: service_healthy
     environment:
       - PORT=8000
-      - DATABASE_URL=postgres://marchuser:marchpass@postgres:5432/marchproject?sslmode=disable
+      - DATABASE_URL=postgres://highlander:marchpass@postgres:5432/highlander?sslmode=disable
     restart: unless-stopped
 
   postgres:
@@ -205,11 +205,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=marchproject
-      - POSTGRES_USER=marchuser
+      - POSTGRES_DB=highlander
+      - POSTGRES_USER=highlander
       - POSTGRES_PASSWORD=marchpass
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U marchuser -d marchproject"]
+      test: ["CMD-SHELL", "pg_isready -U highlander -d highlander"]
       interval: 5s
       timeout: 5s
       retries: 5

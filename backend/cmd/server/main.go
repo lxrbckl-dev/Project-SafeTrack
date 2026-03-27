@@ -18,7 +18,7 @@ func main() {
 
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
-		dbURL = "postgres://marchuser:marchpass@localhost:5432/marchproject?sslmode=disable"
+		dbURL = "postgres://highlander:marchpass@localhost:5432/highlander?sslmode=disable"
 	}
 
 	db, err := database.Connect(dbURL)

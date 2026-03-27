@@ -121,6 +121,41 @@ Closed → Reopened (if new info or recurrence identified)
 
 ---
 
+## Implementation Clarifications
+
+Answers from rubric review — these override or refine the spec above.
+
+### Incident Reporting
+- **GPS auto-fill**: Developer's call on UX — can auto-request browser location or use a button trigger
+- **Photos**: No max count or file size limit specified — developer's call
+- **Completion percentage**: Weight all fields equally (not prioritized by required vs optional)
+- **Draft visibility**: Draft incident reports visible only to the reporter, not other users
+- **Total hours worked**: Literal man-hours (daily/cumulative hours across all units per reporting period). Safety Manager enters the total.
+
+### Investigation Management
+- **5-Why visual chain**: Should be interactive (not static with edit buttons) — better for ADA compliance (keyboard-navigable, screen-reader friendly editing in-place)
+- **Contributing factor types**: Must be configurable via admin UI (not pre-set/hardcoded)
+
+### CAPA Management
+- **Verify button**: Hidden from the assignee entirely (not shown with an error message)
+
+### Safety Dashboard
+- **TRIR benchmark line**: Configurable via admin settings page (not a hardcoded default)
+
+### Security
+- **Medical data encryption**: Application-level encryption (more secure than database-level alone — encrypts before data reaches the DB)
+
+### Escalation Notifications — PENDING ANSWER
+- Banner, toast, or notifications panel? (awaiting response)
+
+### Incident Cluster View — PENDING ANSWER
+- Own page or tab within incident detail? (awaiting response)
+
+### Audit Log — PENDING ANSWER
+- UI viewer needed or database-level logging sufficient? (awaiting response)
+
+---
+
 ## Future Phase (Deferred — NOT in scope for this build)
 
 - Offline incident reporting (we have the infrastructure — potential differentiator)

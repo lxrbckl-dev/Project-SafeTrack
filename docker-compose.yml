@@ -1,0 +1,39 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - PORT=8000
+      - DATABASE_URL=postgres://highlander:marchpass@postgres:5432/highlander?sslmode=disable
+      - OLLAMA_URL=http://ollama:11434
+
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=highlander
+      - POSTGRES_USER=highlander
+      - POSTGRES_PASSWORD=marchpass
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U highlander -d highlander"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  ollama:
+    image: ollama/ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+volumes:
+  postgres_data:
+  ollama_data:
