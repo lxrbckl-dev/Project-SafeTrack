@@ -25,13 +25,13 @@
 | Playwright setup | Installed, browser downloaded, test scripts run against Flutter web |
 | Multi-agent development system | 4-agent team (TPM + 2 SWEs + QA) with embedded skills (see below) |
 | CLAUDE.md orchestration | Central config with rules, key files, automated instructions |
-| Monorepo structure | flutter/, backend/, deploy/, playwright/, eval/, tasks/ |
+| Monorepo structure | flutter/, backend/, deploy/, playwright/, eval/ |
 | Docker-compose | Go + PostgreSQL + Ollama — full local dev stack |
 | Auto-format hook | `dart format` + `gofmt` run automatically after every file write |
 | Code style enforcement | Effective Dart + Effective Go referenced in agent definitions, linters active |
-| Local task board | tasks/board.md + TASK-{NNN}.md system, replaces GitHub Issues |
+| Task tracking | GitHub Issues via `gh` CLI — sole source of truth |
 | Agent worktree isolation | All agents work in separate git worktrees. SWEs open PRs, peer review each other, author merges |
-| Agent conversation logging | All agents log exchanges to docs/conversations/agents.md |
+| Agent conversation logging | Each agent logs exchanges to docs/conversations/[agent-name].md |
 | Agent Teams launch prompt | Production + validation test prompts documented in architecture.md |
 | AutoResearch guide | Full post-build optimization process documented |
 | macOS network entitlements | network.client added for API/Ollama access |
@@ -67,9 +67,9 @@ Each agent is trained with embedded skills in their definition files (`.claude/a
 | ADA audit | QA | Validate contrast, focus, keyboard nav, zoom, semantic structure |
 | Worktree isolation | All | Each agent works in a separate git worktree |
 | Thought logging | All | Brief 2-4 line developer notes after every task |
-| Conversation logging | All | Log exchanges to docs/conversations/agents.md |
+| Conversation logging | All | Log exchanges to docs/conversations/[agent-name].md |
 | Task difficulty rating | TPM | Trivial / Routine / Complex / Critical classification |
-| Task board management | TPM | Creates TASK-{NNN}.md files, manages board.md lifecycle |
+| Task management | TPM | Creates and manages GitHub Issues via `gh` CLI |
 | QA coordination | TPM | Manages SWE pause/resume around QA worktree cycles |
 | Difficulty-based model routing | TPM | Trivial/Routine → Sonnet, Complex/Critical → Opus. TPM sets model at spawn time |
 
@@ -111,17 +111,37 @@ Each agent is trained with embedded skills in their definition files (`.claude/a
 | TestFlight distribution | Waiting on Apple Developer approval | Upload first build once approved |
 | Agent Teams validation | Alex testing in CLI | Confirm team spawns and coordinates |
 
-## Not Started
+## Not Started — Rubric Features (SRD-10)
+
+| Feature | Notes |
+|---|---|
+| Incident reporting | Full form with 7 types, GPS auto-fill, photos, draft save, completion %, OSHA decision tree, railroad notification tracking, injured person details |
+| Investigation management | Assign investigator, auto-deadlines by severity, 5-Why interactive chain, contributing factor classification (configurable via admin UI), witness statements, review/approval workflow |
+| CAPA management | Create from investigations, priority-based due dates, lifecycle with effectiveness verification, verifier != assignee (verify button hidden from assignee), dashboard with KPIs |
+| Safety dashboard | TRIR/DART/Near Miss KPIs, trend charts, incidents by division, severity donut, leading indicators, recent incidents table, TRIR benchmark configurable via admin settings |
+| Manual recurrence linking | Link incidents by similarity type, cluster view |
+| Admin settings page | Configurable factor types, TRIR industry benchmark, system settings |
+| Audit log viewer | UI for browsing immutable audit trail — Admin and Safety Manager access |
+| Medical data encryption | Application-level encryption for injured person fields in Go backend |
+| RBAC route protection | 7 roles with scoped UI and API permissions per rubric |
+| Draft incident visibility | Drafts visible only to reporter |
+
+## Not Started — Supporting Features
 
 | Feature | Notes |
 |---|---|
 | In-app AI agent (page nav + form filling) | JSON action dispatch to go_router/TextEditingController. Not started. |
 | Keyboard shortcuts | Flutter Shortcuts/Actions system. Not started. |
-| AutoResearch Phase 1 | Optimize agent prompts against eval test cases. Post-build. |
-| AutoResearch Phase 2 | Optimize Qwen with app-specific training. Post-build. |
-| Agent personas post-build | Upload personas + logs to Claude project for interactive Q&A. Post-hackathon. |
 | Playwright test suite | QA agent writes tests during hackathon. Infrastructure ready. |
 | Claude browser agent QA | Secondary QA — exploratory validation. |
 | ADA/WCAG compliance | Built into every feature during hackathon — requirement per accessibility.md |
-| Horizontal scaling (Go backend) | Stateless API design enables multi-container scaling. Docker Compose: `--scale backend=3`. K8s: HPA auto-scales pods on CPU/memory. No code changes needed — already architected for this. Post-hackathon. |
-| Ollama load balancing | Single Ollama instance is a throughput bottleneck under concurrent users. Post-hackathon: run multiple Ollama instances behind a load balancer or implement request queuing. |
+
+## Post-Hackathon
+
+| Feature | Notes |
+|---|---|
+| AutoResearch Phase 1 | Optimize agent prompts against eval test cases. |
+| AutoResearch Phase 2 | Optimize Qwen with app-specific training. |
+| Agent personas post-build | Upload personas + logs to Claude project for interactive Q&A. |
+| Horizontal scaling (Go backend) | Stateless API design enables multi-container scaling. No code changes needed. |
+| Ollama load balancing | Multiple Ollama instances behind a load balancer or request queuing. |

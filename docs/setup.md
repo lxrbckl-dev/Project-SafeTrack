@@ -52,7 +52,6 @@ highlander/
 ├── playwright/                  # Playwright tests
 ├── eval/                 # AutoResearch evals
 ├── docs/                 # Project documentation
-├── tasks/                # Task board
 ├── docker-compose.yml    # Local dev stack
 └── CLAUDE.md             # Agent orchestration
 ```

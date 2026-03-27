@@ -7,7 +7,11 @@
 Structure the presentation to walk judges through each rubric category, demonstrating how we score in every one:
 
 ### 1. Functionality & Completeness
-- Live demo of the app's features (determined by brief)
+- Live demo: incident reporting → investigation (interactive 5-Why) → CAPA lifecycle → safety dashboard with TRIR/DART
+- Show 7 RBAC roles via dev login role picker — each sees different UI
+- Admin settings: configurable factor types, TRIR benchmark
+- Audit log viewer: full traceability of every action
+- Application-level medical data encryption
 - Cross-platform: same app on iOS, macOS, Android, Web, Windows
 - Offline-first: works without internet, syncs when online
 - In-app AI assistant powered by Qwen 2.5 7B with auto-generated wiki context

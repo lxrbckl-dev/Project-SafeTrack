@@ -13,8 +13,19 @@ Write → Local Drift DB → Sync Queue → Go API → PostgreSQL (when online)
 - **Go** serves as a thin API layer between Flutter and PostgreSQL
 - **PostgreSQL** is the remote data store — relational, matching Drift's SQLite schema naturally (no translation layer needed)
 - Database schema defined as Go structs in `backend/internal/models/` — GORM auto-migrates on startup
-- Go API endpoints: `/health`, `/api/sync`, `/api/data`
+- Go API endpoints: `/health`, `/api/sync`, `/api/data`, `/api/chat` (existing); feature endpoints added per rubric (incidents, investigations, CAPAs, dashboard, audit log, admin settings)
 - Connection pooling via Go's `database/sql` (PgBouncer optional at scale)
+
+### Security: Medical Data Encryption
+- **Application-level encryption** — medical fields (injury type, body part, treatment type, return-to-work status) are encrypted in the Go backend before writing to PostgreSQL
+- Decryption happens in the Go API layer, gated by RBAC — only Safety Coordinator and above can access plaintext
+- Encryption key managed via environment variable, not hardcoded
+
+### Audit Log
+- All incident and investigation actions are immutably audit-logged (create, update, status change, approval, CAPA actions)
+- **UI viewer required** — Admin and Safety Manager roles can browse the audit trail in-app
+- Audit records: timestamp, user, action, entity type, entity ID, before/after values
+- Records retained permanently, append-only (no deletes)
 
 ### Auth: Three-Layer System
 - **Layer 1 — Dev Login (demo):** Role picker screen. User selects a role (Field Reporter, Safety Coordinator, Safety Manager, PM, Division Manager, Executive, Admin) and enters the app instantly. No credentials needed. Built for judges to quickly see all 7 RBAC roles in action.
@@ -75,7 +86,7 @@ Create a team based on our agent definitions in .claude/agents/. The team struct
 - Spawn SWE-2 as a full-stack developer (their instructions are in .claude/agents/swe-2.md)
 - Spawn QA as the testing agent (their instructions are in .claude/agents/qa.md)
 
-Read CLAUDE.md for project rules. Read docs/overview.md and docs/architecture.md for full context. All agents must follow the rules in CLAUDE.md. Log all exchanges to docs/conversations/agents.md.
+Read CLAUDE.md for project rules. Read docs/overview.md and docs/architecture.md for full context. All agents must follow the rules in CLAUDE.md. Each agent logs exchanges to their own file in docs/conversations/.
 
 Awaiting feature requests.
 ```
@@ -87,7 +98,7 @@ For this test run, assign a small task to validate the team works:
 - SWE-2: Read docs/overview.md and docs/architecture.md, then summarize the project architecture
 - QA: Read the existing Playwright test in playwright/home.spec.ts and suggest one additional test case
 
-Each agent should log their work to docs/conversations/agents.md per their instructions. Report back when all agents have completed.
+Each agent should log their work to their own file in docs/conversations/ per their instructions. Report back when all agents have completed.
 ```
 
 ### Agent Roles
@@ -109,12 +120,12 @@ The TPM is the only agent you communicate with. It:
 1. Accepts high-level feature requests from you in plain language
 2. Breaks features into atomic, self-contained tasks
 3. Rates each task by difficulty (Trivial / Routine / Complex / Critical)
-4. Creates task files in `tasks/TASK-{NNN}.md` and updates `tasks/board.md`
+4. Creates GitHub Issues for each task (`gh issue create`)
 5. Assigns tasks to the appropriate SWE agent with effort level embedded
 6. Generates test plans and hands them to the QA agent
 7. Monitors progress and synthesizes results
 8. Only surfaces blockers or human decisions back to you
-9. Marks tasks complete on the board when QA passes
+9. Closes issues when QA passes
 10. Clarifies and asks questions if it doesn't understand something, then verifies understanding before proceeding
 
 ### Effort Levels
@@ -172,9 +183,6 @@ deploy/                             ← Docker, K8s, Terraform
 docker-compose.yml                 ← Local dev: Go + PostgreSQL + Ollama
 playwright/                               ← Playwright test scripts
 eval/                              ← AutoResearch eval scripts
-tasks/                             ← Local task board
-  board.md
-  TASK-{NNN}.md
 .claude/agents/                    ← Agent definitions
 .logs/thoughts/                    ← Agent thought logs
 docs/                              ← Project documentation
@@ -208,35 +216,11 @@ brew install tmux
 
 ## Task & Ticket System
 
-### Local Task Board
-Tasks are tracked in `tasks/`:
-- `tasks/board.md` — index with status columns (Open, In Progress, In Review, QA, Done)
-- `tasks/TASK-{NNN}.md` — individual task files
+### Task Tracking
 
-Task lifecycle: `open → in_progress → in_review → qa → done`
+**GitHub Issues are the sole source of truth.** TPM creates issues via `gh issue create`, assigns them, and closes them when QA passes. Task lifecycle: `open → in_progress → in_review → qa → done` (tracked via labels and comments).
 
-### Task File Format
-```markdown
-# TASK-001: Build login endpoint
-
-**Difficulty:** Complex
-**Model:** Opus
-**Assignee:** SWE-1
-**Status:** open
-
-## Description
-Build a POST /auth/login endpoint that validates credentials and returns a JWT.
-
-## Acceptance Criteria
-- Returns 200 + JWT on valid credentials
-- Returns 401 on invalid credentials
-- Token expires in 24 hours
-
-## Dependencies
-- TASK-000 (JWT utility) must be complete first
-```
-
-> **Rule:** Only the TPM creates and manages tasks. SWEs self-assign and update status on the board.
+> **Rule:** Only the TPM creates and manages tasks.
 
 ---
 

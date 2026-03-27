@@ -56,8 +56,8 @@ An internal web application for incident reporting, investigation workflows (5-W
 ### Security & Standards
 - Azure AD SSO (demo: dev login with role picker; production: provider-agnostic JWT middleware supports Azure AD as config swap)
 - RBAC: 7 roles (see below)
-- Injured person medical data restricted to Safety role and above; medical data encrypted at field level
-- All incident and investigation actions immutably audit-logged; records retained permanently
+- Injured person medical data restricted to Safety role and above; medical data encrypted at application level before reaching the database
+- All incident and investigation actions immutably audit-logged; records retained permanently; audit log viewer accessible in the UI
 - TLS 1.2+; WCAG 2.1 AA; mobile-responsive down to 375px viewport; Herzog UI Brand System throughout
 
 ---
@@ -72,11 +72,14 @@ An internal web application for incident reporting, investigation workflows (5-W
 | PM (Project Manager) | View project-scoped data | Modify incidents, investigations, or CAPAs outside their projects |
 | Division Manager | View division-scoped data | Modify incidents, investigations, or CAPAs outside their division |
 | Executive | View all data across all divisions | Modify records (view-only) |
-| Admin | Configure system (factor types, settings) | — (full system access) |
+| Admin | Configure system (factor types, TRIR benchmark, settings), view audit log | — (full system access) |
 
 **Special rules:**
 - Injured person medical data: restricted to Safety Coordinator and above
 - CAPA verifier must be a different user from the CAPA assignee
+- CAPA verify button hidden from assignee (not shown with error)
+- Draft incident reports visible only to the reporter
+- Audit log viewer: Admin and Safety Manager
 
 ---
 
@@ -145,14 +148,14 @@ Answers from rubric review — these override or refine the spec above.
 ### Security
 - **Medical data encryption**: Application-level encryption (more secure than database-level alone — encrypts before data reaches the DB)
 
-### Escalation Notifications — PENDING ANSWER
-- Banner, toast, or notifications panel? (awaiting response)
+### Escalation Notifications
+- Developer's call on implementation (banner, toast, or notifications panel)
 
-### Incident Cluster View — PENDING ANSWER
-- Own page or tab within incident detail? (awaiting response)
+### Incident Cluster View
+- Developer's call (own page or tab within incident detail)
 
-### Audit Log — PENDING ANSWER
-- UI viewer needed or database-level logging sufficient? (awaiting response)
+### Audit Log
+- Build a UI viewer — judges will want to see it. An audit trail that's only in the database isn't visible during a demo.
 
 ---
 
