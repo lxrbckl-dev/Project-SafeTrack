@@ -15,7 +15,7 @@
 | RBAC (7 roles) | Field Reporter, Safety Coordinator, Safety Manager, PM, Division Manager, Executive, Admin |
 | Go backend | Go API server with GORM ORM, health/sync/data/chat endpoints, JWT auth middleware |
 | PostgreSQL (via GORM) | Auto-migrating ORM — agents define tables as Go structs, no SQL migrations needed |
-| Offline-first sync service | Drift → sync queue → Go API → PostgreSQL. Manual sync button. |
+| Sync service | API-first: Flutter → Go API → PostgreSQL. Drift available for local caching (offline sync deferred). |
 | connectivity_plus | Real-time online/offline detection, tested on web |
 | Ollama + Qwen 2.5 7B | Installed, serving, responds to prompts via REST API |
 | Wiki-as-RAG | Wiki injected into Qwen system prompt, answers questions accurately from context |
@@ -50,7 +50,7 @@ Each agent is trained with embedded skills in their definition files (`.claude/a
 | SOLID Principles | SWE-1, SWE-2 | All five principles enforced on every design decision |
 | Effective Dart | SWE-1, SWE-2 | Official Dart style guide, auto-formatted via `dart format` |
 | Effective Go | SWE-1, SWE-2 | Official Go style guide, auto-formatted via `gofmt` |
-| Offline-first pattern | SWE-1, SWE-2 | Drift → sync queue → Go API → PostgreSQL |
+| API-first pattern | SWE-1, SWE-2 | Flutter → Go API → PostgreSQL (Drift for local caching) |
 | ADA/WCAG compliance | SWE-1, SWE-2, QA | Semantic widgets, contrast ratios, focus indicators, keyboard nav |
 | Herzog brand system | SWE-1, SWE-2 | Oswald headings, Roboto body, full color palette |
 | Feature-first architecture | SWE-1, SWE-2 | Monorepo structure with self-contained feature directories |
@@ -80,7 +80,7 @@ Each agent is trained with embedded skills in their definition files (`.claude/a
 | SOLID Principles | | x | x | |
 | Effective Dart | | x | x | |
 | Effective Go | | x | x | |
-| Offline-first pattern | | x | x | |
+| API-first pattern | | x | x | |
 | ADA/WCAG compliance | | x | x | x |
 | Herzog brand system | | x | x | |
 | Feature-first architecture | | x | x | |

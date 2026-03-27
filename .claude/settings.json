@@ -40,7 +40,12 @@
       "Bash(grep -r \"POC\\\\|before friday\\\\|once the brief\\\\|waiting on rubric\\\\|throwaway\" /Users/highlander/Desktop/highlander --include=*.md --include=*.dart --include=*.go)",
       "Bash(grep -r \"NFC\\\\|business card\" /Users/highlander/Desktop/highlander --include=*.md --include=*.dart --include=*.go)",
       "Bash(grep -l \"docs/features.md\\\\|tasks/board.md\\\\|tasks/\\\\|instructions.md\\\\|docs/poc-checklist.md\\\\|docs/judge-session-prompt.md\" /Users/highlander/Desktop/highlander/*.md /Users/highlander/Desktop/highlander/.claude/agents/*.md)",
-      "Bash(grep -n 'database name' /Users/highlander/Desktop/highlander/docs/*.md /Users/highlander/Desktop/highlander/.claude/agents/*.md)"
+      "Bash(grep -n 'database name' /Users/highlander/Desktop/highlander/docs/*.md /Users/highlander/Desktop/highlander/.claude/agents/*.md)",
+      "Bash(go get:*)",
+      "Bash(printf '%s' 'highlander-dev-key-change-in-prod!')",
+      "Read(//Users/highlander/Desktop/highlander/$\\(flutter --no-version-check sdk-path 2>/dev/null\\)/packages/flutter/lib/src/**)",
+      "Bash(flutter --no-version-check sdk-path)",
+      "Read(//Users/highlander/development/flutter/packages/flutter/lib/src/semantics/**)"
     ],
     "deny": [],
     "defaultMode": "bypassPermissions",

@@ -13,7 +13,7 @@ You are a full-stack software engineer on a hackathon team building a cross-plat
   - **Dev login** (for demo): role picker screen — user selects a role (Field Reporter, Safety Coordinator, Safety Manager, PM, Division Manager, Executive, Admin) and enters the app as that role. No password required.
   - **Firebase Auth** (real SSO): Google/GitHub OAuth for real authentication
   - **Go middleware** is provider-agnostic: verifies JWT claims and reads the role. Supports Azure AD as a config swap in production.
-- **Connectivity:** `connectivity_plus` for offline-first detection
+- **Connectivity:** `connectivity_plus` for network state detection
 - **Local LLM:** Ollama running Qwen 2.5 7B
 - **Styling:** Herzog brand system (see docs/branding.md and flutter/lib/app/herzog_theme.dart)
 - **Local dev:** `docker-compose up` (Go + PostgreSQL + Ollama)
@@ -62,9 +62,9 @@ flutter/lib/
 │   └── services/
 ├── features/               # Each feature is self-contained
 │   └── your_feature/
-│       ├── data/           # Repositories, data sources
-│       ├── domain/         # Models, business logic
-│       └── presentation/   # Pages, widgets
+│       ├── data/           # API repositories, data sources
+│       ├── pages/          # Page widgets
+│       └── widgets/        # Reusable widgets for this feature
 └── shared/                 # Shared widgets, models across features
     ├── widgets/
     └── models/
@@ -93,13 +93,13 @@ Do NOT create top-level `pages/`, `services/`, or `models/` directories. Keep fe
   - **I** — Interface Segregation: small, focused interfaces over large catch-all ones
   - **D** — Dependency Inversion: depend on abstractions (interfaces), not concrete implementations. Pass dependencies in, don't hardcode them
 - **Web + mobile compatible** — no platform-specific forks. Everything must work on iOS, Android, and Web
-- **Offline-first** — write to Drift first, sync to Go API → PostgreSQL when online
+- **API-first** — call the Go backend directly for all data operations. Drift is available for local caching but offline-first sync is deferred
 - **ADA/WCAG compliant** — use semantic widgets, proper contrast ratios, focus indicators, `rem`/`em` units
 - **Herzog styling** — Oswald for headings, Roboto for body, color palette per brand spec
 - Use Flutter `Shortcuts`/`Actions` for keyboard shortcuts (not low-level listeners)
 - Use `go_router` for all navigation
 - In-app agent actions use JSON dispatch, not MCP (App Store compatibility)
-- **Error handling pattern:** When a Go API call fails, show a `SnackBar` with the error message and fall back to local Drift data. Never show a blank screen or crash on network failure. The app must always work offline.
+- **Error handling pattern:** When a Go API call fails, show a `SnackBar` with the error message. Never show a blank screen or crash on network failure. Degrade gracefully with a retry option.
 
 ## Running the Dev Environment
 
@@ -123,20 +123,19 @@ If it doesn't return `{"status":"ok"}`, fix docker-compose before proceeding.
 
 ## Adding a New Feature (Checklist)
 
-1. Create feature directory: `flutter/lib/features/your_feature/`
-2. Add Flutter pages/widgets in `presentation/`
-3. Add route in `flutter/lib/app/app_router.dart`
+1. Create feature directory: `flutter/lib/features/your_feature/` with sub-directories: `pages/`, `widgets/`, `data/`. Place page widgets in `pages/`, reusable widgets in `widgets/`, API repositories in `data/`.
+2. Add route in `flutter/lib/app/app_router.dart`
 4. If the feature needs backend data:
    - Add a GORM model in `backend/internal/models/` and register in `AllModels()`
    - Add a handler in `backend/internal/handlers/`
    - Register the route in `backend/cmd/server/main.go` (under the `api` mux for authenticated routes)
    - **Read `docs/backend-patterns.md`** for GORM model, handler, and route examples
 5. Use `ApiConfig.baseUrl` for all API calls — never hardcode URLs
-6. Follow offline-first: write to Drift first, sync via `SyncService`
+6. Use direct API calls to the Go backend via `ApiConfig.baseUrl` — do NOT create Drift tables for feature data
 7. If the feature needs role-based access:
    - Check the current user's role (from the dev login role picker or Firebase Auth claims)
    - Use the role to show/hide UI elements and protect routes — **hide unauthorized actions entirely** (don't show with error)
-   - Send the role in API calls via header or JWT claim
+   - Role is extracted from the JWT by Go middleware and set on the request context — see `backend-patterns.md` Auth Context section
    - Go middleware checks the role and returns 403 if unauthorized
    - RBAC roles and permissions are defined in `docs/rubric.md` — read it before building any role-gated feature
    - Special: medical data restricted to Safety Coordinator+, CAPA verifier ≠ assignee (hide verify button from assignee), draft incidents visible only to reporter

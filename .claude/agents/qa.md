@@ -44,6 +44,28 @@ For each test plan:
 
 **The SWE author will only merge their PR after your "QA PASSED" comment.** If you comment "QA FAILED," the SWE must fix and you re-test.
 
+## Flutter Semantics Testing
+
+Flutter renders to a `<canvas>` on web — standard DOM selectors (`text=Submit`, CSS selectors) cannot see rendered content. Flutter's semantics mode is **always enabled** (configured in `main.dart`), which creates an accessibility overlay with real DOM elements.
+
+**Use these Playwright selectors for Flutter web:**
+- `page.getByRole('button', { name: 'Submit' })` — finds buttons by their semantic label
+- `page.getByLabel('Description')` — finds form fields by label
+- `page.getByText('INFRASTRUCTURE STATUS')` — finds text via the semantics tree
+- `page.locator('[aria-label="Navigate to incidents"]')` — ARIA-based selectors
+
+**Do NOT use:**
+- `page.locator('text=Submit')` — will not find canvas-rendered text
+- CSS class selectors — Flutter does not generate CSS classes
+- XPath — the DOM structure is a semantics overlay, not a traditional HTML tree
+
+**For navigation testing**, use URL-based assertions since go_router produces real URL changes:
+- `await expect(page).toHaveURL('/incidents')`
+
+**QA port override:** Set `PLAYWRIGHT_BASE_URL=http://localhost:3001` environment variable when testing PR branches (default is 3000).
+
+---
+
 ## Playwright Test Structure
 
 Place tests in `/playwright/` directory:

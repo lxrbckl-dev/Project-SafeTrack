@@ -36,13 +36,13 @@ func main() {
 
 	// Public routes
 	mux.HandleFunc("GET /health", handlers.Health)
-	mux.HandleFunc("POST /api/chat", handlers.Chat())
 
 	// Authenticated routes
 	api := http.NewServeMux()
 	api.HandleFunc("POST /api/sync", handlers.Sync(db))
 	api.HandleFunc("GET /api/data", handlers.GetData(db))
-	api.HandleFunc("GET /api/audit-logs", handlers.GetAuditLogs(db))
+	api.HandleFunc("GET /api/audit-logs", handlers.GetAuditLogs(db)) // TODO (TASK-014): restrict to Admin + Safety Manager
+	api.HandleFunc("POST /api/chat", handlers.Chat())
 
 	mux.Handle("/api/", middleware.FirebaseAuth(api))
 

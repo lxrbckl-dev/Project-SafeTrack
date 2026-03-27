@@ -276,3 +276,32 @@ Already installed: Flutter 3.41.4, Xcode 26.3, Playwright 1.58.2
 - Final result: 46/46 rubric requirements covered, 13/13 implementation clarifications reflected, 7/7 RBAC roles enforced, all formulas implemented, full status flow verified, all deferred items excluded
 - Verified all requirements.md features mapped: LLM + wiki pipeline already built, keyboard shortcuts + AI agent in Phase 5, ADA cross-cutting, agent personas post-hackathon, distribution is Alex's domain
 - Updated task statistics: 9 Routine, 9 Complex, 1 Critical
+
+### Pre-Launch Stress Testing (Multiple Rounds)
+- Spawned two stress-test agents to anticipate problems across frontend, backend, GitHub workflow, and agent coordination
+- **Round 1** found 6 blockers + 7 high-priority issues:
+  - go.mod missing JWT library — added `golang-jwt/jwt/v5`
+  - No state management — added Provider to pubspec.yaml + rule in CLAUDE.md
+  - Flutter canvas blocks Playwright testing — enabled semantics mode in main.dart
+  - Offline-first contradiction — updated CLAUDE.md rule to API-first (offline sync deferred per rubric)
+  - GORM relationships not documented — added HasMany/Preload patterns to backend-patterns.md
+  - Auth middleware using headers instead of request context — created helpers.go with GetUserRole/GetUserID, updated auth.go to use context.WithValue
+  - Route registration helpers, handler splitting guidance, completion % pattern, business day calculator all added to backend-patterns.md
+  - Herzog theme extended with NavigationRail, TabBar, DataTable, Chip, SnackBar, chart color palette
+  - SWE agent feature directory standardized (pages/, widgets/, data/)
+  - TPM instructed to create GitHub Issues upfront per phase
+  - Playwright config updated with PLAYWRIGHT_BASE_URL env var for QA port override
+- **Round 2** found auth.go still didn't match documented pattern, build-plan TASK-001 still said "headers", CreateIncident example used client-supplied data, /api/chat was public, audit log had no RBAC check, SWE agents still referenced offline-first + headers:
+  - Created middleware/helpers.go with real GetUserRole/GetUserID functions
+  - Rewrote auth.go to set context values (stub for TASK-001 JWT decoding)
+  - Moved /api/chat behind auth middleware
+  - Fixed CreateIncident example to use context-derived identity
+  - Updated build-plan TASK-001 to say context.WithValue
+  - Removed all "offline-first" and "header" references from SWE agents
+  - Fixed SWE agent directory tree (presentation/ → pages/)
+  - Updated error handling ("must always work offline" → "degrade gracefully with retry")
+- **Round 3** found offline-first language remaining in wiki.md, presentation.md, progress.md, architecture.md, overview.md:
+  - Updated all 7 files to API-first language
+  - Confirmed both wiki copies (docs/ + flutter/assets/) are consistent
+- **Round 4 (final)** — all 8 checks pass, zero issues remaining
+- Go compiles, Flutter resolves after every round of changes

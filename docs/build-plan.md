@@ -12,7 +12,7 @@
 - **Dependencies:** None
 
 **Go:**
-- Update `middleware/auth.go` to extract `X-User-Role` and `X-User-ID` headers (dev mode) or JWT claims (prod mode)
+- Update `middleware/auth.go` to decode JWT claims and set `userRole` + `userID` on request context via `context.WithValue` (see `backend-patterns.md` Auth Context section). Dev mode: decode self-signed HS256 JWT. Prod mode: verify Firebase/Azure AD RS256 JWT. Helper functions `GetUserRole(r)` and `GetUserID(r)` already exist in `middleware/helpers.go`.
 - Add `POST /api/dev-login` endpoint — accepts role string, returns mock JWT with role + user ID
 
 **Flutter:**
@@ -37,6 +37,9 @@
 - `ShellRoute` wrapping all authenticated routes in `app_router.dart`
 
 **QA:** Navigation works for all 7 roles. Admin/Audit Log hidden for unauthorized roles. Responsive at 375px.
+
+- Clean up: remove or gate the existing `poc/` routes from `app_router.dart` (these are infrastructure test pages, not features)
+- Establish shared form patterns in `flutter/lib/shared/widgets/`: common text field wrapper, dropdown wrapper, date picker wrapper, loading button
 
 ---
 
@@ -143,7 +146,7 @@
 - `POST /api/investigations/{id}/submit-for-review` — validates min 3 five-whys + 1 primary factor. Status → Under Review
 - `POST /api/investigations/{id}/review` — Safety Manager approves or returns with required comments. Approve → updates incident to Investigation Complete, triggers CAPA creation prompt. Audit-log
 
-**QA:** Auto-deadline correct per severity. Min 3 five-whys enforced on submit. Primary factor required. Only Safety Manager can create/review. Approve/return updates statuses. Overdue flag logic works. All operations audit-logged.
+**QA:** Auto-deadline correct per severity. Min 3 five-whys enforced on submit. Primary factor required. Only Safety Manager can create/review. Approve/return updates statuses. Overdue flag logic works. All operations audit-logged. Business day calculation for 'Lost Time = 5 business days' uses weekend-skipping helper (see backend-patterns.md).
 
 ---
 
@@ -441,3 +444,11 @@ Only one SWE touches these files at a time:
 - `flutter/lib/app/app_router.dart` — route registration
 
 The SWE not touching shared files works on isolated feature directories. Before starting a task that touches shared files, rebase onto latest main.
+
+## Widget Placement Strategy
+
+- **App-wide services** (AuthService, NotificationService): `flutter/lib/core/services/`
+- **Shared widgets** (used by multiple features): `flutter/lib/shared/widgets/`
+- **Feature-specific widgets**: inside the feature directory at `features/X/widgets/`
+- **Feature pages**: `features/X/pages/`
+- **API repositories**: `features/X/data/`

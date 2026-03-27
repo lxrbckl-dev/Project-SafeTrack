@@ -2,12 +2,13 @@
 
 ## Data Architecture
 
-### Offline-First Pattern
+### API-First Pattern
 ```
-Write → Local Drift DB → Sync Queue → Go API → PostgreSQL (when online)
+User Action → Go API → PostgreSQL (primary data path)
+Drift available for local caching (offline-first sync deferred to Future Phase)
 ```
 - `connectivity_plus` detects network state
-- Drift chosen because it uses native SQLite on iOS/Android and compiles to **WebAssembly** for web — identical query and schema code across all platforms
+- Drift is available for local caching — it uses native SQLite on iOS/Android and compiles to **WebAssembly** for web. Full offline-first sync is a future phase feature.
 
 ### Backend: Go API + PostgreSQL
 - **Go** serves as a thin API layer between Flutter and PostgreSQL

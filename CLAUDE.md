@@ -53,10 +53,11 @@ Awaiting feature requests.
 ## Rules for All Agents
 
 1. **Work in worktrees.** Each agent creates a branch (`swe1/TASK-{NNN}`, `swe2/TASK-{NNN}`, `qa/test-run`) in their own git worktree. SWEs open PRs, the other SWE peer reviews via comment, QA tests the PR branch and comments results. Author merges only after both peer review AND QA pass.
-2. **Offline-first.** Write to Drift first, sync to Go API → PostgreSQL when online.
+2. **API-first.** Call the Go backend directly for all data operations. Drift is available for local caching but offline-first sync is deferred (rubric Future Phase). Do NOT create Drift tables for feature data.
 3. **ADA/WCAG compliant.** Every widget, every page, no exceptions. See `docs/accessibility.md`.
 4. **Herzog branding.** Oswald headings, Roboto body, color palette per `docs/branding.md`.
 5. **Web + mobile compatible.** No platform-specific forks.
+5a. **Use Provider for state management.** Shared state (auth, notifications) should be `ChangeNotifier` classes provided at the app root via `MultiProvider` in `main.dart`. Do not use global variables or singletons.
 6. **Brief thought logs.** 2-4 lines per task in `.logs/thoughts/[agent-name].md`. Developer notes, not reports.
 7. **Read before you build.** Check other agents' thought logs and changelogs before starting a task.
 8. **Don't touch infrastructure.** CI/CD, GitHub Actions, TestFlight, pipelines — Alex owns these.
@@ -85,8 +86,9 @@ QA tests PR branches directly (not main), so SWEs can continue working on new ta
 ## Data Flow
 
 ```
-User Action → Drift (local SQLite/WASM) → Sync Queue → Go API → PostgreSQL (when online)
+User Action → Go API → PostgreSQL (primary data path)
 Firebase Auth handles login/signup/2FA independently
+Drift available for local caching (offline-first sync deferred to Future Phase)
 ```
 
 ## In-App Agent Actions

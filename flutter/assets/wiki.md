@@ -29,18 +29,14 @@ Highlander is a cross-platform Incident Investigation & Corrective Action System
 - GORM ORM auto-migrates tables from Go struct definitions on startup
 - Firebase is used for authentication only, not data storage
 
-### Sync Flow
-1. User saves a note → writes to local Drift database immediately (works offline)
-2. Record is marked `synced: false`
-3. When online, SyncService pushes unsynced records to Go API → PostgreSQL
-4. Successfully synced records are marked `synced: true`
-5. SyncService auto-triggers when device transitions from offline → online
-6. Manual sync available via "Sync Now" button
-7. If the API is unreachable, data stays safe in local Drift — never lost
+### Data Flow
+1. User action → Go API → PostgreSQL (primary data path)
+2. Drift is available for local caching
+3. Full offline-first sync is a future phase feature
 
 ## Key Features
 
-- **Offline-first**: The app works without internet. All writes go to the local database first.
+- **API-first architecture**: Data flows through the Go backend to PostgreSQL. Local caching via Drift is available; full offline sync is a future phase.
 - **Real-time connectivity detection**: Detects online/offline state and updates the UI live.
 - **Local AI assistant**: Qwen 2.5 7B runs locally via Ollama and answers questions about the app using this wiki as context.
 - **Cross-platform**: One codebase runs on iOS, Android, Web, macOS, and Windows.

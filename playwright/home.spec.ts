@@ -1,24 +1,24 @@
 import { test, expect } from '@playwright/test';
 
-// Flutter renders to canvas — use longer timeouts.
-// For text-level assertions, enable Flutter semantics mode.
+// Flutter renders to canvas — use semantics tree for element queries.
+// Flutter's semantics mode is always-on (enabled in main.dart).
+// Use page.getByRole(), page.getByLabel(), and ARIA selectors for interactions.
 
 test('home page loads with 200', async ({ page }) => {
-  const response = await page.goto('http://localhost:3000');
+  const response = await page.goto('/');
   expect(response?.status()).toBe(200);
 });
 
 test('home page renders without JS errors', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (err) => errors.push(err.message));
-  await page.goto('http://localhost:3000');
+  await page.goto('/');
   await page.waitForTimeout(5000);
   expect(errors).toEqual([]);
 });
 
 test('flutter app bootstrap script loaded', async ({ page }) => {
-  await page.goto('http://localhost:3000');
-  // Verify Flutter's bootstrap script is present in the DOM
+  await page.goto('/');
   const script = page.locator('script[src="flutter_bootstrap.js"]');
   await expect(script).toBeAttached({ timeout: 10000 });
 });

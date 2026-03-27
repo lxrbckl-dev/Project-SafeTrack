@@ -26,7 +26,7 @@ The hackathon rubric (`docs/rubric.md`) **dictates priority.** All infrastructur
 | Remote DB | PostgreSQL (via Go API) | Relational — matches Drift's SQLite schema naturally |
 | ORM | GORM | Auto-migrates tables from Go structs on startup |
 | Auth | Three-layer | Dev login (role picker for demo) + Firebase Auth (real SSO) + Azure AD-ready (provider-agnostic Go middleware) |
-| Connectivity | `connectivity_plus` | Offline-first detection |
+| Connectivity | `connectivity_plus` | Network state detection |
 | Local LLM | Ollama | Mac Mini M4 Pro, 48GB RAM |
 | LLM Model | Qwen 2.5 7B | Strong coding + reasoning, selected for in-app assistant role |
 | CI/CD | GitHub Actions | Wiki regeneration pipeline |
@@ -40,7 +40,7 @@ The hackathon rubric (`docs/rubric.md`) **dictates priority.** All infrastructur
 
 - **SOLID principles** enforced across the entire multi-agent architecture
 - All components must be **web + mobile compatible** (no platform-specific forks)
-- **Offline-first** data persistence with sync queue
+- **API-first** data flow with local caching infrastructure (offline sync deferred)
 - **ADA/WCAG compliance** required from the start, not retrofitted
 
 ---

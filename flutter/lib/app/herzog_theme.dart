@@ -34,6 +34,20 @@ class HerzogColors {
   static const lightGray = Color(0xFFF5F5F5);
   static const borderGray = Color(0xFFE5E5E5);
   static const inputBorder = Color(0xFF8E8E8E);
+
+  // Data Visualization Palette
+  static const chartPurple = Color(0xFF6B4C9A);
+  static const chartSlate = Color(0xFF4A6274);
+  static const chartColors = [
+    navyBlue,
+    infoTeal,
+    gold,
+    successGreen,
+    errorRed,
+    chartPurple,
+    warningAmber,
+    chartSlate,
+  ];
 }
 
 /// Herzog text styles using Oswald (headings) and Roboto (body)
@@ -143,8 +157,49 @@ ThemeData herzogTheme() {
     // ADA: Ensure text scales properly
     textTheme: TextTheme(
       bodyLarge: GoogleFonts.roboto(fontSize: 16, color: HerzogColors.darkGray),
-      bodyMedium: GoogleFonts.roboto(fontSize: 14, color: HerzogColors.darkGray),
+      bodyMedium: GoogleFonts.roboto(
+        fontSize: 14,
+        color: HerzogColors.darkGray,
+      ),
       bodySmall: GoogleFonts.roboto(fontSize: 12, color: HerzogColors.midGray),
+    ),
+    navigationRailTheme: NavigationRailThemeData(
+      backgroundColor: HerzogColors.richBlack,
+      selectedIconTheme: const IconThemeData(color: HerzogColors.gold),
+      unselectedIconTheme: const IconThemeData(color: HerzogColors.smoke),
+      selectedLabelTextStyle: GoogleFonts.oswald(color: HerzogColors.gold),
+      unselectedLabelTextStyle: GoogleFonts.roboto(color: HerzogColors.smoke),
+    ),
+    tabBarTheme: TabBarThemeData(
+      labelColor: HerzogColors.gold,
+      unselectedLabelColor: HerzogColors.smoke,
+      indicatorColor: HerzogColors.gold,
+      labelStyle: GoogleFonts.oswald(fontWeight: FontWeight.w600),
+      unselectedLabelStyle: GoogleFonts.roboto(fontWeight: FontWeight.w400),
+    ),
+    dataTableTheme: DataTableThemeData(
+      headingRowColor: WidgetStateProperty.all(HerzogColors.offWhite),
+      headingTextStyle: GoogleFonts.roboto(
+        fontWeight: FontWeight.w600,
+        color: HerzogColors.midGray,
+        fontSize: 12,
+        letterSpacing: 1.0,
+      ),
+      dataTextStyle: GoogleFonts.roboto(
+        fontWeight: FontWeight.w400,
+        color: HerzogColors.darkGray,
+        fontSize: 14,
+      ),
+      dividerThickness: 1,
+    ),
+    chipTheme: ChipThemeData(
+      backgroundColor: HerzogColors.successLight,
+      labelStyle: GoogleFonts.roboto(color: HerzogColors.successGreen),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+    ),
+    snackBarTheme: SnackBarThemeData(
+      backgroundColor: HerzogColors.navyDark,
+      contentTextStyle: GoogleFonts.roboto(color: HerzogColors.white),
     ),
   );
 }

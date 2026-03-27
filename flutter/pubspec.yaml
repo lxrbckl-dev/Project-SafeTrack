@@ -42,6 +42,7 @@ dependencies:
   firebase_core: ^4.5.0
   firebase_auth: ^6.2.0
   google_fonts: ^8.0.2
+  provider: ^6.1.0
 
   # SRD-10 feature dependencies
   fl_chart: ^1.2.0
