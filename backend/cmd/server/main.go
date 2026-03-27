@@ -34,10 +34,17 @@ func main() {
 
 	mux := http.NewServeMux()
 
+	// Public routes
 	mux.HandleFunc("GET /health", handlers.Health)
-	mux.HandleFunc("POST /api/sync", handlers.Sync(db))
-	mux.HandleFunc("GET /api/data", handlers.GetData(db))
 	mux.HandleFunc("POST /api/chat", handlers.Chat())
+
+	// Authenticated routes
+	api := http.NewServeMux()
+	api.HandleFunc("POST /api/sync", handlers.Sync(db))
+	api.HandleFunc("GET /api/data", handlers.GetData(db))
+	api.HandleFunc("GET /api/audit-logs", handlers.GetAuditLogs(db))
+
+	mux.Handle("/api/", middleware.FirebaseAuth(api))
 
 	handler := middleware.CORS(middleware.Logger(mux))
 

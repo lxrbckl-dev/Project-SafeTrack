@@ -5,5 +5,6 @@ package models
 func AllModels() []interface{} {
 	return []interface{}{
 		&Note{},
+		&AuditLog{},
 	}
 }
