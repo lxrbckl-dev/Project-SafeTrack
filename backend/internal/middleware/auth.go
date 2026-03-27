@@ -2,16 +2,28 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"os"
 	"strings"
+
+	"github.com/golang-jwt/jwt/v5"
 )
+
+// devJWTSecret returns the HS256 signing secret for dev-mode JWTs.
+// Override via DEV_JWT_SECRET env var; falls back to a known dev default.
+func devJWTSecret() []byte {
+	if secret := os.Getenv("DEV_JWT_SECRET"); secret != "" {
+		return []byte(secret)
+	}
+	return []byte("highlander-dev-secret")
+}
 
 // FirebaseAuth verifies the JWT token from the Authorization header,
 // extracts user identity, and sets it on the request context.
 //
-// TASK-001 will replace this stub with real JWT verification:
-// - Dev mode: decode self-signed HS256 JWT from /api/dev-login
-// - Prod mode: verify Firebase/Azure AD RS256 JWT against public keys
+// Dev mode: decode self-signed HS256 JWT issued by /api/dev-login.
+// Prod mode (TODO): verify Firebase / Azure AD RS256 JWT against public keys.
 func FirebaseAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
@@ -20,18 +32,29 @@ func FirebaseAuth(next http.Handler) http.Handler {
 			return
 		}
 
-		// TODO (TASK-001): Replace this stub with real JWT decoding.
-		// For now, pass through with empty context values.
-		// After TASK-001, this will decode the JWT and extract:
-		//   - userID from "sub" claim
-		//   - userRole from "role" claim
-		token := strings.TrimPrefix(authHeader, "Bearer ")
-		_ = token // TASK-001: decode this JWT
+		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
 
-		// Set user identity on request context (handlers read via GetUserRole/GetUserID)
+		// TODO (prod): detect token issuer and verify RS256 against Firebase /
+		// Azure AD public keys instead of HS256.
+
+		claims := jwt.MapClaims{}
+		token, err := jwt.ParseWithClaims(tokenStr, claims, func(t *jwt.Token) (interface{}, error) {
+			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+			}
+			return devJWTSecret(), nil
+		})
+		if err != nil || !token.Valid {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		userID, _ := claims["sub"].(string)
+		userRole, _ := claims["role"].(string)
+
 		ctx := r.Context()
-		ctx = context.WithValue(ctx, "userRole", "") // TASK-001: extract from JWT claims
-		ctx = context.WithValue(ctx, "userID", "")   // TASK-001: extract from JWT claims
+		ctx = context.WithValue(ctx, "userRole", userRole)
+		ctx = context.WithValue(ctx, "userID", userID)
 		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)

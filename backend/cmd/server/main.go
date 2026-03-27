@@ -36,6 +36,7 @@ func main() {
 
 	// Public routes
 	mux.HandleFunc("GET /health", handlers.Health)
+	mux.HandleFunc("POST /api/dev-login", handlers.DevLogin())
 
 	// Authenticated routes
 	api := http.NewServeMux()
