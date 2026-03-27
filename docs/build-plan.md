@@ -48,14 +48,14 @@
 **Go:**
 - `models/setting.go` — `Setting{ID, Category, Key, Value, UpdatedAt, UpdatedBy}`. Register in `AllModels()`.
 - Seed defaults: `trir_benchmark=3.0`, `factor_types_list=["People","Equipment","Environmental","Procedural","Management/Organizational"]`, `escalation_days=[3,7,14]`
-- `handlers/settings.go` — `GET /api/settings`, `GET /api/settings/{key}`, `PUT /api/settings/{key}` (Admin only, audit-logged)
+- `handlers/settings.go` — `GET /api/settings`, `GET /api/settings/{key}`, `PUT /api/settings/{key}` (Admin and Safety Manager, audit-logged)
 
 **Flutter:**
 - `features/admin/pages/admin_settings_page.dart` — settings page with Factor Types, TRIR Benchmark, Notifications sections
 - `features/admin/pages/factor_types_page.dart` — CRUD list for contributing factor types
 - Routes: `/admin`, `/admin/factor-types`
 
-**QA:** Only Admin can access. TRIR benchmark persists after edit. Factor types add/edit/delete works. Changes appear in audit log.
+**QA:** Only Admin and Safety Manager can access. TRIR benchmark persists after edit. Factor types add/edit/delete works. Changes appear in audit log.
 
 ---
 
@@ -68,7 +68,7 @@
 
 **Go models:**
 - `Incident` — ID, Type (7 types), Date, Location, Latitude, Longitude, Division, ProjectJobSite, Description, ImmediateActions, Severity, PotentialSeverity, Shift, Weather, Status, ReporterID, IsDraft, CompletionPercent, IsOshaRecordable, IsDart, OshaOverrideJustification, IsRailroadProperty, RailroadClient, RailroadNotified, RailroadNotificationDate, RailroadNotificationMethod, RailroadNotificationOverdue, CreatedAt, UpdatedAt
-- `InjuredPerson` — ID, IncidentID, Name, JobTitle, Division, InjuryType (encrypted), BodyPart (encrypted), BodyPartSide, TreatmentType (encrypted), ReturnToWorkStatus (encrypted), CreatedAt, UpdatedAt
+- `InjuredPerson` — ID, IncidentID (foreign key, one-to-many: one incident can have multiple injured persons), Name, JobTitle, Division, InjuryType (encrypted), BodyPart (encrypted), BodyPartSide, TreatmentType (encrypted), ReturnToWorkStatus (encrypted), CreatedAt, UpdatedAt
 - `IncidentPhoto` — ID, IncidentID, FileName, FileData, ContentType, UploadedBy, CreatedAt
 - Register all in `AllModels()`
 
@@ -84,7 +84,7 @@
 - `POST /api/incidents/{id}/reopen` — status to Reopened. Audit-log
 - Railroad notification overdue checker: time elapsed since incident vs railroad-specific deadlines (BNSF/UP/CSX/NS x Injury/Near Miss/Property Damage)
 - Completion % helper: count all fields, count non-empty, return percentage (all weighted equally)
-- Incident status flow enforcement: Reported → Under Investigation → Investigation Complete → CAPA Assigned → CAPA In Progress → Closed. Closed → Reopened.
+- Incident status flow enforcement: Draft → Reported (on submit) → Under Investigation → Investigation Complete → CAPA Assigned → CAPA In Progress → Closed. Closed → Reopened.
 
 **QA:** CRUD works. Drafts only visible to reporter. Medical fields encrypted in DB, decrypted only for Safety Coordinator+. Completion % accurate. OSHA decision tree follows 29 CFR 1904. Railroad deadline flags correct per table. Status flow enforced.
 
@@ -179,7 +179,7 @@
 - `POST /api/capas` — auto-sets due date by priority (Critical=7d, High=14d, Medium=30d, Low=60d). Updates incident status to CAPA Assigned. Audit-log
 - `GET /api/capas` — list with filters (?status, ?assigned_to, ?investigation_id, ?incident_id, ?overdue, ?priority)
 - `GET /api/capas/{id}` — single CAPA
-- `PUT /api/capas/{id}` — update. Audit-log
+- `PUT /api/capas/{id}` — update. When CAPA status changes to In Progress, also update parent incident status to CAPA In Progress. Audit-log
 - `POST /api/capas/{id}/complete` — body: {notes, evidence}. Status → Completed → Verification Pending. Sets completion date. Auto-calculates verification due date (Critical=30d, High=60d, Medium/Low=90d post-completion). Audit-log
 - `POST /api/capas/{id}/verify` — body: {effective: bool, notes}. **Rejects if verifier == assignee (403).** If effective → Verified Effective. If ineffective → Verified Ineffective, prompts create new CAPA or reopen investigation. Audit-log
 - `GET /api/capas/dashboard` — KPI aggregates: open count, overdue count, avg time to close, effectiveness rate
@@ -260,15 +260,19 @@
 ---
 
 ### TASK-012: Audit Log Viewer UI
-- **Difficulty:** Routine
+- **Difficulty:** Complex
 - **Assignee:** SWE-2
-- **Dependencies:** TASK-002 merged (backend already exists)
+- **Dependencies:** TASK-002 merged (backend partially exists — needs filter additions)
+
+**Go (extend existing handler):**
+- Add `date_start` and `date_end` query params to `GET /api/audit-logs` for date range filtering
+- Add `action` query param for action type filtering (create, update, status_change, approve, reject, assign, verify)
 
 **Flutter:**
 - `features/audit_log/pages/audit_log_page.dart` — paginated filterable table. Columns: Timestamp, User, Role, Action, Entity Type, Entity ID, Notes. Expandable rows showing Before/After JSON diffs. Filters: entity type, user, date range, action type
 - Route: `/audit-log` (replace placeholder)
 
-**QA:** Only Admin + Safety Manager can access. Pagination works. Filters work. Expandable rows show before/after. Keyboard-navigable. Responsive at 375px.
+**QA:** Only Admin + Safety Manager can access. Pagination works. All filters work (entity type, user, date range, action type). Expandable rows show before/after. Keyboard-navigable. Responsive at 375px.
 
 ---
 
@@ -304,8 +308,9 @@
 **Go:**
 - Create `middleware/rbac.go` — `RequireRole(handler, roles...)` and `RequireMinRole(handler, role)` middleware
 - Audit every endpoint for correct role enforcement
-- PM sees only project-scoped data, Division Manager sees only division-scoped data
-- Draft incidents filtered to reporter only at API level
+- PM sees only project-scoped data — filter incidents/investigations/CAPAs by matching PM's user ID against `ProjectJobSite` field (pragmatic approach, no separate user-project mapping table needed)
+- Division Manager sees only division-scoped data — filter by matching `Division` field
+- Draft incidents filtered to reporter only at API level (orthogonal to role — even a Safety Manager cannot see another user's drafts)
 - Medical data decryption gated by role in every handler that returns InjuredPerson data
 
 **Flutter:**
@@ -396,20 +401,25 @@
 ## Parallelism Map
 
 ```
-TIME    SWE-1                          SWE-2                          QA
-────    ─────                          ─────                          ──
-T0      TASK-001: Dev Login            TASK-002: App Shell            —
-T1      TASK-003: Admin Settings       (rebases after 001)            Tests 001, 002
-T2      (waits for 004)               TASK-004: Incident Backend     Tests 003
-T3      TASK-005: Incident UI          TASK-006: Investigation BE     Tests 004
-T4      TASK-007: Investigation UI     TASK-008: CAPA Backend         Tests 005, 006
-T5      TASK-009: CAPA UI              TASK-010: Dashboard            Tests 007, 008
-T6      TASK-011: Recurrence           TASK-012: Audit Log UI         Tests 009, 010
-T7      TASK-013: Notifications        TASK-014: RBAC Hardening       Tests 011, 012
-T8      TASK-015: Seed Data            TASK-016: Integration          Tests 013, 014
-T9      TASK-017: AI Chat              TASK-018: Keyboard Shortcuts   Tests 015, 016
-T10     TASK-019: AI Agent             (polish)                       Tests 017, 018, 019
+TIME    SWE-1                          SWE-2                          QA           SHARED FILES
+────    ─────                          ─────                          ──           ────────────
+T0      TASK-001: Dev Login            TASK-002: App Shell            —            SWE-1 owns router
+T1      TASK-003: Admin Settings       (rebases after 001)            Tests 001,2  SWE-1 owns main.go/models.go
+T2      (waits for 004)               TASK-004: Incident Backend     Tests 003    SWE-2 owns main.go/models.go
+T3      TASK-005: Incident UI          TASK-006: Investigation BE     Tests 004    SWE-1→router, SWE-2→main.go
+T4      TASK-007: Investigation UI     TASK-008: CAPA Backend         Tests 005,6  SWE-1→router, SWE-2→main.go
+T5a     TASK-009: CAPA UI (routes)     TASK-010: Dashboard (backend)  Tests 007,8  SWE-1 merges router FIRST
+T5b     (done)                         TASK-010: Dashboard (routes)   —            SWE-2 rebases, adds routes
+T6a     TASK-011: Recurrence (all)     TASK-012: Audit Log (backend)  Tests 009,10 SWE-1 merges shared FIRST
+T6b     (done)                         TASK-012: Audit Log (routes)   —            SWE-2 rebases, adds routes
+T7a     TASK-013: Notifications        (waits for 013 merge)          Tests 011,12 SWE-1 merges shared FIRST
+T7b     (done)                         TASK-014: RBAC Hardening       —            SWE-2 audits all endpoints
+T8      TASK-015: Seed Data            TASK-016: Integration          Tests 013,14 Minimal conflicts
+T9      TASK-017: AI Chat              TASK-018: Keyboard Shortcuts   Tests 015,16 Isolated feature files
+T10     TASK-019: AI Agent             (polish)                       Tests 017-19 Isolated feature files
 ```
+
+**Conflict resolution rule:** At T5, T6, and T7, SWE-1 merges their shared file changes first. SWE-2 rebases onto updated main before touching shared files. This ensures only one SWE modifies `main.go`, `models.go`, or `app_router.dart` at any given time.
 
 ## Task Statistics
 
@@ -417,8 +427,8 @@ T10     TASK-019: AI Agent             (polish)                       Tests 017,
 |---|---|
 | Total tasks | 19 |
 | Trivial | 0 |
-| Routine | 10 (001, 002, 003, 011, 012, 013, 015, 016, 017, 018) |
-| Complex | 8 (004, 005, 006, 007, 008, 009, 010, 019) |
+| Routine | 9 (001, 002, 003, 011, 013, 015, 016, 017, 018) |
+| Complex | 9 (004, 005, 006, 007, 008, 009, 010, 012, 019) |
 | Critical | 1 (014) |
 | SWE-1 tasks | 10 (001, 003, 005, 007, 009, 011, 013, 015, 017, 019) |
 | SWE-2 tasks | 9 (002, 004, 006, 008, 010, 012, 014, 016, 018) |

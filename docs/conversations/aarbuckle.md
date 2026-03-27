@@ -266,3 +266,13 @@ Already installed: Flutter 3.41.4, Xcode 26.3, Playwright 1.58.2
 - Added judge-session-prompt.md to docs for post-build Claude project Q&A
 - Added launch command to CLAUDE.md so any session can retrieve the agent team spawn prompt
 - Updated conversation logging format in CLAUDE.md: Morning/Afternoon/Evening with categorized sub-headings
+
+### Build Plan Validation & Refinement
+- Ran two additional agent validation passes against the 19-task plan
+- First pass found 6 issues: missing CAPA In Progress status transition, 3 shared file conflicts in parallelism map, PM project-scoping gap, audit log missing filters, Draft not in status flow, InjuredPerson model ambiguity
+- Applied all 6 fixes to build-plan.md
+- Ran second validation pass (2 agents) to verify fixes — all applied correctly
+- Final pass found 2 remaining items: TASK-012 difficulty upgraded Routine → Complex, admin settings access expanded to Safety Manager + Admin (per rubric RBAC table)
+- Final result: 46/46 rubric requirements covered, 13/13 implementation clarifications reflected, 7/7 RBAC roles enforced, all formulas implemented, full status flow verified, all deferred items excluded
+- Verified all requirements.md features mapped: LLM + wiki pipeline already built, keyboard shortcuts + AI agent in Phase 5, ADA cross-cutting, agent personas post-hackathon, distribution is Alex's domain
+- Updated task statistics: 9 Routine, 9 Complex, 1 Critical
