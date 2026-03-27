@@ -277,3 +277,91 @@ TPM writes → qa_tasks.json
 QA agent reads → writes Playwright scripts → runs tests → writes qa_results.json
 TPM reads qa_results.json → updates task status
 ```
+
+---
+
+## Future: End-User Agent-to-Agent Communication
+
+### Overview
+
+The incident lifecycle naturally passes through 5+ roles with distinct domain knowledge (Field Reporter → Safety Manager → Investigator → Safety Coordinator → CAPA Assignee → Verifier). Once the core SRD-10 features are built, role-scoped AI agents that coordinate via structured events will accelerate investigation, reduce handoff friction, and surface systemic patterns — while keeping humans in the loop for all safety-critical decisions.
+
+### Role-Scoped Agents
+
+Each agent maps to an RBAC role with matching permissions:
+
+| Agent | Role Scope | Can Do | Can't Do |
+|---|---|---|---|
+| **Reporting Agent** | Field Reporter | Draft incidents, suggest classifications, gather initial details | Approve, assign, access medical data |
+| **Investigation Agent** | Safety Coordinator | Guide 5-Why, suggest contributing factors, package findings | Approve investigations, create CAPAs without review |
+| **Compliance Agent** | Safety Manager | Flag OSHA recordability, railroad deadlines, regulatory requirements | Edit incident details, modify investigations |
+| **CAPA Agent** | Safety Coordinator | Recommend corrective/preventive actions from findings | Assign CAPAs without manager approval |
+| **Pattern Agent** | Cross-role (read-only) | Identify recurrence clusters, trend analysis, similarity matching | Modify any records |
+| **Escalation Agent** | System-level | Monitor deadlines, notify stakeholders, flag overdue items | Take action on behalf of users |
+
+### Agent-to-Agent Message Flow
+
+Agents don't chat with each other — they pass typed events through a message bus:
+
+```
+┌──────────────┐    structured event    ┌──────────────────┐
+│  Reporting    │ ──────────────────────→│  Compliance      │
+│  Agent        │                        │  Agent           │
+└──────────────┘                        └──────────────────┘
+       │                                         │
+       │  investigation_context                  │  deadline_alert
+       ▼                                         ▼
+┌──────────────┐    pattern_alert       ┌──────────────────┐
+│ Investigation │ ←─────────────────────│  Pattern         │
+│ Agent         │                        │  Agent           │
+└──────────────┘                        └──────────────────┘
+       │
+       │  investigation_findings
+       ▼
+┌──────────────┐    deadline_status     ┌──────────────────┐
+│  CAPA        │ ──────────────────────→│  Escalation      │
+│  Agent        │                        │  Agent           │
+└──────────────┘                        └──────────────────┘
+```
+
+Key event types:
+- `railroad_incident_created` — Reporting → Compliance (triggers deadline lookup)
+- `investigation_context` — Reporting → Investigation (pre-populates 5-Why with incident details)
+- `pattern_alert` — Pattern → Investigation (surfaces similar incidents and recurrence clusters)
+- `investigation_findings` — Investigation → CAPA (root cause, contributing factors, 5-Why chain)
+- `deadline_status` — All agents → Escalation (monitors and escalates overdue items)
+
+### Concrete Scenario: BNSF Railroad Incident
+
+**9:02 AM — Incident reported.** A worker on a BNSF site trips over unsecured cabling. The Reporting Agent helps the Field Reporter fill out the incident form, detects it's on railroad property, and emits a `railroad_incident_created` event. The Compliance Agent receives it, looks up BNSF's notification rules, and immediately alerts the Safety Coordinator: "BNSF requires notification within 2 hours. Deadline: 11:02 AM."
+
+**9:15 AM — Investigation begins.** The Safety Manager assigns an investigator. The Investigation Agent receives the `investigation_context` from the Reporting Agent — it already knows the incident details, location, and reporter's answers. It starts the 5-Why with informed questions. Meanwhile, the Pattern Agent detects this is the 3rd trip/fall at BNSF Railyard 7 in 90 days and surfaces the cluster to the Investigation Agent.
+
+**10:30 AM — Findings handed off.** The Investigation Agent packages the 5-Why chain, root cause, and contributing factors as `investigation_findings` and sends them to the CAPA Agent. The CAPA Agent generates recommendations (corrective + preventive actions with priorities and due dates) but **does not create records** — it presents them to the Safety Coordinator for approval.
+
+**Day 14 — Escalation.** A CAPA is due today. The assignee hasn't updated status. The Escalation Agent notifies the assignee and flags the Safety Manager. At +3 days overdue, escalation increases automatically.
+
+### Design Principles
+
+1. **Structured payloads, not chat** — Agents pass JSON with typed fields (`incident_id`, `findings[]`, `factors[]`), not free-text summaries
+2. **Human-in-the-loop** — Every agent recommendation requires human approval before becoming a record. Agents suggest, humans decide.
+3. **Audit trail** — All agent-to-agent messages logged in the AuditLog table with `actor_type: "agent"`
+4. **Same RBAC enforcement** — Agent permissions mirror human role permissions exactly
+5. **Graceful degradation** — If Ollama is down, workflows still work manually. Agents augment, never gate.
+
+### Design-Now Implications
+
+While building current SRD-10 features, keep these in mind:
+- **API boundaries should be clean and granular** — agents will call the same endpoints humans use
+- **Business logic stays in the Go backend** — agents need server-side access to the same rules
+- **Audit log should support non-human actors** — include an `actor_type` field (human vs agent)
+- **System prompts should be role-scoped** — the current single wiki RAG approach will evolve into per-role context
+
+### Implementation Phases
+
+| Phase | Description | Depends On |
+|---|---|---|
+| 1. Single-agent integration | Wire current Qwen assistant into incident forms (form-filling, 5-Why guidance) | Core SRD-10 features complete |
+| 2. Role-scoped agents | Different system prompts per role, same Ollama backend | Phase 1 |
+| 3. Agent-to-agent messaging | Structured handoffs via Go backend message bus (`agent_messages` table) | Phase 2 |
+| 4. Pattern recognition | Cross-incident analysis agent that feeds context to investigation agents | Phase 3 |
