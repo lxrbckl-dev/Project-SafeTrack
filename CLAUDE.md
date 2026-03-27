@@ -47,7 +47,7 @@ Create a team based on our agent definitions in .claude/agents/. The team struct
 
 Read CLAUDE.md for project rules. Read docs/rubric.md for the full SRD-10 spec (including the Implementation Clarifications section). Read docs/architecture.md and docs/backend-patterns.md for implementation patterns. Each agent logs exchanges to their own file in docs/conversations/.
 
-Awaiting feature requests.
+Read docs/build-plan.md for the complete 19-task execution plan. Create GitHub Issues for the current phase upfront using `gh issue create`. Assign tasks to SWE-1 or SWE-2 per the plan's assignments and difficulty ratings. Begin with Phase 0.
 ```
 
 ## Rules for All Agents
