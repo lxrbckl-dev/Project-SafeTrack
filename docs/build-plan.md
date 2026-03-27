@@ -17,8 +17,9 @@
 
 **Flutter:**
 - `features/auth/pages/dev_login_page.dart` — role picker screen with 7 role cards
-- `features/auth/domain/auth_service.dart` — holds current user ID, role, display name; exposes `isAtLeast(role)` for hierarchical RBAC checks
-- `features/auth/domain/role.dart` — enum of 7 roles with hierarchy
+- `features/auth/data/auth_service.dart` — `ChangeNotifier` class holding current user ID, role, display name; exposes `isAtLeast(role)` for hierarchical RBAC checks. Provided at app root via `MultiProvider` in `main.dart` (per CLAUDE.md rule 5a).
+- `features/auth/data/role.dart` — enum of 7 roles with hierarchy
+- Wrap `MyApp` with `MultiProvider` in `main.dart` — `AuthService` as the first provider
 - Update `app_router.dart`: add `/login` route, set as initial location, redirect if no role selected
 
 **QA:** Each of the 7 roles selectable, role persists across navigation, returning to login resets role.
@@ -267,9 +268,10 @@
 - **Assignee:** SWE-2
 - **Dependencies:** TASK-002 merged (backend partially exists — needs filter additions)
 
-**Go (extend existing handler):**
+**Go (extend existing handler — `handlers/audit_logs.go` already has `entity_type`, `entity_id`, `user_id` filters + pagination):**
 - Add `date_start` and `date_end` query params to `GET /api/audit-logs` for date range filtering
 - Add `action` query param for action type filtering (create, update, status_change, approve, reject, assign, verify)
+- Add RBAC check at handler level: only Admin and Safety Manager can access (`middleware.GetUserRole(r)` check)
 
 **Flutter:**
 - `features/audit_log/pages/audit_log_page.dart` — paginated filterable table. Columns: Timestamp, User, Role, Action, Entity Type, Entity ID, Notes. Expandable rows showing Before/After JSON diffs. Filters: entity type, user, date range, action type
