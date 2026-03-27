@@ -1,79 +1,112 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
 import '../features/auth/data/auth_service.dart';
+import '../features/auth/data/role.dart';
 import '../features/auth/pages/dev_login_page.dart';
-import '../features/poc/pages/home_page.dart';
-import '../features/poc/pages/drift_test_page.dart';
-import '../features/poc/pages/connectivity_test_page.dart';
-import '../features/poc/pages/ollama_test_page.dart';
+import '../features/shell/pages/app_shell_page.dart';
+import '../features/dashboard/pages/dashboard_placeholder_page.dart';
+import '../features/incidents/pages/incidents_placeholder_page.dart';
+import '../features/investigations/pages/investigations_placeholder_page.dart';
+import '../features/capas/pages/capas_placeholder_page.dart';
+import '../features/admin/pages/admin_placeholder_page.dart';
+import '../features/audit_log/pages/audit_log_placeholder_page.dart';
 
-/// Builds the application router.
+/// Builds the [GoRouter] with auth redirect and shell routing.
 ///
 /// Requires an [AuthService] so the redirect logic can check login state
 /// without a BuildContext dependency.
+///
+/// Auth redirect rules:
+/// - Unauthenticated → /login
+/// - Authenticated on /login → /dashboard
+/// - /admin: Admin role only → else /dashboard
+/// - /audit-log: Admin or Safety Manager → else /dashboard
+///
+/// Shell: all authenticated routes are wrapped in [AppShellPage]
+/// (responsive sidebar on desktop ≥900px, bottom nav on mobile <900px).
+///
+/// POC routes (/, /drift, /connectivity, /ollama) removed from production routing.
 GoRouter appRouter(AuthService authService) {
   return GoRouter(
     initialLocation: '/login',
     refreshListenable: authService,
     redirect: (context, state) {
       final loggedIn = authService.isLoggedIn;
-      final goingToLogin = state.matchedLocation == '/login';
+      final role = authService.currentRole;
+      final location = state.matchedLocation;
 
-      if (!loggedIn && !goingToLogin) return '/login';
-      if (loggedIn && goingToLogin) return '/dashboard';
+      // Unauthenticated: send to /login (except if already there)
+      if (!loggedIn && location != '/login') {
+        return '/login';
+      }
+
+      // Authenticated on /login: send to dashboard
+      if (loggedIn && location == '/login') {
+        return '/dashboard';
+      }
+
+      // Role gate: /admin — Admin only
+      if (location.startsWith('/admin') && role != null && role != Role.admin) {
+        return '/dashboard';
+      }
+
+      // Role gate: /audit-log — Admin or Safety Manager
+      if (location.startsWith('/audit-log') &&
+          role != null &&
+          role != Role.admin &&
+          role != Role.safetyManager) {
+        return '/dashboard';
+      }
+
       return null;
     },
     routes: [
-      // Auth
+      // /login — outside the shell (no sidebar on login screen).
       GoRoute(
         path: '/login',
         name: 'login',
         builder: (context, state) => const DevLoginPage(),
       ),
 
-      // Dashboard placeholder — TASK-002 will build the real shell
-      GoRoute(
-        path: '/dashboard',
-        name: 'dashboard',
-        builder: (context, state) => const _DashboardPlaceholder(),
+      // Authenticated shell — wraps all main app routes with AppShellPage
+      // (responsive sidebar on desktop ≥900px, bottom nav on mobile <900px).
+      ShellRoute(
+        builder: (context, state, child) => AppShellPage(child: child),
+        routes: [
+          GoRoute(
+            path: '/dashboard',
+            name: 'dashboard',
+            builder: (context, state) => const DashboardPlaceholderPage(),
+          ),
+          GoRoute(
+            path: '/incidents',
+            name: 'incidents',
+            builder: (context, state) => const IncidentsPlaceholderPage(),
+          ),
+          GoRoute(
+            path: '/investigations',
+            name: 'investigations',
+            builder: (context, state) => const InvestigationsPlaceholderPage(),
+          ),
+          GoRoute(
+            path: '/capas',
+            name: 'capas',
+            builder: (context, state) => const CapasPlaceholderPage(),
+          ),
+          GoRoute(
+            path: '/admin',
+            name: 'admin',
+            builder: (context, state) => const AdminPlaceholderPage(),
+          ),
+          GoRoute(
+            path: '/audit-log',
+            name: 'auditLog',
+            builder: (context, state) => const AuditLogPlaceholderPage(),
+          ),
+        ],
       ),
 
-      // Existing POC routes (kept for dev convenience; TASK-002 will clean up)
-      GoRoute(
-        path: '/',
-        name: 'home',
-        builder: (context, state) => const HomePage(),
-      ),
-      GoRoute(
-        path: '/drift',
-        name: 'drift',
-        builder: (context, state) => const DriftTestPage(),
-      ),
-      GoRoute(
-        path: '/connectivity',
-        name: 'connectivity',
-        builder: (context, state) => const ConnectivityTestPage(),
-      ),
-      GoRoute(
-        path: '/ollama',
-        name: 'ollama',
-        builder: (context, state) => const OllamaTestPage(),
-      ),
+      // POC routes removed: /, /drift, /connectivity, /ollama
+      // Pages still exist in features/poc/ for reference.
     ],
   );
-}
-
-/// Temporary dashboard placeholder so auth redirect has somewhere to land.
-/// TASK-002 will replace this with the real navigation shell.
-class _DashboardPlaceholder extends StatelessWidget {
-  const _DashboardPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('DASHBOARD')),
-      body: const Center(child: Text('Dashboard — coming in TASK-002')),
-    );
-  }
 }
