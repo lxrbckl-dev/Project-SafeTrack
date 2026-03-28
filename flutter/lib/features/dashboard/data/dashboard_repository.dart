@@ -246,6 +246,72 @@ class RecentIncident {
   }
 }
 
+// ---------- Advanced Analytics Models ----------
+
+/// Body part injury count for the body map visualization.
+class BodyPartCount {
+  final String bodyPart;
+  final int count;
+
+  const BodyPartCount({required this.bodyPart, required this.count});
+
+  factory BodyPartCount.fromJson(Map<String, dynamic> json) {
+    return BodyPartCount(
+      bodyPart: json['bodyPart'] as String? ?? '',
+      count: json['count'] as int? ?? 0,
+    );
+  }
+}
+
+/// Single cell in the hour x day-of-week heatmap grid.
+class TimeHeatmapCell {
+  final int hour;
+  final String day;
+  final int count;
+
+  const TimeHeatmapCell({
+    required this.hour,
+    required this.day,
+    required this.count,
+  });
+
+  factory TimeHeatmapCell.fromJson(Map<String, dynamic> json) {
+    return TimeHeatmapCell(
+      hour: json['hour'] as int? ?? 0,
+      day: json['day'] as String? ?? '',
+      count: json['count'] as int? ?? 0,
+    );
+  }
+}
+
+/// Multi-metric division data for the radar chart.
+class DivisionRadarEntry {
+  final String division;
+  final int incidents;
+  final double trir;
+  final double investigationTimeliness;
+  final double capaClosureRate;
+
+  const DivisionRadarEntry({
+    required this.division,
+    required this.incidents,
+    required this.trir,
+    required this.investigationTimeliness,
+    required this.capaClosureRate,
+  });
+
+  factory DivisionRadarEntry.fromJson(Map<String, dynamic> json) {
+    return DivisionRadarEntry(
+      division: json['division'] as String? ?? '',
+      incidents: json['incidents'] as int? ?? 0,
+      trir: (json['trir'] as num?)?.toDouble() ?? 0.0,
+      investigationTimeliness:
+          (json['investigationTimeliness'] as num?)?.toDouble() ?? 0.0,
+      capaClosureRate: (json['capaClosureRate'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+}
+
 /// Hours worked entry for TRIR/DART denominator.
 class HoursWorked {
   final int? id;
@@ -343,6 +409,49 @@ class DashboardRepository {
     final list = jsonDecode(response.body) as List<dynamic>;
     return list
         .map((e) => HoursWorked.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// Fetches body part injury counts for the body map visualization.
+  /// Requires Safety Coordinator role or above.
+  Future<List<BodyPartCount>> getBodyMap() async {
+    final uri = Uri.parse('$_base/api/dashboard/body-map');
+    final response = await http.get(uri, headers: _headers);
+    if (response.statusCode == 403) {
+      throw Exception('Insufficient permissions to view body map data');
+    }
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load body map: ${response.body}');
+    }
+    final list = jsonDecode(response.body) as List<dynamic>;
+    return list
+        .map((e) => BodyPartCount.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// Fetches incident counts by hour-of-day and day-of-week for the heatmap.
+  Future<List<TimeHeatmapCell>> getTimeHeatmap() async {
+    final uri = Uri.parse('$_base/api/dashboard/time-heatmap');
+    final response = await http.get(uri, headers: _headers);
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load time heatmap: ${response.body}');
+    }
+    final list = jsonDecode(response.body) as List<dynamic>;
+    return list
+        .map((e) => TimeHeatmapCell.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// Fetches multi-metric division data for the radar chart.
+  Future<List<DivisionRadarEntry>> getDivisionRadar() async {
+    final uri = Uri.parse('$_base/api/dashboard/division-radar');
+    final response = await http.get(uri, headers: _headers);
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load division radar: ${response.body}');
+    }
+    final list = jsonDecode(response.body) as List<dynamic>;
+    return list
+        .map((e) => DivisionRadarEntry.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 }
