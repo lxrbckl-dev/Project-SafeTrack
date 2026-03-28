@@ -37,6 +37,8 @@ class _AgentSessionsPageState extends State<AgentSessionsPage> {
 
   bool _loadingSessions = true;
   bool _loadingActivity = true;
+  bool _loadingMore = false;
+  bool _hasMoreActivity = true;
   String? _sessionsError;
   String? _activityError;
 
@@ -95,12 +97,42 @@ class _AgentSessionsPageState extends State<AgentSessionsPage> {
         _activity = activity;
         _activityError = null;
         _loadingActivity = false;
+        _hasMoreActivity = activity.length >= 50;
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _activityError = e.toString();
         _loadingActivity = false;
+      });
+    }
+  }
+
+  Future<void> _loadMoreActivity() async {
+    if (_loadingMore || _activity.isEmpty) return;
+    final token = context.read<AuthService>().token;
+    if (token == null) return;
+
+    setState(() => _loadingMore = true);
+
+    try {
+      final oldestTimestamp = _activity.last.timestamp;
+      final more = await _repo.getActivity(
+        token,
+        limit: 50,
+        since: oldestTimestamp,
+      );
+      if (!mounted) return;
+      setState(() {
+        _activity = [..._activity, ...more];
+        _hasMoreActivity = more.length >= 50;
+        _loadingMore = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _activityError = e.toString();
+        _loadingMore = false;
       });
     }
   }
@@ -260,22 +292,45 @@ class _AgentSessionsPageState extends State<AgentSessionsPage> {
         else if (_activity.isEmpty)
           _buildEmptyActivity()
         else
-          Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-              side: BorderSide(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? HerzogDarkColors.border
-                    : HerzogColors.borderGray,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  side: BorderSide(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? HerzogDarkColors.border
+                        : HerzogColors.borderGray,
+                  ),
+                ),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: _activity.length,
+                  separatorBuilder: (_, _) => const Divider(height: 1),
+                  itemBuilder: (context, i) => _ActivityRow(item: _activity[i]),
+                ),
               ),
-            ),
-            child: ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _activity.length,
-              separatorBuilder: (_, _) => const Divider(height: 1),
-              itemBuilder: (context, i) => _ActivityRow(item: _activity[i]),
-            ),
+              if (_hasMoreActivity) ...[
+                const SizedBox(height: 12),
+                Semantics(
+                  button: true,
+                  label: 'Load more agent activity',
+                  child: OutlinedButton.icon(
+                    onPressed: _loadingMore ? null : _loadMoreActivity,
+                    icon: _loadingMore
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.expand_more),
+                    label: Text(_loadingMore ? 'Loading…' : 'Load More'),
+                  ),
+                ),
+              ],
+            ],
           ),
       ],
     );
