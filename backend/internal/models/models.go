@@ -10,5 +10,9 @@ func AllModels() []interface{} {
 		&Incident{},
 		&InjuredPerson{},
 		&IncidentPhoto{},
+		&Investigation{},
+		&FiveWhy{},
+		&ContributingFactor{},
+		&WitnessStatement{},
 	}
 }

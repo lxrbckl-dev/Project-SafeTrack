@@ -52,6 +52,9 @@ func main() {
 	// Incident domain routes (CRUD, OSHA, railroad, photos, status)
 	handlers.RegisterIncidentRoutes(api, db)
 
+	// Investigation domain routes (CRUD, five-whys, factors, witnesses, workflow)
+	handlers.RegisterInvestigationRoutes(api, db)
+
 	mux.Handle("/api/", middleware.FirebaseAuth(api))
 
 	handler := middleware.CORS(middleware.Logger(mux))
