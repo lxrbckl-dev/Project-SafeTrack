@@ -93,6 +93,11 @@ func MCPAuth(db *gorm.DB) func(http.Handler) http.Handler {
 				return
 			}
 
+			if len(apiKey) < 8 {
+				writeJSONRPCError(w, nil, -32000, "invalid API key format", http.StatusUnauthorized)
+				return
+			}
+
 			keyPrefix := apiKey[:8]
 
 			// Edge case 5: rate limiting before doing expensive bcrypt.
