@@ -236,29 +236,29 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
       final role = _auth.currentRole ?? Role.fieldReporter;
       final auditRepo = AuditLogRepository(_auth);
 
-      Investigation? investigation = _linkedInvestigation;
-      if (investigation?.id != null) {
-        // Re-fetch full investigation with nested children.
-        try {
-          investigation = await _invRepo.getInvestigation(investigation!.id!);
-        } catch (_) {
-          // Keep what we have.
-        }
-      }
+      final investigationFuture = (_linkedInvestigation?.id != null)
+          ? _invRepo
+                .getInvestigation(_linkedInvestigation!.id!)
+                .catchError((_) => _linkedInvestigation!)
+          : Future<Investigation?>.value(_linkedInvestigation);
 
-      List<AuditLogEntry> auditEntries = [];
-      try {
-        final auditPage = await auditRepo.getAuditLogs(
-          AuditLogFilter(
-            entityType: 'incident',
-            entityId: incident.id?.toString(),
-            perPage: 20,
-          ),
-        );
-        auditEntries = auditPage.data;
-      } catch (_) {
-        // Audit log may be restricted or unavailable — continue without it.
-      }
+      final auditFuture = auditRepo
+          .getAuditLogs(
+            AuditLogFilter(
+              entityType: 'incident',
+              entityId: incident.id?.toString(),
+              perPage: 20,
+            ),
+          )
+          .then((page) => page.data)
+          .catchError(
+            // Audit log may be restricted or unavailable — continue without it.
+            (_) => <AuditLogEntry>[],
+          );
+
+      final results = await Future.wait([investigationFuture, auditFuture]);
+      final investigation = results[0] as Investigation?;
+      final auditEntries = results[1] as List<AuditLogEntry>;
 
       final pdf = await IncidentPdfService.generateReport(
         incident: incident,

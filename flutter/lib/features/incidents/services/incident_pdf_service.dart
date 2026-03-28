@@ -172,6 +172,11 @@ class IncidentPdfService {
 
           // --- Injured Persons ---
           if (incident.injuredPersons.isNotEmpty) ...[
+            // RBAC note: the section heading and basic identity fields (name,
+            // jobTitle, division) are visible to ALL roles — they are NOT
+            // considered restricted PII.  Only medical fields (injuryType,
+            // bodyPart, treatmentType, returnToWorkStatus) are restricted to
+            // Safety Coordinator and above per the RBAC rubric.
             _sectionHeading('INJURED PERSONS'),
             _goldAccentBar(),
             pw.SizedBox(height: 8),
