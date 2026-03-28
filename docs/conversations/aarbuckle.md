@@ -395,3 +395,13 @@ Already installed: Flutter 3.41.4, Xcode 26.3, Playwright 1.58.2
 - Added "Stopping Everything" section with `docker-compose down` instructions
 - Added table of contents with anchor links
 - Added suggested walkthrough hint for judges (Field Reporter → Safety Manager)
+- Added `cd ..` to all README commands so judges stay in project root
+- Restored troubleshooting table format (preferred over code blocks)
+- Added troubleshooting entry for empty AI assistant responses
+
+### AI Assistant Fix & Docker Compose Improvement
+- Diagnosed empty AI chat responses — Ollama model was wiped by `docker-compose down -v`
+- Added `ollama-pull` init service to `docker-compose.yml` — Qwen 2.5 7B now auto-pulls on startup
+- No more manual `ollama pull` step required; survives volume wipes
+- Verified full teardown/startup cycle: `down -v` → `up -d` → seed → all services healthy
+- Updated README to reflect AI chat is now automatic (~30s delay on first start)
