@@ -44,10 +44,10 @@ var incidentCreateParams = map[string]string{
 	"division":          "string",
 	"projectJobSite":    "string",
 	"description":       "string",
-	"severity":          "string enum [Low, Medium, High, Critical]",
-	"potentialSeverity": "string enum [Low, Medium, High, Critical]",
+	"severity":          "string enum [Fatality, Lost Time, Medical Treatment, First Aid, Near Miss]",
+	"potentialSeverity": "string enum [Fatality, Lost Time, Medical Treatment, First Aid, Near Miss]",
 	"immediateActions":  "string",
-	"shift":             "string enum [Day, Afternoon, Night]",
+	"shift":             "string enum [Day, Night, Swing]",
 	"weather":           "string",
 	"isDraft":           "bool",
 }
