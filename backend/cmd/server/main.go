@@ -86,6 +86,9 @@ func main() {
 	// Training requirement routes (linked to Training-category CAPAs)
 	handlers.RegisterTrainingRoutes(api, db)
 
+	// Global search routes (cross-entity search with RBAC scoping)
+	handlers.RegisterSearchRoutes(api, db)
+
 	mux.Handle("/api/", middleware.FirebaseAuth(api))
 
 	handler := middleware.CORS(middleware.Logger(mux))
