@@ -19,10 +19,17 @@ class _ChatMessage {
   final bool isUser;
   final List<ChatAction> actions;
 
+  /// True when this message is a system/offline notification rather than a
+  /// normal AI reply.  Offline messages are rendered with muted grey italic
+  /// styling and a [Icons.cloud_off] icon so users can distinguish them from
+  /// real AI responses.
+  final bool isOffline;
+
   const _ChatMessage({
     required this.text,
     required this.isUser,
     this.actions = const [],
+    this.isOffline = false,
   });
 
   bool get hasActions => actions.isNotEmpty;
@@ -111,24 +118,35 @@ class _ChatFabState extends State<ChatFab> with SingleTickerProviderStateMixin {
     setState(() {
       _isLoading = false;
       if (result.isSuccess) {
+        // Detect the backend's offline/system message and apply offline styling.
+        final offline = result.response == kOllamaOfflineMessage;
         _messages.add(
           _ChatMessage(
             text: result.response!,
             isUser: false,
             actions: result.actions,
+            isOffline: offline,
           ),
         );
 
         // Auto-dispatch "fill" actions immediately (no button needed —
         // the form on the current page picks up the pending data).
-        for (final action in result.actions) {
-          if (action.action == 'fill') {
-            ChatActionDispatcher.execute(context, action);
+        if (!offline) {
+          for (final action in result.actions) {
+            if (action.action == 'fill') {
+              ChatActionDispatcher.execute(context, action);
+            }
           }
         }
       } else {
+        // Network/timeout failures — show with offline styling so the user
+        // sees a clear system message rather than a raw "Error: ..." string.
         _messages.add(
-          _ChatMessage(text: 'Error: ${result.error}', isUser: false),
+          _ChatMessage(
+            text: result.error ?? kOllamaOfflineMessage,
+            isUser: false,
+            isOffline: true,
+          ),
         );
       }
     });
@@ -387,6 +405,12 @@ class _MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isUser = message.isUser;
+    final isOffline = message.isOffline;
+
+    // Offline/system messages use a muted style regardless of sender.
+    if (isOffline) {
+      return _OfflineMessageBubble(text: message.text);
+    }
 
     return Semantics(
       label: '${isUser ? "You" : "AI assistant"}: ${message.text}',
@@ -462,6 +486,76 @@ class _MessageBubble extends StatelessWidget {
                 actions: message.actions,
                 onActionTap: onActionTap,
               ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Offline / system message bubble
+// ---------------------------------------------------------------------------
+
+/// Renders a system or offline notification with distinct muted styling:
+/// - Light grey background (more muted than normal AI messages)
+/// - Grey italic text
+/// - [Icons.cloud_off] warning icon
+///
+/// Used whenever Ollama is unavailable or a network error prevents the request
+/// from reaching the backend.
+class _OfflineMessageBubble extends StatelessWidget {
+  final String text;
+
+  const _OfflineMessageBubble({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: 'System: $text',
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            const CircleAvatar(
+              radius: 12,
+              backgroundColor: Color(0xFFBDBDBD), // grey[400]
+              child: Icon(
+                Icons.cloud_off,
+                size: 12,
+                color: Colors.white,
+                semanticLabel: 'Offline',
+              ),
+            ),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  // Slightly more muted/lighter than the normal AI offWhite
+                  color: const Color(0xFFF0F0F0),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    topRight: Radius.circular(12),
+                    bottomLeft: Radius.circular(2),
+                    bottomRight: Radius.circular(12),
+                  ),
+                  border: Border.all(color: const Color(0xFFD0D0D0)),
+                ),
+                child: SelectableText(
+                  text,
+                  style: HerzogText.body(
+                    fontSize: 13,
+                    color: const Color(0xFF757575), // grey[600]
+                  ).copyWith(fontStyle: FontStyle.italic),
+                ),
+              ),
+            ),
           ],
         ),
       ),

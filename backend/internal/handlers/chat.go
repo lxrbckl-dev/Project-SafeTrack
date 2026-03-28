@@ -197,6 +197,24 @@ func buildRouteList(role string) string {
 // jsonBlockRe matches fenced code blocks with json language tag.
 var jsonBlockRe = regexp.MustCompile("(?s)```json\\s*\\n?(.*?)\\n?```")
 
+// ollamaOfflineMessage is the user-visible text returned when Ollama is
+// unavailable for any reason. It is shared with the Flutter client constant so
+// both sides can recognise system/offline messages.
+const ollamaOfflineMessage = "The AI assistant is currently offline. Please try again later."
+
+// writeOfflineResponse writes a graceful HTTP 200 JSON response that the
+// Flutter client renders as a system/offline message. Using 200 (not 502)
+// ensures the Flutter ChatRepository treats it as a success and displays
+// the text in the chat bubble with offline styling rather than an error banner.
+func writeOfflineResponse(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(ChatResponse{
+		Response: ollamaOfflineMessage,
+		Actions:  []ChatAction{},
+	})
+}
+
 // Chat returns an HTTP handler that proxies user prompts to Ollama (Qwen 2.5 7B)
 // and parses the response for structured action blocks.
 //
@@ -253,29 +271,46 @@ func Chat(db *gorm.DB) http.HandlerFunc {
 		if err != nil {
 			// Edge case #8: never log API key material. Only log the error type.
 			log.Printf("[chat] ollama connection failed: %v", err)
-			http.Error(w, "ollama unavailable", http.StatusBadGateway)
+			writeOfflineResponse(w)
 			return
 		}
 		defer resp.Body.Close()
 
+		if resp.StatusCode != http.StatusOK {
+			log.Printf("[chat] ollama returned non-200 status: %d", resp.StatusCode)
+			writeOfflineResponse(w)
+			return
+		}
+
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			log.Printf("[chat] failed to read ollama response body")
-			http.Error(w, "failed to read ollama response", http.StatusBadGateway)
+			writeOfflineResponse(w)
+			return
+		}
+
+		if len(bytes.TrimSpace(body)) == 0 {
+			log.Printf("[chat] ollama returned empty response body")
+			writeOfflineResponse(w)
 			return
 		}
 
 		// Parse the Ollama response to extract the text.
 		var ollamaResp map[string]interface{}
 		if err := json.Unmarshal(body, &ollamaResp); err != nil {
-			// If we can't parse, return the raw body as-is for graceful degradation.
-			w.Header().Set("Content-Type", "application/json")
-			w.Write(body)
+			log.Printf("[chat] failed to decode ollama JSON response")
+			writeOfflineResponse(w)
 			return
 		}
 
 		rawText, _ := ollamaResp["response"].(string)
 		rawText = strings.TrimSpace(rawText)
+
+		if rawText == "" {
+			log.Printf("[chat] ollama returned empty response text")
+			writeOfflineResponse(w)
+			return
+		}
 
 		// Extract JSON action blocks from the response text.
 		actions := parseActions(rawText)
