@@ -165,3 +165,8 @@ Each agent is trained with embedded skills in their definition files (`.claude/a
 | Agent personas post-build | Upload personas + logs to Claude project for interactive Q&A. |
 | Horizontal scaling (Go backend) | Stateless API design enables multi-container scaling. No code changes needed. |
 | Ollama load balancing | Multiple Ollama instances behind a load balancer or request queuing. |
+| Claude Desktop / Claude.ai integration | Once MCP server (TASK-048) is live, register SafeTrack as an MCP server in Claude Desktop or Claude.ai projects. Users interact with SafeTrack via natural conversation: "Show me overdue investigations", "Create a near miss at Houston". All role-scoped, audit-logged, zero custom UI needed. |
+| Multi-language / i18n (Spanish) | Construction workforce is heavily Spanish-speaking. Flutter has built-in i18n. Translate incident form, key UI labels, and AI assistant responses. |
+| Photo annotation | Draw circles/arrows on incident photos to highlight hazards. Practical for safety teams documenting scene evidence. |
+| QR code job site check-in | Generate QR codes for job sites, scan to pre-fill incident location. Reduces GPS dependency indoors. |
+| Bulk CSV import/export | Import historical incidents from CSV for migration. Export data for external analysis tools. |
