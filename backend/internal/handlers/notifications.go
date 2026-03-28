@@ -96,6 +96,12 @@ func MarkNotificationRead(db *gorm.DB) http.HandlerFunc {
 // trigger a sweep. No request body is required.
 func CheckEscalations(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		role := middleware.GetUserRole(r)
+		if role != "safety_manager" && role != "admin" {
+			http.Error(w, "forbidden", http.StatusForbidden)
+			return
+		}
+
 		created := 0
 
 		created += checkInvestigationEscalations(db)
@@ -125,13 +131,12 @@ var escalationThresholds = []struct {
 
 // notificationExists returns true if a notification already exists for the
 // given user, entity, type, and escalation level combination.
-// Level is encoded in the message title as "(+N days)" to avoid schema changes.
+// Uses a proper keyed unique check on entity_type + entity_id + type + escalation_level.
 func notificationExists(db *gorm.DB, userID string, notifType string, entityType string, entityID uint, level int) bool {
-	titleSuffix := escalationTitleSuffix(level)
 	var count int64
 	db.Model(&models.Notification{}).
-		Where("user_id = ? AND type = ? AND entity_type = ? AND entity_id = ? AND title LIKE ?",
-			userID, notifType, entityType, entityID, "%"+titleSuffix).
+		Where("user_id = ? AND type = ? AND entity_type = ? AND entity_id = ? AND escalation_level = ?",
+			userID, notifType, entityType, entityID, level).
 		Count(&count)
 	return count > 0
 }
@@ -152,15 +157,17 @@ func escalationTitleSuffix(level int) string {
 }
 
 // createNotification inserts a new Notification record. Returns 1 on success, 0 on failure.
-func createNotification(db *gorm.DB, userID, title, message, notifType, entityType string, entityID uint) int {
+// level is the escalation threshold level (0 = no threshold, 1/2/3 = +3/+7/+14 days).
+func createNotification(db *gorm.DB, userID, title, message, notifType, entityType string, entityID uint, level int) int {
 	n := models.Notification{
-		UserID:     userID,
-		Title:      title,
-		Message:    message,
-		Type:       notifType,
-		EntityType: entityType,
-		EntityID:   entityID,
-		IsRead:     false,
+		UserID:          userID,
+		Title:           title,
+		Message:         message,
+		Type:            notifType,
+		EntityType:      entityType,
+		EntityID:        entityID,
+		EscalationLevel: level,
+		IsRead:          false,
 	}
 	if err := db.Create(&n).Error; err != nil {
 		return 0
@@ -203,13 +210,13 @@ func checkInvestigationEscalations(db *gorm.DB) int {
 			// Notify lead investigator.
 			if inv.LeadInvestigatorID != "" &&
 				!notificationExists(db, inv.LeadInvestigatorID, "overdue_investigation", "investigation", inv.ID, threshold.level) {
-				created += createNotification(db, inv.LeadInvestigatorID, title, message, "overdue_investigation", "investigation", inv.ID)
+				created += createNotification(db, inv.LeadInvestigatorID, title, message, "overdue_investigation", "investigation", inv.ID, threshold.level)
 			}
 
 			// Notify the assigner (Safety Manager who created the investigation).
 			if inv.AssignedBy != "" && inv.AssignedBy != inv.LeadInvestigatorID &&
 				!notificationExists(db, inv.AssignedBy, "overdue_investigation", "investigation", inv.ID, threshold.level) {
-				created += createNotification(db, inv.AssignedBy, title, message, "overdue_investigation", "investigation", inv.ID)
+				created += createNotification(db, inv.AssignedBy, title, message, "overdue_investigation", "investigation", inv.ID, threshold.level)
 			}
 		}
 	}
@@ -221,9 +228,11 @@ func checkInvestigationEscalations(db *gorm.DB) int {
 // notifications at +3, +7, +14 day thresholds.
 // Notifies the assigned user and the assigner.
 func checkCAPAEscalations(db *gorm.DB) int {
-	// Only non-terminal CAPAs.
+	// Only actionable CAPAs: overdue due date for Open/In Progress,
+	// overdue verification due date for Verification Pending.
+	// Completed and terminal statuses are excluded.
 	var capas []models.CAPA
-	db.Where("status NOT IN ?", []string{"Verified Effective", "Verified Ineffective"}).Find(&capas)
+	db.Where("status IN ?", []string{"Open", "In Progress", "Verification Pending"}).Find(&capas)
 
 	now := time.Now()
 	created := 0
@@ -237,7 +246,7 @@ func checkCAPAEscalations(db *gorm.DB) int {
 				continue
 			}
 			deadline = *capa.VerificationDueDate
-		default: // Open, In Progress, Completed
+		default: // Open, In Progress
 			deadline = capa.DueDate
 		}
 
@@ -265,13 +274,13 @@ func checkCAPAEscalations(db *gorm.DB) int {
 			// Notify the assigned user.
 			if capa.AssignedToUserID != "" &&
 				!notificationExists(db, capa.AssignedToUserID, "overdue_capa", "capa", capa.ID, threshold.level) {
-				created += createNotification(db, capa.AssignedToUserID, title, message, "overdue_capa", "capa", capa.ID)
+				created += createNotification(db, capa.AssignedToUserID, title, message, "overdue_capa", "capa", capa.ID, threshold.level)
 			}
 
 			// Notify the assigning user (Safety Coordinator/Manager).
 			if capa.AssignedByUserID != "" && capa.AssignedByUserID != capa.AssignedToUserID &&
 				!notificationExists(db, capa.AssignedByUserID, "overdue_capa", "capa", capa.ID, threshold.level) {
-				created += createNotification(db, capa.AssignedByUserID, title, message, "overdue_capa", "capa", capa.ID)
+				created += createNotification(db, capa.AssignedByUserID, title, message, "overdue_capa", "capa", capa.ID, threshold.level)
 			}
 		}
 	}
@@ -307,7 +316,7 @@ func checkRailroadEscalations(db *gorm.DB) int {
 			incident.Type,
 		)
 
-		created += createNotification(db, incident.ReporterID, title, message, "railroad_notification", "incident", incident.ID)
+		created += createNotification(db, incident.ReporterID, title, message, "railroad_notification", "incident", incident.ID, 0)
 	}
 
 	return created
