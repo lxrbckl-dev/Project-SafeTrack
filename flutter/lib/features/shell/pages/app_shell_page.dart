@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../app/herzog_theme.dart';
 import '../../auth/data/auth_service.dart';
 import '../../auth/data/role.dart';
+import '../../chat/widgets/chat_widget.dart';
 import '../../notifications/widgets/notification_bell.dart';
 
 /// Desktop breakpoint: sidebar layout at or above this width.
@@ -169,6 +170,8 @@ class _DesktopShell extends StatelessWidget {
           Expanded(child: child),
         ],
       ),
+      // AI chat FAB — visible on all authenticated pages (TASK-017)
+      floatingActionButton: const ChatFab(),
     );
   }
 }
@@ -456,6 +459,8 @@ class _MobileShell extends StatelessWidget {
         ),
       ),
       body: child,
+      // AI chat FAB — visible on all authenticated pages (TASK-017)
+      floatingActionButton: const ChatFab(),
       bottomNavigationBar: Semantics(
         label: 'Main navigation',
         child: BottomNavigationBar(
