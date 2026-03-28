@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../app/herzog_theme.dart';
 import '../data/dashboard_repository.dart';
 
-/// A 24-row (hours) x 7-column (days) heatmap grid showing incident
+/// A 7-row (days) x 24-column (hours) heatmap grid showing incident
 /// frequency by time of day and day of week.
 ///
 /// Color intensity is based on incident count, from green (zero/low)
@@ -85,10 +85,7 @@ class _TimeHeatmapChartState extends State<TimeHeatmapChart> {
               ),
             ],
             const SizedBox(height: 12),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: _buildGrid(grid, maxCount),
-            ),
+            _buildGrid(grid, maxCount),
             const SizedBox(height: 12),
             _buildColorScale(),
           ],
@@ -98,106 +95,149 @@ class _TimeHeatmapChartState extends State<TimeHeatmapChart> {
   }
 
   Widget _buildGrid(Map<int, Map<int, int>> grid, int maxCount) {
-    const cellSize = 22.0;
+    const cellHeight = 22.0;
     const cellSpacing = 2.0;
-    const hourLabelWidth = 40.0;
+    const dayLabelWidth = 34.0;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Day headers
-        Padding(
-          padding: const EdgeInsets.only(left: hourLabelWidth),
-          child: Row(
-            children: _dayNames.map((day) {
-              return SizedBox(
-                width: cellSize + cellSpacing,
-                child: Center(
-                  child: Text(day, style: HerzogText.label(fontSize: 10)),
-                ),
-              );
-            }).toList(),
-          ),
-        ),
-        const SizedBox(height: 4),
-        // Hour rows
-        ...List.generate(24, (hour) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: cellSpacing),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  width: hourLabelWidth,
-                  child: Text(
-                    _formatHour(hour),
-                    style: HerzogText.body(fontSize: 10),
-                    textAlign: TextAlign.right,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                ...List.generate(7, (dayIdx) {
-                  final count = grid[hour]?[dayIdx] ?? 0;
-                  final intensity = maxCount > 0 ? count / maxCount : 0.0;
-                  final color = count == 0
-                      ? HerzogColors.lightGray
-                      : _intensityColor(intensity);
+    // The inner grid is built inside a SingleChildScrollView so that on narrow
+    // screens each cell retains a minimum width rather than being squished.
+    const minCellWidth = 18.0;
 
-                  return Padding(
-                    padding: const EdgeInsets.only(right: cellSpacing),
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _hoveredCell = TimeHeatmapCell(
-                            hour: hour,
-                            day: _dayNamesFull[dayIdx],
-                            count: count,
-                          );
-                        });
-                      },
-                      child: Semantics(
-                        label:
-                            '${_dayNamesFull[dayIdx]} ${_formatHour(hour)}: '
-                            '$count ${count == 1 ? "incident" : "incidents"}',
-                        child: Tooltip(
-                          message:
-                              '${_dayNamesFull[dayIdx]} ${_formatHour(hour)}: $count',
-                          child: Container(
-                            width: cellSize,
-                            height: cellSize,
-                            decoration: BoxDecoration(
-                              color: color,
-                              borderRadius: BorderRadius.circular(3),
-                              border: Border.all(
-                                color: HerzogColors.borderGray,
-                                width: 0.5,
-                              ),
-                            ),
-                            alignment: Alignment.center,
-                            child: count > 0
-                                ? Text(
-                                    '$count',
-                                    style: HerzogText.body(
-                                      fontSize: 8,
-                                      fontWeight: FontWeight.w600,
-                                      color: intensity > 0.5
-                                          ? HerzogColors.white
-                                          : HerzogColors.richBlack,
-                                    ),
-                                  )
-                                : null,
-                          ),
+    Widget innerGrid = LayoutBuilder(
+      builder: (context, constraints) {
+        // Usable width after the day-label column.
+        final usableWidth = constraints.maxWidth - dayLabelWidth - 4;
+        // Per-cell width: distribute evenly but honour minimum.
+        final perCell = math.max(
+          minCellWidth,
+          (usableWidth - cellSpacing * 23) / 24,
+        );
+        final needsScroll = perCell <= minCellWidth;
+
+        Widget buildContent() {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Hour header row
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  SizedBox(width: dayLabelWidth + 4), // align with day labels
+                  ...List.generate(24, (hour) {
+                    return Container(
+                      width: perCell,
+                      margin: EdgeInsets.only(
+                        right: hour < 23 ? cellSpacing : 0,
+                      ),
+                      child: Center(
+                        child: Text(
+                          _formatHourShort(hour),
+                          style: HerzogText.label(fontSize: 9),
                         ),
                       ),
-                    ),
-                  );
-                }),
-              ],
-            ),
+                    );
+                  }),
+                ],
+              ),
+              const SizedBox(height: 4),
+              // Day rows (outer loop = 7 days, inner loop = 24 hours)
+              ...List.generate(7, (dayIdx) {
+                return Padding(
+                  padding: EdgeInsets.only(
+                    bottom: dayIdx < 6 ? cellSpacing : 0,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Day label
+                      SizedBox(
+                        width: dayLabelWidth,
+                        child: Text(
+                          _dayNames[dayIdx],
+                          style: HerzogText.body(fontSize: 10),
+                          textAlign: TextAlign.right,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      // 24 hour cells
+                      ...List.generate(24, (hour) {
+                        final count = grid[hour]?[dayIdx] ?? 0;
+                        final intensity = maxCount > 0 ? count / maxCount : 0.0;
+                        final color = count == 0
+                            ? HerzogColors.lightGray
+                            : _intensityColor(intensity);
+
+                        return Container(
+                          margin: EdgeInsets.only(
+                            right: hour < 23 ? cellSpacing : 0,
+                          ),
+                          width: perCell,
+                          height: cellHeight,
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _hoveredCell = TimeHeatmapCell(
+                                  hour: hour,
+                                  day: _dayNamesFull[dayIdx],
+                                  count: count,
+                                );
+                              });
+                            },
+                            child: Semantics(
+                              label:
+                                  'Hour $hour, ${_dayNamesFull[dayIdx]}: '
+                                  '$count ${count == 1 ? "incident" : "incidents"}',
+                              child: Tooltip(
+                                message:
+                                    '${_dayNamesFull[dayIdx]} '
+                                    '${_formatHour(hour)}: $count',
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: color,
+                                    borderRadius: BorderRadius.circular(3),
+                                    border: Border.all(
+                                      color: HerzogColors.borderGray,
+                                      width: 0.5,
+                                    ),
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: count > 0
+                                      ? Text(
+                                          '$count',
+                                          style: HerzogText.body(
+                                            fontSize: 7,
+                                            fontWeight: FontWeight.w600,
+                                            color: intensity > 0.5
+                                                ? HerzogColors.white
+                                                : HerzogColors.richBlack,
+                                          ),
+                                        )
+                                      : null,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                );
+              }),
+            ],
           );
-        }),
-      ],
+        }
+
+        if (needsScroll) {
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: buildContent(),
+          );
+        }
+        return buildContent();
+      },
     );
+
+    return innerGrid;
   }
 
   Widget _buildColorScale() {
@@ -237,6 +277,14 @@ class _TimeHeatmapChartState extends State<TimeHeatmapChart> {
     if (hour < 12) return '$hour AM';
     if (hour == 12) return '12 PM';
     return '${hour - 12} PM';
+  }
+
+  /// Short label for column headers: "12a", "1a" … "12p", "1p" … "11p".
+  static String _formatHourShort(int hour) {
+    if (hour == 0) return '12a';
+    if (hour < 12) return '${hour}a';
+    if (hour == 12) return '12p';
+    return '${hour - 12}p';
   }
 
   static Color _intensityColor(double t) {
