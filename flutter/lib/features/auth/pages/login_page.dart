@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app/herzog_theme.dart';
 import '../data/auth_service.dart';
@@ -195,6 +196,109 @@ class _LoginPageState extends State<LoginPage> {
                                       ),
                                     ),
                             ),
+                          ),
+                        ),
+
+                        // Forgot Password link
+                        const SizedBox(height: 16),
+                        Center(
+                          child: Semantics(
+                            button: true,
+                            label: 'Forgot password, opens email',
+                            child: GestureDetector(
+                              onTap: () => launchUrl(
+                                Uri.parse(
+                                  'mailto:aarbuckle@herzog.com'
+                                  '?subject=SafeTrack%20Forgot%20My%20Password'
+                                  '&body=Hello%2C%20I%20need%20help%20resetting'
+                                  '%20my%20SafeTrack%20password.%0A%0AName%3A%20'
+                                  '%0AEmail%3A%20%0ARole%3A%20%0A%0AThank%20you.',
+                                ),
+                              ),
+                              child: Text(
+                                'Forgot Password?',
+                                style:
+                                    HerzogText.body(
+                                      fontSize: 14,
+                                      color: HerzogColors.gold,
+                                    ).copyWith(
+                                      decoration: TextDecoration.underline,
+                                      decorationColor: HerzogColors.gold,
+                                    ),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // Support contact line
+                        const SizedBox(height: 12),
+                        Center(
+                          child: Text.rich(
+                            TextSpan(
+                              style: HerzogText.body(
+                                fontSize: 13,
+                                color: HerzogColors.midGray,
+                              ),
+                              children: [
+                                const TextSpan(
+                                  text: 'Need help? Contact support at ',
+                                ),
+                                WidgetSpan(
+                                  alignment: PlaceholderAlignment.middle,
+                                  child: Semantics(
+                                    button: true,
+                                    label: 'Call support',
+                                    child: GestureDetector(
+                                      onTap: () => launchUrl(
+                                        Uri.parse('tel:18162732285'),
+                                      ),
+                                      child: Text(
+                                        '1-816-273-2285',
+                                        style:
+                                            HerzogText.body(
+                                              fontSize: 13,
+                                              color: HerzogColors.midGray,
+                                            ).copyWith(
+                                              decoration:
+                                                  TextDecoration.underline,
+                                              decorationColor:
+                                                  HerzogColors.midGray,
+                                            ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const TextSpan(text: ' or '),
+                                WidgetSpan(
+                                  alignment: PlaceholderAlignment.middle,
+                                  child: Semantics(
+                                    button: true,
+                                    label: 'Email support',
+                                    child: GestureDetector(
+                                      onTap: () => launchUrl(
+                                        Uri.parse(
+                                          'mailto:aarbuckle@herzog.com',
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'aarbuckle@herzog.com',
+                                        style:
+                                            HerzogText.body(
+                                              fontSize: 13,
+                                              color: HerzogColors.midGray,
+                                            ).copyWith(
+                                              decoration:
+                                                  TextDecoration.underline,
+                                              decorationColor:
+                                                  HerzogColors.midGray,
+                                            ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            textAlign: TextAlign.center,
                           ),
                         ),
                       ],

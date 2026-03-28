@@ -74,6 +74,9 @@ dependencies:
   # Real-time WebSocket updates (TASK-043)
   web_socket_channel: ^3.0.0
 
+  # Forgot Password + support contact links (issue #124)
+  url_launcher: ^6.3.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
