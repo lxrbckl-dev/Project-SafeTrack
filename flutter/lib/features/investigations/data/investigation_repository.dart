@@ -1,7 +1,6 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
-
+import '../../../core/services/api_client.dart';
 import '../../../core/services/api_config.dart';
 import '../../auth/data/auth_service.dart';
 
@@ -293,14 +292,9 @@ class InvestigationListResponse {
 /// Uses [AuthService] for JWT bearer tokens and [ApiConfig.baseUrl] for the
 /// Go backend URL.
 class InvestigationRepository {
-  final AuthService _auth;
+  final ApiClient _api;
 
-  InvestigationRepository(this._auth);
-
-  Map<String, String> get _headers => {
-    'Content-Type': 'application/json',
-    if (_auth.token != null) 'Authorization': 'Bearer ${_auth.token}',
-  };
+  InvestigationRepository(AuthService auth) : _api = ApiClient(auth);
 
   String get _base => ApiConfig.baseUrl;
 
@@ -329,7 +323,7 @@ class InvestigationRepository {
     final uri = Uri.parse(
       '$_base/api/investigations',
     ).replace(queryParameters: params);
-    final response = await http.get(uri, headers: _headers);
+    final response = await _api.get(uri);
     if (response.statusCode != 200) {
       throw Exception('Failed to load investigations: ${response.body}');
     }
@@ -341,7 +335,7 @@ class InvestigationRepository {
   /// Gets a single investigation by ID with preloaded child collections.
   Future<Investigation> getInvestigation(int id) async {
     final uri = Uri.parse('$_base/api/investigations/$id');
-    final response = await http.get(uri, headers: _headers);
+    final response = await _api.get(uri);
     if (response.statusCode != 200) {
       throw Exception('Failed to load investigation: ${response.body}');
     }
@@ -357,9 +351,8 @@ class InvestigationRepository {
     String teamMembers = '',
   }) async {
     final uri = Uri.parse('$_base/api/investigations');
-    final response = await http.post(
+    final response = await _api.post(
       uri,
-      headers: _headers,
       body: jsonEncode({
         'incidentId': incidentId,
         'leadInvestigatorId': leadInvestigatorId,
@@ -389,11 +382,7 @@ class InvestigationRepository {
     if (teamMembers != null) body['teamMembers'] = teamMembers;
     if (status != null) body['status'] = status;
 
-    final response = await http.put(
-      uri,
-      headers: _headers,
-      body: jsonEncode(body),
-    );
+    final response = await _api.put(uri, body: jsonEncode(body));
     if (response.statusCode != 200) {
       throw Exception('Failed to update investigation: ${response.body}');
     }
@@ -410,11 +399,7 @@ class InvestigationRepository {
     final uri = Uri.parse(
       '$_base/api/investigations/$investigationId/five-whys',
     );
-    final response = await http.post(
-      uri,
-      headers: _headers,
-      body: jsonEncode(fiveWhy.toJson()),
-    );
+    final response = await _api.post(uri, body: jsonEncode(fiveWhy.toJson()));
     if (response.statusCode != 200 && response.statusCode != 201) {
       throw Exception('Failed to save five-why: ${response.body}');
     }
@@ -426,7 +411,7 @@ class InvestigationRepository {
     final uri = Uri.parse(
       '$_base/api/investigations/$investigationId/five-whys/$whyId',
     );
-    final response = await http.delete(uri, headers: _headers);
+    final response = await _api.delete(uri);
     if (response.statusCode != 204) {
       throw Exception('Failed to delete five-why: ${response.body}');
     }
@@ -440,11 +425,7 @@ class InvestigationRepository {
     ContributingFactor factor,
   ) async {
     final uri = Uri.parse('$_base/api/investigations/$investigationId/factors');
-    final response = await http.post(
-      uri,
-      headers: _headers,
-      body: jsonEncode(factor.toJson()),
-    );
+    final response = await _api.post(uri, body: jsonEncode(factor.toJson()));
     if (response.statusCode != 201) {
       throw Exception('Failed to create factor: ${response.body}');
     }
@@ -458,7 +439,7 @@ class InvestigationRepository {
     final uri = Uri.parse(
       '$_base/api/investigations/$investigationId/factors/$factorId',
     );
-    final response = await http.delete(uri, headers: _headers);
+    final response = await _api.delete(uri);
     if (response.statusCode != 204) {
       throw Exception('Failed to delete factor: ${response.body}');
     }
@@ -474,11 +455,7 @@ class InvestigationRepository {
     final uri = Uri.parse(
       '$_base/api/investigations/$investigationId/witnesses',
     );
-    final response = await http.post(
-      uri,
-      headers: _headers,
-      body: jsonEncode(statement.toJson()),
-    );
+    final response = await _api.post(uri, body: jsonEncode(statement.toJson()));
     if (response.statusCode != 201) {
       throw Exception('Failed to create witness statement: ${response.body}');
     }
@@ -496,11 +473,7 @@ class InvestigationRepository {
     final uri = Uri.parse(
       '$_base/api/investigations/$investigationId/witnesses/$witnessId',
     );
-    final response = await http.put(
-      uri,
-      headers: _headers,
-      body: jsonEncode(statement.toJson()),
-    );
+    final response = await _api.put(uri, body: jsonEncode(statement.toJson()));
     if (response.statusCode != 200) {
       throw Exception('Failed to update witness statement: ${response.body}');
     }
@@ -517,7 +490,7 @@ class InvestigationRepository {
     final uri = Uri.parse(
       '$_base/api/investigations/$investigationId/submit-for-review',
     );
-    final response = await http.post(uri, headers: _headers);
+    final response = await _api.post(uri);
     if (response.statusCode != 200) {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       throw Exception(body['error'] ?? 'Failed to submit for review');
@@ -534,9 +507,8 @@ class InvestigationRepository {
     required String comments,
   }) async {
     final uri = Uri.parse('$_base/api/investigations/$investigationId/review');
-    final response = await http.post(
+    final response = await _api.post(
       uri,
-      headers: _headers,
       body: jsonEncode({'decision': decision, 'comments': comments}),
     );
     if (response.statusCode != 200) {
@@ -552,7 +524,7 @@ class InvestigationRepository {
   /// Fetches configurable factor types from admin settings.
   Future<List<String>> getFactorTypes() async {
     final uri = Uri.parse('$_base/api/settings/factor_types');
-    final response = await http.get(uri, headers: _headers);
+    final response = await _api.get(uri);
     if (response.statusCode != 200) {
       // Return defaults if settings not available.
       return [

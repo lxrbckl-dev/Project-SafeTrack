@@ -1,7 +1,6 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
-
+import '../../../core/services/api_client.dart';
 import '../../../core/services/api_config.dart';
 import '../../auth/data/auth_service.dart';
 
@@ -45,9 +44,9 @@ class ActivityFeedItem {
 
 /// Repository for fetching live activity feed data from the Go backend.
 class ActivityRepository {
-  final AuthService _auth;
+  final ApiClient _api;
 
-  ActivityRepository(this._auth);
+  ActivityRepository(AuthService auth) : _api = ApiClient(auth);
 
   /// Fetches recent activity feed items.
   ///
@@ -66,13 +65,7 @@ class ActivityRepository {
       '${ApiConfig.baseUrl}/api/activity',
     ).replace(queryParameters: params);
 
-    final response = await http.get(
-      uri,
-      headers: {
-        'Authorization': 'Bearer ${_auth.token}',
-        'Content-Type': 'application/json',
-      },
-    );
+    final response = await _api.get(uri);
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body) as List<dynamic>;

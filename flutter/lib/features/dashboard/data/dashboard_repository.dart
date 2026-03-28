@@ -1,7 +1,6 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
-
+import '../../../core/services/api_client.dart';
 import '../../../core/services/api_config.dart';
 import '../../auth/data/auth_service.dart';
 
@@ -360,21 +359,16 @@ class HoursWorked {
 
 /// API client for the safety dashboard and hours-worked endpoints.
 class DashboardRepository {
-  final AuthService _auth;
+  final ApiClient _api;
 
-  DashboardRepository(this._auth);
-
-  Map<String, String> get _headers => {
-    'Content-Type': 'application/json',
-    if (_auth.token != null) 'Authorization': 'Bearer ${_auth.token}',
-  };
+  DashboardRepository(AuthService auth) : _api = ApiClient(auth);
 
   String get _base => ApiConfig.baseUrl;
 
   /// Fetches comprehensive dashboard data.
   Future<DashboardData> getDashboard() async {
     final uri = Uri.parse('$_base/api/dashboard');
-    final response = await http.get(uri, headers: _headers);
+    final response = await _api.get(uri);
     if (response.statusCode != 200) {
       throw Exception('Failed to load dashboard: ${response.body}');
     }
@@ -386,11 +380,7 @@ class DashboardRepository {
   /// Creates a new hours-worked entry.
   Future<HoursWorked> createHoursWorked(HoursWorked entry) async {
     final uri = Uri.parse('$_base/api/hours-worked');
-    final response = await http.post(
-      uri,
-      headers: _headers,
-      body: jsonEncode(entry.toJson()),
-    );
+    final response = await _api.post(uri, body: jsonEncode(entry.toJson()));
     if (response.statusCode != 201) {
       throw Exception('Failed to create hours worked: ${response.body}');
     }
@@ -402,7 +392,7 @@ class DashboardRepository {
   /// Lists all hours-worked entries.
   Future<List<HoursWorked>> listHoursWorked() async {
     final uri = Uri.parse('$_base/api/hours-worked');
-    final response = await http.get(uri, headers: _headers);
+    final response = await _api.get(uri);
     if (response.statusCode != 200) {
       throw Exception('Failed to load hours worked: ${response.body}');
     }
@@ -416,7 +406,7 @@ class DashboardRepository {
   /// Requires Safety Coordinator role or above.
   Future<List<BodyPartCount>> getBodyMap() async {
     final uri = Uri.parse('$_base/api/dashboard/body-map');
-    final response = await http.get(uri, headers: _headers);
+    final response = await _api.get(uri);
     if (response.statusCode == 403) {
       throw Exception('Insufficient permissions to view body map data');
     }
@@ -432,7 +422,7 @@ class DashboardRepository {
   /// Fetches incident counts by hour-of-day and day-of-week for the heatmap.
   Future<List<TimeHeatmapCell>> getTimeHeatmap() async {
     final uri = Uri.parse('$_base/api/dashboard/time-heatmap');
-    final response = await http.get(uri, headers: _headers);
+    final response = await _api.get(uri);
     if (response.statusCode != 200) {
       throw Exception('Failed to load time heatmap: ${response.body}');
     }
@@ -445,7 +435,7 @@ class DashboardRepository {
   /// Fetches multi-metric division data for the radar chart.
   Future<List<DivisionRadarEntry>> getDivisionRadar() async {
     final uri = Uri.parse('$_base/api/dashboard/division-radar');
-    final response = await http.get(uri, headers: _headers);
+    final response = await _api.get(uri);
     if (response.statusCode != 200) {
       throw Exception('Failed to load division radar: ${response.body}');
     }

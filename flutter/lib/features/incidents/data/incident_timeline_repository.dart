@@ -1,7 +1,6 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
-
+import '../../../core/services/api_client.dart';
 import '../../../core/services/api_config.dart';
 import '../../auth/data/auth_service.dart';
 
@@ -49,14 +48,9 @@ class TimelineEvent {
 
 /// API client for the incident timeline endpoint.
 class IncidentTimelineRepository {
-  final AuthService _auth;
+  final ApiClient _api;
 
-  IncidentTimelineRepository(this._auth);
-
-  Map<String, String> get _headers => {
-    'Content-Type': 'application/json',
-    if (_auth.token != null) 'Authorization': 'Bearer ${_auth.token}',
-  };
+  IncidentTimelineRepository(AuthService auth) : _api = ApiClient(auth);
 
   String get _base => ApiConfig.baseUrl;
 
@@ -64,7 +58,7 @@ class IncidentTimelineRepository {
   /// Returns events sorted chronologically (oldest first).
   Future<List<TimelineEvent>> getTimeline(int incidentId) async {
     final uri = Uri.parse('$_base/api/incidents/$incidentId/timeline');
-    final response = await http.get(uri, headers: _headers);
+    final response = await _api.get(uri);
 
     if (response.statusCode != 200) {
       throw Exception('Failed to load timeline: ${response.body}');

@@ -1,7 +1,6 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
-
+import '../../../core/services/api_client.dart';
 import '../../../core/services/api_config.dart';
 import '../../auth/data/auth_service.dart';
 
@@ -48,14 +47,9 @@ class SearchResultItem {
 
 /// API client for the global search endpoint.
 class SearchRepository {
-  final AuthService _auth;
+  final ApiClient _api;
 
-  SearchRepository(this._auth);
-
-  Map<String, String> get _headers => {
-    'Content-Type': 'application/json',
-    if (_auth.token != null) 'Authorization': 'Bearer ${_auth.token}',
-  };
+  SearchRepository(AuthService auth) : _api = ApiClient(auth);
 
   String get _base => ApiConfig.baseUrl;
 
@@ -70,7 +64,7 @@ class SearchRepository {
     final uri = Uri.parse(
       '$_base/api/search',
     ).replace(queryParameters: {'q': trimmed});
-    final response = await http.get(uri, headers: _headers);
+    final response = await _api.get(uri);
 
     if (response.statusCode != 200) {
       throw Exception('Search failed: ${response.body}');

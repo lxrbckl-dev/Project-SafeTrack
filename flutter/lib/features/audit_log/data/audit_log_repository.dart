@@ -1,7 +1,6 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
-
+import '../../../core/services/api_client.dart';
 import '../../../core/services/api_config.dart';
 import '../../auth/data/auth_service.dart';
 
@@ -209,14 +208,9 @@ class AuditLogFilter {
 
 /// API client for the audit log endpoint.
 class AuditLogRepository {
-  final AuthService _auth;
+  final ApiClient _api;
 
-  AuditLogRepository(this._auth);
-
-  Map<String, String> get _headers => {
-    'Content-Type': 'application/json',
-    if (_auth.token != null) 'Authorization': 'Bearer ${_auth.token}',
-  };
+  AuditLogRepository(AuthService auth) : _api = ApiClient(auth);
 
   String get _base => ApiConfig.baseUrl;
 
@@ -225,7 +219,7 @@ class AuditLogRepository {
     final uri = Uri.parse(
       '$_base/api/audit-logs',
     ).replace(queryParameters: filter.toQueryParams());
-    final response = await http.get(uri, headers: _headers);
+    final response = await _api.get(uri);
 
     if (response.statusCode == 403) {
       throw Exception(
