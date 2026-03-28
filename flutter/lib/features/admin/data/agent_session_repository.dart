@@ -111,15 +111,21 @@ class AgentSessionRepository {
   }
 
   /// Fetches agent-only audit log entries.
-  /// [since] provides cursor-based pagination. [limit] defaults to 50.
+  /// [since] returns items newer than the timestamp (polling).
+  /// [before] returns items older than the timestamp (Load More).
+  /// [limit] defaults to 50.
   Future<List<AgentActivityItem>> getActivity(
     String token, {
     DateTime? since,
+    DateTime? before,
     int limit = 50,
   }) async {
     final params = <String, String>{'limit': '$limit'};
     if (since != null) {
       params['since'] = since.toUtc().toIso8601String();
+    }
+    if (before != null) {
+      params['before'] = before.toUtc().toIso8601String();
     }
 
     final uri = Uri.parse(

@@ -120,7 +120,7 @@ class _AgentSessionsPageState extends State<AgentSessionsPage> {
       final more = await _repo.getActivity(
         token,
         limit: 50,
-        since: oldestTimestamp,
+        before: oldestTimestamp,
       );
       if (!mounted) return;
       setState(() {

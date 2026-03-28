@@ -88,8 +88,11 @@ func GetAgentSessions(db *gorm.DB) http.HandlerFunc {
 // Returns audit log entries where is_agent=true. Applies the same RBAC
 // scoping as the regular activity feed (edge case: division/project scoping
 // for PM and Division Manager). Supports cursor-based pagination via `since`
-// (RFC3339) and `limit` (default 50, max 200) to handle high-volume agent
-// audit logs without OOM (edge case: cursor pagination).
+// (RFC3339, returns items newer than timestamp) and `before` (RFC3339, returns
+// items older than timestamp) with `limit` (default 50, max 200) to handle
+// high-volume agent audit logs without OOM (edge case: cursor pagination).
+//
+// Use `since` to poll for new items; use `before` for Load More (older items).
 //
 // Edge case: rejection and rollback actions are included — the filter is on
 // is_agent only, so all action types (create, reject, rollback, etc.) appear.
@@ -103,9 +106,10 @@ func GetAgentActivity(db *gorm.DB) http.HandlerFunc {
 			Where("is_agent = ?", true).
 			Order("timestamp desc")
 
-		// Cursor-based pagination: `since` acts as a cursor on the timestamp
-		// index. This is O(log n) regardless of table size, unlike offset
-		// pagination which degrades to O(n) for deep pages.
+		// Cursor-based pagination: `since` returns items newer than the given
+		// timestamp (used for polling). `before` returns items older than the
+		// given timestamp (used for Load More). Both are O(log n) on the
+		// timestamp index, unlike offset pagination which degrades to O(n).
 		if sinceStr := r.URL.Query().Get("since"); sinceStr != "" {
 			t, err := time.Parse(time.RFC3339, sinceStr)
 			if err != nil {
@@ -113,6 +117,15 @@ func GetAgentActivity(db *gorm.DB) http.HandlerFunc {
 				return
 			}
 			query = query.Where("timestamp > ?", t)
+		}
+
+		if beforeStr := r.URL.Query().Get("before"); beforeStr != "" {
+			t, err := time.Parse(time.RFC3339, beforeStr)
+			if err != nil {
+				http.Error(w, "invalid 'before' parameter, expected RFC3339", http.StatusBadRequest)
+				return
+			}
+			query = query.Where("timestamp < ?", t)
 		}
 
 		// Limit — default 50, max 200 (higher than regular feed because agents
