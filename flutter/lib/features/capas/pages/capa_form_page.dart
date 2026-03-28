@@ -18,10 +18,25 @@ import '../data/capa_repository.dart';
 /// Fields: type, category, description, assigned user, priority,
 /// verification method. Due dates are auto-calculated based on priority
 /// and shown read-only.
+///
+/// Query-parameter pre-fill (TASK-044): `type`, `category`, `priority`,
+/// `description`. All enum values are validated before applying.
 class CAPAFormPage extends StatefulWidget {
   final int? investigationId;
 
-  const CAPAFormPage({super.key, this.investigationId});
+  /// Optional query parameters from the URL for pre-fill.
+  ///
+  /// Supported keys: `type` (Corrective/Preventive), `category` (7 values),
+  /// `priority` (Critical/High/Medium/Low), `description`.
+  ///
+  /// Empty strings are treated as missing (not applied).
+  final Map<String, String> queryParams;
+
+  const CAPAFormPage({
+    super.key,
+    this.investigationId,
+    this.queryParams = const {},
+  });
 
   @override
   State<CAPAFormPage> createState() => _CAPAFormPageState();
@@ -68,11 +83,55 @@ class _CAPAFormPageState extends State<CAPAFormPage> {
     if (widget.investigationId != null) {
       _loadInvestigation();
     }
+    // TASK-044: Apply URL query-parameter pre-fill before FormFillService
+    // so query params take precedence (edge case #5).
+    _applyQueryParams();
     // TASK-019: Check for AI-dispatched form fill data and listen for future
     // dispatches (handles the case where the form is already mounted).
     final formFillService = context.read<FormFillService>();
     formFillService.addListener(_applyPendingFields);
     _applyPendingFields();
+  }
+
+  /// Applies URL query-parameter pre-fill values (TASK-044).
+  ///
+  /// Validates enum fields before applying. Empty strings treated as missing.
+  /// Clears any pending FormFillService data when params are present so
+  /// query params take precedence (edge case #5).
+  void _applyQueryParams() {
+    final params = widget.queryParams;
+    if (params.isEmpty) return;
+
+    // Query params present — clear pending FormFillService data.
+    context.read<FormFillService>().clear();
+
+    setState(() {
+      // type — validate Corrective/Preventive (edge case #3, #6).
+      final typeVal = params['type'];
+      if (typeVal != null && typeVal.isNotEmpty && _types.contains(typeVal)) {
+        _type = typeVal;
+      }
+
+      // category — validate against 7 valid categories.
+      final catVal = params['category'];
+      if (catVal != null && catVal.isNotEmpty && _categories.contains(catVal)) {
+        _category = catVal;
+      }
+
+      // priority — validate Critical/High/Medium/Low.
+      final prioVal = params['priority'];
+      if (prioVal != null &&
+          prioVal.isNotEmpty &&
+          _priorities.contains(prioVal)) {
+        _priority = prioVal;
+      }
+
+      // description — direct string fill.
+      final descVal = params['description'];
+      if (descVal != null && descVal.isNotEmpty) {
+        _descriptionController.text = descVal;
+      }
+    });
   }
 
   /// Applies any pending form fill data from [FormFillService] (AI agent
