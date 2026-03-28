@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -39,12 +40,14 @@ func FirebaseAuth(next http.Handler) http.Handler {
 		// Azure AD public keys instead of HS256.
 
 		claims := jwt.MapClaims{}
+		// TASK-048 edge case 16: add 30s leeway to token validation to
+		// handle clock skew between agent and server.
 		token, err := jwt.ParseWithClaims(tokenStr, claims, func(t *jwt.Token) (interface{}, error) {
 			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
 			}
 			return DevJWTSecret(), nil
-		})
+		}, jwt.WithLeeway(30*time.Second))
 		if err != nil || !token.Valid {
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
