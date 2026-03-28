@@ -513,7 +513,7 @@ class _SkipNavLink extends StatelessWidget {
   }
 }
 
-/// Sidebar brand header: "HIGHLANDER" in Oswald gold on black.
+/// Sidebar brand header: "SAFETRACK" in Oswald gold on black.
 class _SidebarHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -523,7 +523,7 @@ class _SidebarHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'HIGHLANDER',
+            'SAFETRACK',
             style: HerzogText.heading(
               fontSize: 20,
               fontWeight: FontWeight.w700,

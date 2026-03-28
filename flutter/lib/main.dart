@@ -45,7 +45,7 @@ class MyApp extends StatelessWidget {
       ],
       child: Builder(
         builder: (context) => MaterialApp.router(
-          title: 'Highlander',
+          title: 'SafeTrack',
           theme: herzogTheme(),
           routerConfig: appRouter(context.read<AuthService>()),
         ),

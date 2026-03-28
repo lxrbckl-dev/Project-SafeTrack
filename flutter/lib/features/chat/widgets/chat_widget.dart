@@ -30,7 +30,7 @@ class _ChatMessage {
 // Public widget: ChatFab
 // ---------------------------------------------------------------------------
 
-/// Floating AI Chat widget for the Highlander app.
+/// Floating AI Chat widget for the SafeTrack app.
 ///
 /// Renders as a gold FAB in the bottom-right corner of the shell. When tapped,
 /// expands to an overlay chat panel powered by Qwen 2.5 7B via [POST /api/chat].

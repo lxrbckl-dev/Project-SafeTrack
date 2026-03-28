@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import '../../../core/services/api_config.dart';
 import 'role.dart';
 
-/// Manages authentication state for the Highlander app.
+/// Manages authentication state for the SafeTrack app.
 ///
 /// In dev/demo mode, [devLogin] calls [POST /api/dev-login] to obtain a
 /// self-signed JWT for the selected role. In production this will be replaced

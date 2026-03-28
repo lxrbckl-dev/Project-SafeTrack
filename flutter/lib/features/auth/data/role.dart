@@ -1,4 +1,4 @@
-/// RBAC roles for the Highlander application.
+/// RBAC roles for the SafeTrack application.
 ///
 /// Roles are ordered by access level (lowest → highest).
 /// Use [isAtLeast] to check if the current role has sufficient privileges.
