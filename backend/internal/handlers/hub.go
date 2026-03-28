@@ -176,10 +176,10 @@ func (h *Hub) Broadcast(event WSEvent) {
 }
 
 // broadcastToClients sends an event to all relevant clients.
-// RBAC filtering: notification events go to all users (the notification
-// system already creates per-user records); activity events are visible
-// to all connected clients (RBAC scoping is done at the API layer when
-// clients fetch full data).
+// RBAC filtering: notification events are routed only to the target user
+// (identified by event.Data["userId"]); activity events are visible to all
+// connected clients (RBAC scoping is done at the API layer when clients
+// fetch full data).
 func (h *Hub) broadcastToClients(event WSEvent) {
 	data, err := json.Marshal(event)
 	if err != nil {
@@ -191,12 +191,26 @@ func (h *Hub) broadcastToClients(event WSEvent) {
 	defer h.mu.RUnlock()
 
 	for client := range h.clients {
+		// Bug 1 fix: Only send notification events to the target user.
+		if event.Type == "notification" {
+			dataMap, ok := event.Data.(map[string]interface{})
+			if ok {
+				targetUserID, ok := dataMap["userId"].(string)
+				if ok && client.UserID != targetUserID {
+					continue // skip this client
+				}
+			}
+		}
+
 		select {
 		case client.send <- data:
 		default:
-			// Client's send buffer is full — disconnect them.
-			close(client.send)
-			delete(h.clients, client)
+			// Bug 2 fix: Client's send buffer is full — schedule disconnect
+			// via the unregister channel so Run() handles cleanup under the
+			// write lock, avoiding a concurrent map write under RLock.
+			go func(c *Client) {
+				h.unregister <- c
+			}(client)
 		}
 	}
 }
