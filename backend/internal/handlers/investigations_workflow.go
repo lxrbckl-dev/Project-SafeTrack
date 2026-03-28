@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 
 	"github.com/lxRbckl/highlander/backend/internal/middleware"
 	"github.com/lxRbckl/highlander/backend/internal/models"
+	"github.com/lxRbckl/highlander/backend/internal/services"
 )
 
 // ---------- Five-Why CRUD ----------
@@ -385,6 +387,17 @@ func SubmitForReview(db *gorm.DB) http.HandlerFunc {
 		}
 
 		LogAction(db, userID, userRole, "status_change", "investigation", investigation.ID, beforeJSON, toJSON(investigation), "Submitted for review")
+
+		// Notify Safety Manager(s): in-app notification + email if preference allows.
+		// The AssignedBy field holds the Safety Manager who created the investigation.
+		if investigation.AssignedBy != "" {
+			title := "Investigation Review Request"
+			message := fmt.Sprintf("Investigation #%d has been submitted for your review.", investigation.ID)
+			createNotification(db, investigation.AssignedBy, title, message, "review_request", "investigation", investigation.ID, 0)
+			trySendEmail(db, investigation.AssignedBy, func(email string) error {
+				return services.SendReviewRequestEmail(email, investigation.ID)
+			})
+		}
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(investigation)
