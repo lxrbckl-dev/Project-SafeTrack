@@ -221,7 +221,7 @@ func ListIncidents(db *gorm.DB) http.HandlerFunc {
 			}
 		}
 		if pp := r.URL.Query().Get("per_page"); pp != "" {
-			if v, err := strconv.Atoi(pp); err == nil && v > 0 && v <= 100 {
+			if v, err := strconv.Atoi(pp); err == nil && v > 0 && v <= 500 {
 				perPage = v
 			}
 		}

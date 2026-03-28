@@ -46,6 +46,7 @@ class _IncidentFormPageState extends State<IncidentFormPage> {
   bool _loading = false;
   bool _saving = false;
   bool _submitting = false;
+  bool _isDirty = false;
 
   // Basic Info
   String? _type;
@@ -267,6 +268,11 @@ class _IncidentFormPageState extends State<IncidentFormPage> {
     return (filled * 100) ~/ fields.length;
   }
 
+  /// Marks the form as dirty (has unsaved user changes).
+  void _markDirty() {
+    if (!_isDirty) setState(() => _isDirty = true);
+  }
+
   Incident _buildIncident({required bool isDraft}) {
     return Incident(
       type: _type ?? '',
@@ -320,6 +326,7 @@ class _IncidentFormPageState extends State<IncidentFormPage> {
       }
 
       if (mounted) {
+        setState(() => _isDirty = false);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Draft saved successfully')),
         );
@@ -372,6 +379,7 @@ class _IncidentFormPageState extends State<IncidentFormPage> {
       }
 
       if (mounted) {
+        setState(() => _isDirty = false);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Incident submitted successfully')),
         );
@@ -431,6 +439,7 @@ class _IncidentFormPageState extends State<IncidentFormPage> {
       final photo = await _imagePicker.pickImage(source: ImageSource.gallery);
       if (photo != null && mounted) {
         setState(() => _selectedPhotos.add(photo));
+        _markDirty();
       }
     } catch (e) {
       if (mounted) {
@@ -452,194 +461,272 @@ class _IncidentFormPageState extends State<IncidentFormPage> {
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_isEditMode ? 'EDIT INCIDENT' : 'NEW INCIDENT'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/incidents'),
-          tooltip: 'Back to incidents',
-        ),
-      ),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 800),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Completion indicator
-                CompletionIndicator(percent: _calculateCompletion()),
-                const SizedBox(height: 20),
-
-                // Basic Info Section
-                _sectionHeader('BASIC INFORMATION'),
-                const SizedBox(height: 12),
-                AppDropdown<String>(
-                  label: 'Incident Type',
-                  options: _incidentTypes,
-                  value: _type,
-                  onChanged: (v) => setState(() {
-                    _type = v;
-                    // Auto-show injured person section for Injury type
-                    if (v == 'Injury') {
-                      _hasInjuredPerson = true;
-                    }
-                  }),
-                  required: true,
-                  hint: 'Select type',
-                  validator: (v) => v == null ? 'Type is required' : null,
+    return PopScope(
+      canPop: !_isDirty,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Discard changes?'),
+              content: const Text(
+                'You have unsaved changes. Are you sure you want to leave?',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
                 ),
-                const SizedBox(height: 12),
-                AppDatePicker(
-                  label: 'Incident Date',
-                  selectedDate: _date,
-                  onDateSelected: (d) => setState(() => _date = d),
-                  required: true,
-                  validator: (d) => d == null ? 'Date is required' : null,
-                ),
-                const SizedBox(height: 12),
-                GpsLocationField(
-                  label: 'Location',
-                  controller: _locationController,
-                  required: true,
-                  validator: (v) =>
-                      v == null || v.isEmpty ? 'Location is required' : null,
-                  onLocationObtained: (lat, lon) {
-                    _latitude = lat;
-                    _longitude = lon;
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.pop(context);
                   },
-                  onChanged: (_) => setState(() {}),
+                  child: const Text('Discard'),
                 ),
-                const SizedBox(height: 12),
-                AppTextField(
-                  label: 'Division',
-                  controller: _divisionController,
-                  hint: 'e.g., HCC, HRSI, HSI',
-                  onChanged: (_) => setState(() {}),
-                ),
-                const SizedBox(height: 12),
-                AppTextField(
-                  label: 'Project / Job Site',
-                  controller: _projectController,
-                  hint: 'Enter project or job site name',
-                  onChanged: (_) => setState(() {}),
-                ),
-
-                const SizedBox(height: 24),
-
-                // Description Section
-                _sectionHeader('DESCRIPTION'),
-                const SizedBox(height: 12),
-                _fieldWithVoice(
-                  AppTextField(
-                    label: 'Description',
-                    controller: _descriptionController,
-                    hint: 'Describe the incident...',
-                    maxLines: 4,
-                    required: true,
-                    validator: (v) => v == null || v.isEmpty
-                        ? 'Description is required'
-                        : null,
-                    onChanged: (_) => setState(() {}),
-                  ),
-                  _descriptionController,
-                ),
-                const SizedBox(height: 12),
-                _fieldWithVoice(
-                  AppTextField(
-                    label: 'Immediate Actions Taken',
-                    controller: _immediateActionsController,
-                    hint: 'Describe any immediate actions...',
-                    maxLines: 3,
-                    onChanged: (_) => setState(() {}),
-                  ),
-                  _immediateActionsController,
-                ),
-
-                const SizedBox(height: 24),
-
-                // Classification Section
-                _sectionHeader('CLASSIFICATION'),
-                const SizedBox(height: 12),
-                AppDropdown<String>(
-                  label: 'Severity',
-                  options: _severities,
-                  value: _severity,
-                  onChanged: (v) => setState(() => _severity = v),
-                  hint: 'Select severity',
-                ),
-                const SizedBox(height: 12),
-                AppDropdown<String>(
-                  label: 'Potential Severity',
-                  options: _severities,
-                  value: _potentialSeverity,
-                  onChanged: (v) => setState(() => _potentialSeverity = v),
-                  hint: 'Select potential severity',
-                ),
-                const SizedBox(height: 12),
-                AppDropdown<String>(
-                  label: 'Shift',
-                  options: _shifts,
-                  value: _shift,
-                  onChanged: (v) => setState(() => _shift = v),
-                  hint: 'Select shift',
-                ),
-                const SizedBox(height: 12),
-                AppDropdown<String>(
-                  label: 'Weather Conditions',
-                  options: _weatherOptions,
-                  value: _weather,
-                  onChanged: (v) => setState(() => _weather = v),
-                  hint: 'Select weather',
-                ),
-
-                const SizedBox(height: 24),
-
-                // Railroad Section (conditional)
-                _sectionHeader('RAILROAD'),
-                const SizedBox(height: 12),
-                RailroadNotificationSection(
-                  isRailroadProperty: _isRailroadProperty,
-                  onRailroadPropertyChanged: (v) =>
-                      setState(() => _isRailroadProperty = v),
-                  railroadClient: _railroadClient,
-                  onClientChanged: (v) => setState(() => _railroadClient = v),
-                  railroadNotified: _railroadNotified,
-                  onNotifiedChanged: (v) =>
-                      setState(() => _railroadNotified = v),
-                  methodController: _notificationMethodController,
-                  onAnyFieldChanged: () => setState(() {}),
-                ),
-
-                const SizedBox(height: 24),
-
-                // Injured Person Section (conditional for Injury type)
-                if (_type == 'Injury' || _hasInjuredPerson) ...[
-                  _sectionHeader('INJURED PERSON'),
-                  const SizedBox(height: 12),
-                  InjuredPersonForm(
-                    person: _injuredPerson,
-                    auth: _auth,
-                    enabled: true,
-                    onChanged: (p) => setState(() => _injuredPerson = p),
-                  ),
-                  const SizedBox(height: 24),
-                ],
-
-                // Photos Section
-                _sectionHeader('PHOTOS'),
-                const SizedBox(height: 12),
-                _buildPhotoSection(),
-
-                const SizedBox(height: 32),
-
-                // Action Buttons
-                _buildActionButtons(),
-                const SizedBox(height: 32),
               ],
+            ),
+          );
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(_isEditMode ? 'EDIT INCIDENT' : 'NEW INCIDENT'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => context.go('/incidents'),
+            tooltip: 'Back to incidents',
+          ),
+        ),
+        body: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 800),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Completion indicator
+                  CompletionIndicator(percent: _calculateCompletion()),
+                  const SizedBox(height: 20),
+
+                  // Basic Info Section
+                  _sectionHeader('BASIC INFORMATION'),
+                  const SizedBox(height: 12),
+                  AppDropdown<String>(
+                    label: 'Incident Type',
+                    options: _incidentTypes,
+                    value: _type,
+                    onChanged: (v) {
+                      setState(() {
+                        _type = v;
+                        // Auto-show injured person section for Injury type
+                        if (v == 'Injury') {
+                          _hasInjuredPerson = true;
+                        }
+                      });
+                      _markDirty();
+                    },
+                    required: true,
+                    hint: 'Select type',
+                    validator: (v) => v == null ? 'Type is required' : null,
+                  ),
+                  const SizedBox(height: 12),
+                  AppDatePicker(
+                    label: 'Incident Date',
+                    selectedDate: _date,
+                    onDateSelected: (d) {
+                      setState(() => _date = d);
+                      _markDirty();
+                    },
+                    required: true,
+                    validator: (d) => d == null ? 'Date is required' : null,
+                  ),
+                  const SizedBox(height: 12),
+                  GpsLocationField(
+                    label: 'Location',
+                    controller: _locationController,
+                    required: true,
+                    validator: (v) =>
+                        v == null || v.isEmpty ? 'Location is required' : null,
+                    onLocationObtained: (lat, lon) {
+                      setState(() {
+                        _latitude = lat;
+                        _longitude = lon;
+                      });
+                      _markDirty();
+                    },
+                    onChanged: (_) {
+                      setState(() {});
+                      _markDirty();
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  AppTextField(
+                    label: 'Division',
+                    controller: _divisionController,
+                    hint: 'e.g., HCC, HRSI, HSI',
+                    onChanged: (_) {
+                      setState(() {});
+                      _markDirty();
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  AppTextField(
+                    label: 'Project / Job Site',
+                    controller: _projectController,
+                    hint: 'Enter project or job site name',
+                    onChanged: (_) {
+                      setState(() {});
+                      _markDirty();
+                    },
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Description Section
+                  _sectionHeader('DESCRIPTION'),
+                  const SizedBox(height: 12),
+                  _fieldWithVoice(
+                    AppTextField(
+                      label: 'Description',
+                      controller: _descriptionController,
+                      hint: 'Describe the incident...',
+                      maxLines: 4,
+                      required: true,
+                      validator: (v) => v == null || v.isEmpty
+                          ? 'Description is required'
+                          : null,
+                      onChanged: (_) {
+                        setState(() {});
+                        _markDirty();
+                      },
+                    ),
+                    _descriptionController,
+                  ),
+                  const SizedBox(height: 12),
+                  _fieldWithVoice(
+                    AppTextField(
+                      label: 'Immediate Actions Taken',
+                      controller: _immediateActionsController,
+                      hint: 'Describe any immediate actions...',
+                      maxLines: 3,
+                      onChanged: (_) {
+                        setState(() {});
+                        _markDirty();
+                      },
+                    ),
+                    _immediateActionsController,
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Classification Section
+                  _sectionHeader('CLASSIFICATION'),
+                  const SizedBox(height: 12),
+                  AppDropdown<String>(
+                    label: 'Severity',
+                    options: _severities,
+                    value: _severity,
+                    onChanged: (v) {
+                      setState(() => _severity = v);
+                      _markDirty();
+                    },
+                    hint: 'Select severity',
+                  ),
+                  const SizedBox(height: 12),
+                  AppDropdown<String>(
+                    label: 'Potential Severity',
+                    options: _severities,
+                    value: _potentialSeverity,
+                    onChanged: (v) {
+                      setState(() => _potentialSeverity = v);
+                      _markDirty();
+                    },
+                    hint: 'Select potential severity',
+                  ),
+                  const SizedBox(height: 12),
+                  AppDropdown<String>(
+                    label: 'Shift',
+                    options: _shifts,
+                    value: _shift,
+                    onChanged: (v) {
+                      setState(() => _shift = v);
+                      _markDirty();
+                    },
+                    hint: 'Select shift',
+                  ),
+                  const SizedBox(height: 12),
+                  AppDropdown<String>(
+                    label: 'Weather Conditions',
+                    options: _weatherOptions,
+                    value: _weather,
+                    onChanged: (v) {
+                      setState(() => _weather = v);
+                      _markDirty();
+                    },
+                    hint: 'Select weather',
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Railroad Section (conditional)
+                  _sectionHeader('RAILROAD'),
+                  const SizedBox(height: 12),
+                  RailroadNotificationSection(
+                    isRailroadProperty: _isRailroadProperty,
+                    onRailroadPropertyChanged: (v) {
+                      setState(() => _isRailroadProperty = v);
+                      _markDirty();
+                    },
+                    railroadClient: _railroadClient,
+                    onClientChanged: (v) {
+                      setState(() => _railroadClient = v);
+                      _markDirty();
+                    },
+                    railroadNotified: _railroadNotified,
+                    onNotifiedChanged: (v) {
+                      setState(() => _railroadNotified = v);
+                      _markDirty();
+                    },
+                    methodController: _notificationMethodController,
+                    onAnyFieldChanged: () {
+                      setState(() {});
+                      _markDirty();
+                    },
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Injured Person Section (conditional for Injury type)
+                  if (_type == 'Injury' || _hasInjuredPerson) ...[
+                    _sectionHeader('INJURED PERSON'),
+                    const SizedBox(height: 12),
+                    InjuredPersonForm(
+                      person: _injuredPerson,
+                      auth: _auth,
+                      enabled: true,
+                      onChanged: (p) {
+                        setState(() => _injuredPerson = p);
+                        _markDirty();
+                      },
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+
+                  // Photos Section
+                  _sectionHeader('PHOTOS'),
+                  const SizedBox(height: 12),
+                  _buildPhotoSection(),
+
+                  const SizedBox(height: 32),
+
+                  // Action Buttons
+                  _buildActionButtons(),
+                  const SizedBox(height: 32),
+                ],
+              ),
             ),
           ),
         ),
@@ -647,7 +734,6 @@ class _IncidentFormPageState extends State<IncidentFormPage> {
     );
   }
 
-  /// Wraps [field] in a [Row] with a [VoiceInputButton] aligned to the top
   /// right, allowing voice dictation into the associated [controller].
   Widget _fieldWithVoice(Widget field, TextEditingController controller) {
     return Row(
@@ -723,8 +809,10 @@ class _IncidentFormPageState extends State<IncidentFormPage> {
                     top: 0,
                     right: 0,
                     child: GestureDetector(
-                      onTap: () =>
-                          setState(() => _selectedPhotos.removeAt(entry.key)),
+                      onTap: () {
+                        setState(() => _selectedPhotos.removeAt(entry.key));
+                        _markDirty();
+                      },
                       child: Container(
                         width: 20,
                         height: 20,
