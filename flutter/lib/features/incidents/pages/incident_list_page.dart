@@ -20,7 +20,7 @@ import '../widgets/status_badge.dart';
 /// - Color-coded status badges
 /// - Type icons per incident type
 /// - Severity indicator
-/// - "New Incident" FAB visible to Field Reporter and above
+/// - "New Incident" AppBar button visible to Field Reporter and above
 /// - Tap row navigates to detail page
 /// - Empty state with illustration
 class IncidentListPage extends StatefulWidget {
@@ -158,6 +158,23 @@ class _IncidentListPageState extends State<IncidentListPage> {
       appBar: AppBar(
         title: const Text('INCIDENTS'),
         actions: [
+          if (canCreate)
+            Semantics(
+              label: 'Create new incident report',
+              button: true,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                child: ElevatedButton.icon(
+                  onPressed: () => context.go('/incidents/new'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: HerzogColors.navyBlue,
+                    foregroundColor: HerzogColors.white,
+                  ),
+                  icon: const Icon(Icons.add),
+                  label: const Text('NEW INCIDENT'),
+                ),
+              ),
+            ),
           Semantics(
             label: 'Switch to map view',
             button: true,
@@ -188,19 +205,6 @@ class _IncidentListPageState extends State<IncidentListPage> {
           ),
         ],
       ),
-      floatingActionButton: canCreate
-          ? Semantics(
-              label: 'Create new incident report',
-              button: true,
-              child: FloatingActionButton.extended(
-                onPressed: () => context.go('/incidents/new'),
-                backgroundColor: HerzogColors.navyBlue,
-                foregroundColor: HerzogColors.white,
-                icon: const Icon(Icons.add),
-                label: const Text('NEW INCIDENT'),
-              ),
-            )
-          : null,
     );
   }
 
