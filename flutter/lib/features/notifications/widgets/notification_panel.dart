@@ -69,6 +69,13 @@ class NotificationPanel extends StatelessWidget {
                   ),
                 ),
               ),
+            const Divider(height: 1, color: HerzogColors.borderGray),
+            _PreferencesLink(
+              onTap: () {
+                Navigator.of(context).pop();
+                context.push('/notification-preferences');
+              },
+            ),
           ],
         ),
       ),
@@ -250,6 +257,51 @@ class _NotificationTile extends StatelessWidget {
     if (diff.inDays < 7) return '${diff.inDays}d ago';
 
     return '${dt.month}/${dt.day}/${dt.year}';
+  }
+}
+
+class _PreferencesLink extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _PreferencesLink({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: 'Notification preferences',
+      button: true,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.settings,
+                size: 18,
+                color: HerzogColors.navyBlue,
+                semanticLabel: 'Settings',
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Notification Preferences',
+                style: HerzogText.body(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: HerzogColors.navyBlue,
+                ),
+              ),
+              const Spacer(),
+              const Icon(
+                Icons.chevron_right,
+                size: 18,
+                color: HerzogColors.smoke,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

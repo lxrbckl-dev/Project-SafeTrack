@@ -19,6 +19,7 @@ import '../features/capas/pages/capa_form_page.dart';
 import '../features/admin/pages/admin_settings_page.dart';
 import '../features/admin/pages/factor_types_page.dart';
 import '../features/audit_log/pages/audit_log_page.dart';
+import '../features/notifications/pages/notification_preferences_page.dart';
 
 /// Builds the [GoRouter] with auth redirect and shell routing.
 ///
@@ -239,6 +240,11 @@ GoRouter appRouter(AuthService authService) {
             path: '/audit-log',
             name: 'auditLog',
             builder: (context, state) => const AuditLogPage(),
+          ),
+          GoRoute(
+            path: '/notification-preferences',
+            name: 'notificationPreferences',
+            builder: (context, state) => const NotificationPreferencesPage(),
           ),
         ],
       ),
