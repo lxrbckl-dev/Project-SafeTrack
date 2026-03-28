@@ -17,7 +17,7 @@ type Investigation struct {
 	ReviewComments         string               `gorm:"type:text" json:"reviewComments"`
 	ReviewDate             *time.Time           `json:"reviewDate"`
 	IsOverdue              bool                 `json:"isOverdue"`
-	OverdueEscalationLevel int                  `json:"overdueEscalationLevel"` // 0=not overdue, 1=1-3 days, 2=4-7 days, 3=8+ days
+	OverdueEscalationLevel int                  `json:"overdueEscalationLevel"` // 0=not overdue, 1=1-6 days, 2=7-13 days, 3=14+ days
 	FiveWhys               []FiveWhy            `gorm:"foreignKey:InvestigationID" json:"fiveWhys,omitempty"`
 	ContributingFactors    []ContributingFactor `gorm:"foreignKey:InvestigationID" json:"contributingFactors,omitempty"`
 	WitnessStatements      []WitnessStatement   `gorm:"foreignKey:InvestigationID" json:"witnessStatements,omitempty"`

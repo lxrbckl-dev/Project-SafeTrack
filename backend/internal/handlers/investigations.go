@@ -79,12 +79,12 @@ func updateOverdueStatus(inv *models.Investigation) {
 	overdueDays := int(now.Sub(inv.TargetCompletionDate).Hours() / 24)
 
 	switch {
-	case overdueDays >= 8:
+	case overdueDays >= 14:
 		inv.OverdueEscalationLevel = 3
-	case overdueDays >= 4:
+	case overdueDays >= 7:
 		inv.OverdueEscalationLevel = 2
 	default:
-		inv.OverdueEscalationLevel = 1 // 1-3 days overdue
+		inv.OverdueEscalationLevel = 1 // 1-6 days overdue
 	}
 }
 
