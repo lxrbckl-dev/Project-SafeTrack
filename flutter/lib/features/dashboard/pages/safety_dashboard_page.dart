@@ -199,9 +199,10 @@ class _KPICards extends StatelessWidget {
         semanticLabel: '${data.openCapas} open CAPAs',
       ),
       _KPITile(
-        label: 'Lost Work Days YTD',
-        value: data.lostWorkDaysYtd.toString(),
-        semanticLabel: '${data.lostWorkDaysYtd} lost work days year to date',
+        label: 'Lost Time Incidents YTD',
+        value: data.lostTimeIncidentsYtd.toString(),
+        semanticLabel:
+            '${data.lostTimeIncidentsYtd} lost time incidents year to date',
       ),
     ];
 

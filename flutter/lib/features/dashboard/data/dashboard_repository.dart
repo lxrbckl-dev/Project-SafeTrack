@@ -15,7 +15,7 @@ class DashboardData {
   final double nearMissRatio;
   final int openInvestigations;
   final int openCapas;
-  final int lostWorkDaysYtd;
+  final int lostTimeIncidentsYtd;
   final List<MonthlyTRIR> trirTrend;
   final double trirBenchmark;
   final List<MonthlyIncidentTrend> incidentTrend;
@@ -31,7 +31,7 @@ class DashboardData {
     required this.nearMissRatio,
     required this.openInvestigations,
     required this.openCapas,
-    required this.lostWorkDaysYtd,
+    required this.lostTimeIncidentsYtd,
     required this.trirTrend,
     required this.trirBenchmark,
     required this.incidentTrend,
@@ -49,7 +49,7 @@ class DashboardData {
       nearMissRatio: (json['nearMissRatio'] as num?)?.toDouble() ?? 0.0,
       openInvestigations: json['openInvestigations'] as int? ?? 0,
       openCapas: json['openCapas'] as int? ?? 0,
-      lostWorkDaysYtd: json['lostWorkDaysYtd'] as int? ?? 0,
+      lostTimeIncidentsYtd: json['lostTimeIncidentsYtd'] as int? ?? 0,
       trirTrend:
           (json['trirTrend'] as List<dynamic>?)
               ?.map((e) => MonthlyTRIR.fromJson(e as Map<String, dynamic>))

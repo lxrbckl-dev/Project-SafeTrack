@@ -23,7 +23,7 @@ type DashboardResponse struct {
 	NearMissRatio        float64                `json:"nearMissRatio"`
 	OpenInvestigations   int64                  `json:"openInvestigations"`
 	OpenCAPAs            int64                  `json:"openCapas"`
-	LostWorkDaysYTD      int64                  `json:"lostWorkDaysYtd"`
+	LostTimeIncidentsYTD int64                  `json:"lostTimeIncidentsYtd"`
 	TRIRTrend            []MonthlyTRIR          `json:"trirTrend"`
 	TRIRBenchmark        float64                `json:"trirBenchmark"`
 	IncidentTrend        []MonthlyIncidentTrend `json:"incidentTrend"`
@@ -95,29 +95,23 @@ func GetDashboard(db *gorm.DB) http.HandlerFunc {
 		yearStart := time.Date(now.Year(), 1, 1, 0, 0, 0, 0, time.UTC)
 		twelveMonthsAgo := now.AddDate(-1, 0, 0)
 
-		// ---- Total Hours Worked (all time for current period) ----
-		var totalHours float64
-		db.Model(&models.HoursWorked{}).
-			Select("COALESCE(SUM(total_hours), 0)").
-			Scan(&totalHours)
-
-		// ---- Hours this year for YTD calcs ----
+		// ---- Hours this year for YTD calcs (OSHA standard: calendar year) ----
 		var totalHoursYTD float64
 		db.Model(&models.HoursWorked{}).
 			Where("reporting_period_start >= ?", yearStart).
 			Select("COALESCE(SUM(total_hours), 0)").
 			Scan(&totalHoursYTD)
 
-		// ---- Recordable Incidents (non-draft, OSHA recordable) ----
+		// ---- Recordable Incidents YTD (non-draft, OSHA recordable) ----
 		var recordableCount int64
 		db.Model(&models.Incident{}).
-			Where("is_osha_recordable = ? AND is_draft = ?", true, false).
+			Where("is_osha_recordable = ? AND is_draft = ? AND date >= ?", true, false, yearStart).
 			Count(&recordableCount)
 
-		// ---- DART Cases ----
+		// ---- DART Cases YTD ----
 		var dartCount int64
 		db.Model(&models.Incident{}).
-			Where("is_dart = ? AND is_draft = ?", true, false).
+			Where("is_dart = ? AND is_draft = ? AND date >= ?", true, false, yearStart).
 			Count(&dartCount)
 
 		// ---- Near Miss Reports ----
@@ -126,15 +120,15 @@ func GetDashboard(db *gorm.DB) http.HandlerFunc {
 			Where("type = ? AND is_draft = ?", "Near Miss", false).
 			Count(&nearMissCount)
 
-		// ---- Compute TRIR, DART, Near Miss Ratio ----
+		// ---- Compute TRIR, DART, Near Miss Ratio (all YTD, OSHA standard) ----
 		trir := 0.0
-		if totalHours > 0 {
-			trir = (float64(recordableCount) * 200000) / totalHours
+		if totalHoursYTD > 0 {
+			trir = (float64(recordableCount) * 200000) / totalHoursYTD
 		}
 
 		dartRate := 0.0
-		if totalHours > 0 {
-			dartRate = (float64(dartCount) * 200000) / totalHours
+		if totalHoursYTD > 0 {
+			dartRate = (float64(dartCount) * 200000) / totalHoursYTD
 		}
 
 		nearMissRatio := 0.0
@@ -179,12 +173,12 @@ func GetDashboard(db *gorm.DB) http.HandlerFunc {
 			Where("status NOT IN ?", []string{"Verified Effective", "Verified Ineffective"}).
 			Count(&openCAPAs)
 
-		// ---- Lost Work Days YTD ----
-		// Count incidents this year where severity indicates lost time
-		var lostWorkDaysYTD int64
+		// ---- Lost Time Incidents YTD ----
+		// Count incidents this year where severity indicates lost time (note: counts incidents, not days)
+		var lostTimeIncidentsYTD int64
 		db.Model(&models.Incident{}).
 			Where("is_draft = ? AND date >= ? AND (severity = ? OR severity = ?)", false, yearStart, "Lost Time", "Fatality").
-			Count(&lostWorkDaysYTD)
+			Count(&lostTimeIncidentsYTD)
 
 		// ---- TRIR Benchmark from settings ----
 		trirBenchmark := 3.0
@@ -367,7 +361,7 @@ func GetDashboard(db *gorm.DB) http.HandlerFunc {
 			NearMissRatio:        nearMissRatio,
 			OpenInvestigations:   openInvestigations,
 			OpenCAPAs:            openCAPAs,
-			LostWorkDaysYTD:      lostWorkDaysYTD,
+			LostTimeIncidentsYTD: lostTimeIncidentsYTD,
 			TRIRTrend:            trirTrend,
 			TRIRBenchmark:        trirBenchmark,
 			IncidentTrend:        incidentTrend,
@@ -434,6 +428,12 @@ func CreateHoursWorked(db *gorm.DB) http.HandlerFunc {
 // ListHoursWorked returns all hours-worked entries, newest first.
 func ListHoursWorked(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		role := middleware.GetUserRole(r)
+		if role != "safety_manager" && role != "admin" {
+			http.Error(w, "forbidden", http.StatusForbidden)
+			return
+		}
+
 		var entries []models.HoursWorked
 		if err := db.Order("reporting_period_start DESC").Find(&entries).Error; err != nil {
 			http.Error(w, "database error", http.StatusInternalServerError)
