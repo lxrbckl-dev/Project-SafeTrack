@@ -7,6 +7,7 @@ import 'app/app_router.dart';
 import 'app/herzog_theme.dart';
 import 'core/services/notification_service.dart';
 import 'features/auth/data/auth_service.dart';
+import 'features/chat/data/chat_repository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,6 +36,8 @@ class MyApp extends StatelessWidget {
             return service;
           },
         ),
+        // ChatRepository is stateless — a single instance is shared app-wide.
+        Provider<ChatRepository>(create: (_) => ChatRepository()),
       ],
       child: Builder(
         builder: (context) => MaterialApp.router(
