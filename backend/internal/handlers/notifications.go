@@ -287,6 +287,25 @@ func createNotification(db *gorm.DB, userID, title, message, notifType, entityTy
 	if err := db.Create(&n).Error; err != nil {
 		return 0
 	}
+
+	// Broadcast notification event to WebSocket clients for real-time bell badge.
+	if wsHub != nil {
+		wsHub.Broadcast(WSEvent{
+			Type: "notification",
+			Data: map[string]interface{}{
+				"id":         n.ID,
+				"userId":     n.UserID,
+				"title":      n.Title,
+				"message":    n.Message,
+				"type":       n.Type,
+				"entityType": n.EntityType,
+				"entityId":   n.EntityID,
+				"isRead":     n.IsRead,
+				"createdAt":  n.CreatedAt,
+			},
+		})
+	}
+
 	return 1
 }
 

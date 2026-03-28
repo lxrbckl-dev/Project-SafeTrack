@@ -12,8 +12,23 @@ import (
 	"github.com/lxRbckl/highlander/backend/internal/models"
 )
 
+// wsHub is a package-level reference to the WebSocket hub. When non-nil,
+// LogAction will broadcast activity events to all connected clients.
+// Set via SetWSHub during server startup.
+var wsHub *Hub
+
+// SetWSHub stores a reference to the WebSocket hub so that LogAction can
+// broadcast real-time events. Must be called once during server startup.
+func SetWSHub(h *Hub) {
+	wsHub = h
+}
+
 // LogAction creates an immutable audit log entry. Call this from any handler
 // that creates, updates, or changes the status of an entity.
+//
+// When a WebSocket hub is configured (via SetWSHub), this also broadcasts
+// an "activity" event to connected clients so they get real-time updates
+// without polling.
 func LogAction(db *gorm.DB, userID, userRole, action, entityType string, entityID uint, before, after, notes string) error {
 	entry := models.AuditLog{
 		UserID:     userID,
@@ -25,7 +40,28 @@ func LogAction(db *gorm.DB, userID, userRole, action, entityType string, entityI
 		After:      after,
 		Notes:      notes,
 	}
-	return db.Create(&entry).Error
+	if err := db.Create(&entry).Error; err != nil {
+		return err
+	}
+
+	// Broadcast to WebSocket clients if hub is available.
+	if wsHub != nil {
+		wsHub.Broadcast(WSEvent{
+			Type: "activity",
+			Data: map[string]interface{}{
+				"id":         entry.ID,
+				"timestamp":  entry.Timestamp,
+				"userId":     entry.UserID,
+				"userRole":   entry.UserRole,
+				"action":     entry.Action,
+				"entityType": entry.EntityType,
+				"entityId":   entry.EntityID,
+				"notes":      entry.Notes,
+			},
+		})
+	}
+
+	return nil
 }
 
 // GetAuditLogs returns paginated audit log entries, newest first.
