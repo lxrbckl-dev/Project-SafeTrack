@@ -72,6 +72,9 @@ func main() {
 	// Notification routes (escalation notifications, bell badge)
 	handlers.RegisterNotificationRoutes(api, db)
 
+	// Recurrence detection routes (automated similarity scanning, dismiss suggestions)
+	handlers.RegisterRecurrenceRoutes(api, db)
+
 	mux.Handle("/api/", middleware.FirebaseAuth(api))
 
 	handler := middleware.CORS(middleware.Logger(mux))

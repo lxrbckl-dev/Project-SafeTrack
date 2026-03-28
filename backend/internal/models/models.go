@@ -19,5 +19,6 @@ func AllModels() []interface{} {
 		&HoursWorked{},
 		&IncidentLink{},
 		&Notification{},
+		&DismissedSuggestion{},
 	}
 }

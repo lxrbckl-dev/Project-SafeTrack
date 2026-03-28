@@ -167,6 +167,48 @@ class CommonThread {
   }
 }
 
+/// A recurrence suggestion returned by POST /api/incidents/{id}/check-recurrence.
+class RecurrenceMatch {
+  final int incidentId;
+  final String type;
+  final DateTime date;
+  final String location;
+  final String similarityType;
+  final int score;
+  final String description;
+  final List<String> matchCriteria;
+
+  const RecurrenceMatch({
+    required this.incidentId,
+    required this.type,
+    required this.date,
+    required this.location,
+    required this.similarityType,
+    required this.score,
+    required this.description,
+    required this.matchCriteria,
+  });
+
+  factory RecurrenceMatch.fromJson(Map<String, dynamic> json) {
+    return RecurrenceMatch(
+      incidentId: json['incidentId'] as int? ?? 0,
+      type: json['type'] as String? ?? '',
+      date: json['date'] != null
+          ? DateTime.parse(json['date'] as String)
+          : DateTime.now(),
+      location: json['location'] as String? ?? '',
+      similarityType: json['similarityType'] as String? ?? '',
+      score: json['score'] as int? ?? 0,
+      description: json['description'] as String? ?? '',
+      matchCriteria:
+          (json['matchCriteria'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          [],
+    );
+  }
+}
+
 /// API client for all incident-link endpoints.
 class IncidentLinkRepository {
   final AuthService _auth;
@@ -244,6 +286,38 @@ class IncidentLinkRepository {
     final response = await http.delete(uri, headers: _headers);
     if (response.statusCode != 204) {
       throw Exception('Failed to delete incident link: ${response.body}');
+    }
+  }
+
+  /// Checks for similar incidents (recurrence detection).
+  /// Returns a ranked list of matches sorted by score descending.
+  Future<List<RecurrenceMatch>> checkRecurrence(int incidentId) async {
+    final uri = Uri.parse('$_base/api/incidents/$incidentId/check-recurrence');
+    final response = await http.post(uri, headers: _headers);
+    if (response.statusCode != 200) {
+      throw Exception('Failed to check recurrence: ${response.body}');
+    }
+    final list = jsonDecode(response.body) as List<dynamic>;
+    return list
+        .map((e) => RecurrenceMatch.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// Dismisses a recurrence suggestion so it is not shown again.
+  Future<void> dismissSuggestion({
+    required int incidentId,
+    required int suggestedIncidentId,
+  }) async {
+    final uri = Uri.parse(
+      '$_base/api/incidents/$incidentId/dismiss-suggestion',
+    );
+    final response = await http.post(
+      uri,
+      headers: _headers,
+      body: jsonEncode({'suggestedIncidentId': suggestedIncidentId}),
+    );
+    if (response.statusCode != 201 && response.statusCode != 200) {
+      throw Exception('Failed to dismiss suggestion: ${response.body}');
     }
   }
 
