@@ -5,3 +5,42 @@
 
 ---
 
+## 2026-03-27
+
+[18:50] TPM assigned TASK-001: Dev Login + Role Provider (Issue #1, Routine/Sonnet)
+[19:10] Completed TASK-001: Go JWT middleware + POST /api/dev-login + Flutter Role enum + AuthService ChangeNotifier + DevLoginPage + router redirect. PR #4 opened.
+[19:15] SWE-2 peer reviewed PR #4: LGTM. QA PASSED. PR #4 merged.
+[19:20] Peer reviewed SWE-2's PR #5 (TASK-002: App Shell): LGTM — feature-first, Herzog branding, ADA semantics. Minor: skip-nav onTap is a no-op.
+[19:35] TPM assigned TASK-003: Admin Settings Backend + UI (Issue #3, Routine/Sonnet)
+[19:50] Completed TASK-003: Setting model + seed defaults + CRUD handlers with RBAC + AdminSettingsPage + FactorTypesPage. PR #8 opened.
+[19:55] SWE-2 peer reviewed PR #8: LGTM. QA PASSED (bug #10 filed: admin route gate). PR #8 merged.
+[20:15] TPM assigned TASK-005: Incident Reporting UI (Issue #11, Complex/Opus)
+[20:45] Completed TASK-005: IncidentRepository + 4 pages (list, form, detail, OSHA wizard) + 5 widgets + router update. Also fixed bug #10. PR #14 opened.
+[20:50] SWE-2 peer reviewed PR #14: LGTM. QA PASSED. PR #14 merged.
+[21:00] Peer reviewed SWE-2's PR #9 (TASK-004): LGTM — 30 fields, encryption, draft filtering, OSHA tree, railroad deadlines correct.
+[21:05] Peer reviewed SWE-2's PR #13 (TASK-006): Found escalation level 3 threshold wrong (>=8 should be >=14). SWE-2 fixed.
+[21:15] TPM assigned TASK-007: Investigation UI (Issue #15, Complex/Opus)
+[21:45] Completed TASK-007: InvestigationRepository + 4 pages + 4 widgets (interactive 5-Why chain, contributing factors panel, witness cards, review panel) + router + incident detail wiring. PR #18 opened.
+[21:50] SWE-2 peer reviewed PR #18: LGTM. QA PASSED. PR #18 merged.
+[21:55] Peer reviewed SWE-2's PR #17 (TASK-008): LGTM — CAPA lifecycle correct, verifier!=assignee enforced, dashboard KPIs, escalation levels match spec. Minor: CloseIncident skips state machine check.
+[22:10] TPM assigned TASK-009: CAPA Management UI (Issue #19, Complex/Opus)
+[22:40] Completed TASK-009: CAPARepository + dashboard page + detail page (verify button HIDDEN from assignee) + form + lifecycle stepper + ineffective dialog. PR #22 opened.
+[22:45] SWE-2 peer reviewed PR #22: LGTM — critical verify-button-hidden check passed. PR #22 merged.
+[22:50] Peer reviewed SWE-2's PR #21 (TASK-010): Found 4 blocking bugs — unused totalHoursYTD variable, TRIR/DART period mismatch, missing role guard on GET hours-worked, LostWorkDaysYTD naming. SWE-2 fixed all 4.
+[23:00] TPM assigned TASK-011: Manual Recurrence Linking (Issue #23, Routine/Sonnet)
+[23:15] Completed TASK-011: IncidentLink model + CRUD handlers + recurrence tab + cluster view with union-find algorithm. PR #25 opened.
+[23:20] SWE-2 peer reviewed PR #25: Found N+1 query + missing Playwright spec. Fixed both. QA PASSED. PR #25 merged.
+[23:25] Peer reviewed SWE-2's PR #26 (TASK-012): LGTM — RBAC enforced at handler level, date/action filters, expandable JSON diffs, responsive layout.
+[23:35] TPM assigned TASK-013: Escalation Notifications (Issue #27, Routine/Sonnet)
+[23:55] Completed TASK-013: Notification model + escalation checker + NotificationService + bell badge + notification panel. PR #29 opened.
+[00:00] SWE-2 peer reviewed PR #29: Found 3 blockers — no RBAC on check-escalations, fragile LIKE dedup, Completed CAPAs not excluded. Fixed all 3. QA PASSED. PR #29 merged.
+[00:15] Peer reviewed SWE-2's PR #30 (TASK-014 RBAC): Found 4 security issues — PM/DivMgr scoping wrong, detail endpoints unscoped, role hierarchy linear (should be orthogonal), Field Reporter can curl investigation/CAPA data. SWE-2 fixed all 4.
+[00:30] TPM assigned TASK-015: Seed Data + Demo Script (Issue #31, Routine/Sonnet)
+[00:45] Completed TASK-015: Comprehensive seed — 18 incidents, 7 investigations, 14 CAPAs, 36 hours-worked entries, 3 incident links, 6 notifications, 17 audit logs. PR #33 opened.
+[00:50] SWE-2 peer reviewed PR #33: LGTM. QA PASSED. PR #33 merged.
+[01:00] TPM assigned TASK-017: In-App AI Chat Widget (Issue #35, Routine/Sonnet)
+[01:15] Completed TASK-017: ChatRepository + ChatFab with toggle panel, message display, graceful Ollama degradation. PR #38 opened.
+[01:20] SWE-2 peer reviewed PR #38: Found 2 blockers — hardcoded ChatRepository, missing liveRegion. Fixed both. QA PASSED. PR #38 merged.
+[01:30] TPM assigned TASK-019: In-App AI Agent (Issue #37, Complex/Opus) — FINAL TASK
+[01:55] Completed TASK-019: JSON action dispatch (navigate/fill/navigate_and_fill), backend action parser, FormFillService, action buttons in chat, RBAC-gated, reactive form fill via listeners. PR #40 opened.
+[02:00] SWE-2 peer reviewed PR #40: Found 2 blockers — fill no-op on mounted forms, brace parser bug. Fixed both + dispose cleanup. QA PASSED. PR #40 merged.
