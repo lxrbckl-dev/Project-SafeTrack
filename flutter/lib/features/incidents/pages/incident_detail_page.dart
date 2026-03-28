@@ -329,6 +329,8 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
   Widget _buildHeader(Incident incident) {
     final role = _auth.currentRole;
     final isReporter = incident.reporterId == _auth.userId;
+    // Executive is read-only: hide all action buttons.
+    final isReadOnly = role == Role.executive;
 
     return Card(
       child: Padding(
@@ -337,50 +339,53 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
           children: [
             StatusBadge(status: incident.status),
             const Spacer(),
-            // Action buttons based on role + status
-            Wrap(
-              spacing: 8,
-              children: [
-                // Edit: reporter can edit if draft or Reported
-                if (isReporter &&
-                    (incident.status == 'Draft' ||
-                        incident.status == 'Reported'))
-                  ElevatedButton.icon(
-                    onPressed: () =>
-                        context.go('/incidents/${incident.id}/edit'),
-                    icon: const Icon(Icons.edit, size: 16),
-                    label: const Text('Edit'),
-                  ),
-
-                // Start Investigation: Safety Manager + Reported status
-                if (role != null &&
-                    role.isAtLeast(Role.safetyManager) &&
-                    incident.status == 'Reported' &&
-                    _linkedInvestigation == null)
-                  ElevatedButton.icon(
-                    onPressed: () => context.go(
-                      '/investigations/new?incidentId=${incident.id}',
+            // Action buttons based on role + status (hidden for Executive)
+            if (!isReadOnly)
+              Wrap(
+                spacing: 8,
+                children: [
+                  // Edit: reporter can edit if draft or Reported
+                  if (isReporter &&
+                      (incident.status == 'Draft' ||
+                          incident.status == 'Reported'))
+                    ElevatedButton.icon(
+                      onPressed: () =>
+                          context.go('/incidents/${incident.id}/edit'),
+                      icon: const Icon(Icons.edit, size: 16),
+                      label: const Text('Edit'),
                     ),
-                    icon: const Icon(Icons.search, size: 16),
-                    label: const Text('Start Investigation'),
-                  ),
 
-                // Run OSHA Determination: Safety Coordinator+, not yet determined
-                if (role != null &&
-                    role.isAtLeast(Role.safetyCoordinator) &&
-                    incident.isOshaRecordable == null)
-                  ElevatedButton.icon(
-                    onPressed: () =>
-                        context.go('/incidents/${incident.id}/osha'),
-                    icon: const Icon(Icons.checklist, size: 16),
-                    label: const Text('OSHA Determination'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: HerzogColors.gold,
-                      foregroundColor: HerzogColors.richBlack,
+                  // Start Investigation: Safety Manager + Reported status
+                  if (role != null &&
+                      role.isAtLeast(Role.safetyManager) &&
+                      role != Role.executive &&
+                      incident.status == 'Reported' &&
+                      _linkedInvestigation == null)
+                    ElevatedButton.icon(
+                      onPressed: () => context.go(
+                        '/investigations/new?incidentId=${incident.id}',
+                      ),
+                      icon: const Icon(Icons.search, size: 16),
+                      label: const Text('Start Investigation'),
                     ),
-                  ),
-              ],
-            ),
+
+                  // Run OSHA Determination: Safety Coordinator+, not yet determined
+                  if (role != null &&
+                      role.isAtLeast(Role.safetyCoordinator) &&
+                      role != Role.executive &&
+                      incident.isOshaRecordable == null)
+                    ElevatedButton.icon(
+                      onPressed: () =>
+                          context.go('/incidents/${incident.id}/osha'),
+                      icon: const Icon(Icons.checklist, size: 16),
+                      label: const Text('OSHA Determination'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: HerzogColors.gold,
+                        foregroundColor: HerzogColors.richBlack,
+                      ),
+                    ),
+                ],
+              ),
           ],
         ),
       ),
@@ -486,7 +491,8 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
                 incident.oshaOverrideJustification,
               ),
             const SizedBox(height: 20),
-            if (_auth.isAtLeast(Role.safetyCoordinator))
+            if (_auth.isAtLeast(Role.safetyCoordinator) &&
+                _auth.currentRole != Role.executive)
               ElevatedButton.icon(
                 onPressed: () => context.go('/incidents/${incident.id}/osha'),
                 icon: const Icon(Icons.checklist, size: 16),
@@ -578,7 +584,9 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
             'A Safety Manager can start an investigation for this incident.',
             style: HerzogText.body(color: HerzogColors.midGray),
           ),
-          if (isSafetyManager && _incident?.status == 'Reported') ...[
+          if (isSafetyManager &&
+              _auth.currentRole != Role.executive &&
+              _incident?.status == 'Reported') ...[
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: () => context.go(
@@ -594,7 +602,10 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
   }
 
   Widget _buildRecurrenceTab() {
-    final isSafetyCoordinator = _auth.isAtLeast(Role.safetyCoordinator);
+    // Safety Coordinator+ can link incidents, but Executive is read-only.
+    final isSafetyCoordinator =
+        _auth.isAtLeast(Role.safetyCoordinator) &&
+        _auth.currentRole != Role.executive;
 
     if (_linksLoading) {
       return const Center(child: CircularProgressIndicator());

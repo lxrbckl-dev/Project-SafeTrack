@@ -27,6 +27,12 @@ class _NavItem {
 
 /// Builds the full list of nav items visible to [role].
 /// Items gated by role are excluded entirely (WCAG: no disabled states with errors).
+///
+/// RBAC visibility:
+/// - Dashboard, Incidents: all roles
+/// - Investigations, CAPAs: Safety Coordinator and above (not Field Reporter)
+/// - Admin: Admin or Safety Manager
+/// - Audit Log: Admin or Safety Manager
 List<_NavItem> _visibleNavItems(Role? role) {
   final all = <_NavItem>[
     const _NavItem(
@@ -39,17 +45,29 @@ List<_NavItem> _visibleNavItems(Role? role) {
       icon: Icons.report_problem,
       route: '/incidents',
     ),
-    const _NavItem(
-      label: 'Investigations',
-      icon: Icons.search,
-      route: '/investigations',
-    ),
-    const _NavItem(
-      label: 'CAPAs',
-      icon: Icons.assignment_turned_in,
-      route: '/capas',
-    ),
   ];
+
+  // Investigations: Safety Coordinator and above (not Field Reporter)
+  if (role != null && role.isAtLeast(Role.safetyCoordinator)) {
+    all.add(
+      const _NavItem(
+        label: 'Investigations',
+        icon: Icons.search,
+        route: '/investigations',
+      ),
+    );
+  }
+
+  // CAPAs: Safety Coordinator and above (not Field Reporter)
+  if (role != null && role.isAtLeast(Role.safetyCoordinator)) {
+    all.add(
+      const _NavItem(
+        label: 'CAPAs',
+        icon: Icons.assignment_turned_in,
+        route: '/capas',
+      ),
+    );
+  }
 
   // Admin section: admin or safety manager (fix #10)
   if (role != null && (role == Role.admin || role == Role.safetyManager)) {

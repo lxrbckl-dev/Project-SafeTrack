@@ -116,10 +116,17 @@ func redactInjuredPersons(persons []models.InjuredPerson) {
 // ---------- CRUD ----------
 
 // CreateIncident handles POST /api/incidents.
+// Executive role is blocked (read-only).
 func CreateIncident(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+
+		// RBAC: Executive is read-only — cannot create.
+		if middleware.IsReadOnlyRole(userRole) {
+			http.Error(w, "forbidden: read-only role", http.StatusForbidden)
+			return
+		}
 
 		var incident models.Incident
 		if err := json.NewDecoder(r.Body).Decode(&incident); err != nil {
@@ -176,6 +183,20 @@ func ListIncidents(db *gorm.DB) http.HandlerFunc {
 
 		// CRITICAL: Draft incidents visible only to the reporter.
 		query = query.Where("(is_draft = false OR reporter_id = ?)", userID)
+
+		// RBAC: PM scoped data — filter by matching project from JWT claim.
+		if userRole == "pm" {
+			if project := middleware.GetUserProject(r); project != "" {
+				query = query.Where("project_job_site = ?", project)
+			}
+		}
+
+		// RBAC: Division Manager scoped data — filter by matching division from JWT claim.
+		if userRole == "division_manager" {
+			if division := middleware.GetUserDivision(r); division != "" {
+				query = query.Where("division = ?", division)
+			}
+		}
 
 		// Optional filters.
 		if status := r.URL.Query().Get("status"); status != "" {
@@ -255,6 +276,22 @@ func GetIncident(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
+		// RBAC: PM scoped — can only view incidents matching their project.
+		if userRole == "pm" {
+			if project := middleware.GetUserProject(r); project != "" && incident.ProjectJobSite != project {
+				http.Error(w, "not found", http.StatusNotFound)
+				return
+			}
+		}
+
+		// RBAC: Division Manager scoped — can only view incidents in their division.
+		if userRole == "division_manager" {
+			if division := middleware.GetUserDivision(r); division != "" && incident.Division != division {
+				http.Error(w, "not found", http.StatusNotFound)
+				return
+			}
+		}
+
 		// Medical field access control.
 		if len(incident.InjuredPersons) > 0 {
 			if canAccessMedical(userRole) {
@@ -270,10 +307,17 @@ func GetIncident(db *gorm.DB) http.HandlerFunc {
 }
 
 // UpdateIncident handles PUT /api/incidents/{id}.
+// Executive role is blocked (read-only).
 func UpdateIncident(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+
+		// RBAC: Executive is read-only — cannot update.
+		if middleware.IsReadOnlyRole(userRole) {
+			http.Error(w, "forbidden: read-only role", http.StatusForbidden)
+			return
+		}
 
 		id := r.PathValue("id")
 		var existing models.Incident

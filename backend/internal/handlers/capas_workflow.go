@@ -23,10 +23,17 @@ type completeCAPARequest struct {
 // CompleteCAPA handles POST /api/capas/{id}/complete.
 // Status transitions: current status -> "Completed" -> "Verification Pending".
 // Sets CompletionDate=now, auto-calculates VerificationDueDate by priority.
+// Executive role is blocked (read-only).
 func CompleteCAPA(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+
+		// RBAC: Executive is read-only.
+		if middleware.IsReadOnlyRole(userRole) {
+			http.Error(w, "forbidden: read-only role", http.StatusForbidden)
+			return
+		}
 
 		id := r.PathValue("id")
 		var capa models.CAPA
@@ -82,10 +89,17 @@ type verifyCAPARequest struct {
 // VerifyCAPA handles POST /api/capas/{id}/verify.
 // CRITICAL: Reject if verifier == assignee (return 403).
 // effective=true -> "Verified Effective"; effective=false -> "Verified Ineffective".
+// Executive role is blocked (read-only).
 func VerifyCAPA(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+
+		// RBAC: Executive is read-only.
+		if middleware.IsReadOnlyRole(userRole) {
+			http.Error(w, "forbidden: read-only role", http.StatusForbidden)
+			return
+		}
 
 		id := r.PathValue("id")
 		var capa models.CAPA

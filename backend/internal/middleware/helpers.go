@@ -19,3 +19,23 @@ func GetUserID(r *http.Request) string {
 	}
 	return ""
 }
+
+// GetUserDivision reads the authenticated user's division from the request
+// context. Set by the auth middleware from the JWT "division" claim.
+// Non-empty only for Division Manager users.
+func GetUserDivision(r *http.Request) string {
+	if div, ok := r.Context().Value("userDivision").(string); ok {
+		return div
+	}
+	return ""
+}
+
+// GetUserProject reads the authenticated user's project from the request
+// context. Set by the auth middleware from the JWT "project" claim.
+// Non-empty only for PM users.
+func GetUserProject(r *http.Request) string {
+	if proj, ok := r.Context().Value("userProject").(string); ok {
+		return proj
+	}
+	return ""
+}

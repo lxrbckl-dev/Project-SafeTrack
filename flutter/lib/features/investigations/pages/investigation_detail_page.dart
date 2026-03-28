@@ -81,11 +81,15 @@ class _InvestigationDetailPageState extends State<InvestigationDetailPage>
 
   bool get _editable {
     final status = _investigation?.status ?? '';
+    // Executive is read-only — never editable.
+    if (_auth.currentRole == Role.executive) return false;
     return status != 'Approved';
   }
 
   bool get _isSafetyManager {
     final role = _auth.currentRole;
+    // Executive is read-only — cannot act as Safety Manager.
+    if (role == Role.executive) return false;
     return role != null && (role == Role.safetyManager || role == Role.admin);
   }
 

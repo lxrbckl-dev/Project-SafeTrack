@@ -13,9 +13,17 @@ import (
 
 // UploadIncidentPhoto handles POST /api/incidents/{id}/photos.
 // Expects multipart/form-data with a "file" field.
+// Executive role is blocked (read-only).
 func UploadIncidentPhoto(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
+		userRole := middleware.GetUserRole(r)
+
+		// RBAC: Executive is read-only.
+		if middleware.IsReadOnlyRole(userRole) {
+			http.Error(w, "forbidden: read-only role", http.StatusForbidden)
+			return
+		}
 
 		id := r.PathValue("id")
 		idUint, err := strconv.ParseUint(id, 10, 64)

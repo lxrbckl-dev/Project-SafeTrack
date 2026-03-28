@@ -54,6 +54,22 @@ GoRouter appRouter(AuthService authService) {
         return '/dashboard';
       }
 
+      // Role gate: /investigations — Safety Coordinator and above
+      // Field Reporter cannot access investigations.
+      if (location.startsWith('/investigations') &&
+          role != null &&
+          !role.isAtLeast(Role.safetyCoordinator)) {
+        return '/dashboard';
+      }
+
+      // Role gate: /capas — Safety Coordinator and above
+      // Field Reporter cannot access CAPAs.
+      if (location.startsWith('/capas') &&
+          role != null &&
+          !role.isAtLeast(Role.safetyCoordinator)) {
+        return '/dashboard';
+      }
+
       // Role gate: /admin — Admin or Safety Manager (fix #10: was Admin only)
       if (location.startsWith('/admin') &&
           role != null &&

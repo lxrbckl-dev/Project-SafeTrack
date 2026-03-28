@@ -24,10 +24,17 @@ type oshaRequest struct {
 // OshaDetermination handles POST /api/incidents/{id}/osha-determination.
 // It applies the 29 CFR 1904 decision tree to determine OSHA recordability
 // and DART status, then persists the result on the incident.
+// Executive role is blocked (read-only).
 func OshaDetermination(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+
+		// RBAC: Executive is read-only.
+		if middleware.IsReadOnlyRole(userRole) {
+			http.Error(w, "forbidden: read-only role", http.StatusForbidden)
+			return
+		}
 
 		id := r.PathValue("id")
 		var incident models.Incident
@@ -82,10 +89,17 @@ type oshaOverrideRequest struct {
 
 // OshaOverride handles PUT /api/incidents/{id}/osha-override.
 // A justification is required. The override and justification are audit-logged.
+// Executive role is blocked (read-only).
 func OshaOverride(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+
+		// RBAC: Executive is read-only.
+		if middleware.IsReadOnlyRole(userRole) {
+			http.Error(w, "forbidden: read-only role", http.StatusForbidden)
+			return
+		}
 
 		id := r.PathValue("id")
 		var incident models.Incident

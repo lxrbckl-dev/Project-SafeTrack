@@ -58,10 +58,25 @@ func DevLogin() http.HandlerFunc {
 
 		userID := fmt.Sprintf("dev-%s", req.Role)
 
+		// Derive default division/project claims based on role.
+		// PM gets a default project; Division Manager gets a default division.
+		division := ""
+		project := ""
+		switch req.Role {
+		case "pm":
+			project = "Project Alpha"
+		case "division_manager":
+			division = "Construction"
+		case "executive":
+			// Executives see all — no scoping claims needed.
+		}
+
 		claims := jwt.MapClaims{
 			"sub":         userID,
 			"role":        req.Role,
 			"displayName": req.DisplayName,
+			"division":    division,
+			"project":     project,
 			"exp":         time.Now().Add(24 * time.Hour).Unix(),
 			"iat":         time.Now().Unix(),
 		}

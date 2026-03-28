@@ -13,29 +13,42 @@ import (
 	"github.com/lxRbckl/highlander/backend/internal/models"
 )
 
+// investigationReadRoles lists roles allowed to read investigation data.
+// Field Reporters are excluded — they can only see incidents.
+var investigationReadRoles = []string{
+	"safety_coordinator", "safety_manager", "pm", "division_manager", "executive", "admin",
+}
+
+// investigationWriteRoles lists roles allowed to write investigation data.
+// Executive is read-only; Field Reporters are excluded entirely.
+var investigationWriteRoles = []string{
+	"safety_coordinator", "safety_manager", "pm", "division_manager", "admin",
+}
+
 // RegisterInvestigationRoutes wires up all investigation-related endpoints on
-// the authenticated api mux.
+// the authenticated api mux. Field reporters are blocked from all investigation
+// endpoints (Issue 4).
 func RegisterInvestigationRoutes(api *http.ServeMux, db *gorm.DB) {
-	// CRUD
+	// CRUD — read endpoints require at least safety_coordinator (or PM/DivMgr/Exec/Admin).
 	api.HandleFunc("POST /api/investigations", CreateInvestigation(db))
-	api.HandleFunc("GET /api/investigations", ListInvestigations(db))
-	api.HandleFunc("GET /api/investigations/{id}", GetInvestigation(db))
-	api.HandleFunc("PUT /api/investigations/{id}", UpdateInvestigation(db))
+	api.HandleFunc("GET /api/investigations", middleware.RequireRole(ListInvestigations(db), investigationReadRoles...))
+	api.HandleFunc("GET /api/investigations/{id}", middleware.RequireRole(GetInvestigation(db), investigationReadRoles...))
+	api.HandleFunc("PUT /api/investigations/{id}", middleware.RequireRole(UpdateInvestigation(db), investigationWriteRoles...))
 
 	// Five-Why CRUD
-	api.HandleFunc("POST /api/investigations/{id}/five-whys", CreateOrUpdateFiveWhy(db))
-	api.HandleFunc("DELETE /api/investigations/{id}/five-whys/{whyId}", DeleteFiveWhy(db))
+	api.HandleFunc("POST /api/investigations/{id}/five-whys", middleware.RequireRole(CreateOrUpdateFiveWhy(db), investigationWriteRoles...))
+	api.HandleFunc("DELETE /api/investigations/{id}/five-whys/{whyId}", middleware.RequireRole(DeleteFiveWhy(db), investigationWriteRoles...))
 
 	// Contributing Factors
-	api.HandleFunc("POST /api/investigations/{id}/factors", CreateContributingFactor(db))
-	api.HandleFunc("DELETE /api/investigations/{id}/factors/{factorId}", DeleteContributingFactor(db))
+	api.HandleFunc("POST /api/investigations/{id}/factors", middleware.RequireRole(CreateContributingFactor(db), investigationWriteRoles...))
+	api.HandleFunc("DELETE /api/investigations/{id}/factors/{factorId}", middleware.RequireRole(DeleteContributingFactor(db), investigationWriteRoles...))
 
 	// Witness Statements
-	api.HandleFunc("POST /api/investigations/{id}/witnesses", CreateWitnessStatement(db))
-	api.HandleFunc("PUT /api/investigations/{id}/witnesses/{witnessId}", UpdateWitnessStatement(db))
+	api.HandleFunc("POST /api/investigations/{id}/witnesses", middleware.RequireRole(CreateWitnessStatement(db), investigationWriteRoles...))
+	api.HandleFunc("PUT /api/investigations/{id}/witnesses/{witnessId}", middleware.RequireRole(UpdateWitnessStatement(db), investigationWriteRoles...))
 
 	// Workflow
-	api.HandleFunc("POST /api/investigations/{id}/submit-for-review", SubmitForReview(db))
+	api.HandleFunc("POST /api/investigations/{id}/submit-for-review", middleware.RequireRole(SubmitForReview(db), investigationWriteRoles...))
 	api.HandleFunc("POST /api/investigations/{id}/review", ReviewInvestigation(db))
 }
 
@@ -171,9 +184,26 @@ func CreateInvestigation(db *gorm.DB) http.HandlerFunc {
 
 // ListInvestigations handles GET /api/investigations with query filters.
 // Supports: ?status=, ?investigator_id=, ?incident_id=, ?overdue=true
+// PM and Division Manager see scoped data via incident join.
 func ListInvestigations(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		userRole := middleware.GetUserRole(r)
+
 		query := db.Model(&models.Investigation{})
+
+		// RBAC: PM scoped — only investigations for incidents on their projects.
+		if userRole == "pm" {
+			if project := middleware.GetUserProject(r); project != "" {
+				query = query.Where("incident_id IN (SELECT id FROM incidents WHERE project_job_site = ?)", project)
+			}
+		}
+
+		// RBAC: Division Manager scoped — only investigations for incidents in their division.
+		if userRole == "division_manager" {
+			if division := middleware.GetUserDivision(r); division != "" {
+				query = query.Where("incident_id IN (SELECT id FROM incidents WHERE division = ?)", division)
+			}
+		}
 
 		// Optional filters.
 		if status := r.URL.Query().Get("status"); status != "" {
@@ -235,8 +265,11 @@ func ListInvestigations(db *gorm.DB) http.HandlerFunc {
 // GetInvestigation handles GET /api/investigations/{id}.
 // Returns the investigation with preloaded FiveWhys, ContributingFactors,
 // and WitnessStatements. FiveWhys are ordered by SortOrder.
+// PM and Division Manager scope checks are enforced via the linked incident.
 func GetInvestigation(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		userRole := middleware.GetUserRole(r)
+
 		id := r.PathValue("id")
 		var investigation models.Investigation
 		if err := db.
@@ -248,6 +281,27 @@ func GetInvestigation(db *gorm.DB) http.HandlerFunc {
 			First(&investigation, id).Error; err != nil {
 			http.Error(w, "not found", http.StatusNotFound)
 			return
+		}
+
+		// RBAC: PM/Division Manager scope check via linked incident.
+		if userRole == "pm" || userRole == "division_manager" {
+			var incident models.Incident
+			if err := db.First(&incident, investigation.IncidentID).Error; err != nil {
+				http.Error(w, "forbidden", http.StatusForbidden)
+				return
+			}
+			if userRole == "pm" {
+				if project := middleware.GetUserProject(r); project != "" && incident.ProjectJobSite != project {
+					http.Error(w, "forbidden", http.StatusForbidden)
+					return
+				}
+			}
+			if userRole == "division_manager" {
+				if division := middleware.GetUserDivision(r); division != "" && incident.Division != division {
+					http.Error(w, "forbidden", http.StatusForbidden)
+					return
+				}
+			}
 		}
 
 		// Update overdue status in real-time.
@@ -263,10 +317,17 @@ func GetInvestigation(db *gorm.DB) http.HandlerFunc {
 }
 
 // UpdateInvestigation handles PUT /api/investigations/{id}.
+// Executive role is blocked (read-only).
 func UpdateInvestigation(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+
+		// RBAC: Executive is read-only.
+		if middleware.IsReadOnlyRole(userRole) {
+			http.Error(w, "forbidden: read-only role", http.StatusForbidden)
+			return
+		}
 
 		id := r.PathValue("id")
 		var existing models.Investigation
