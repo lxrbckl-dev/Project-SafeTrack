@@ -800,7 +800,7 @@ class _MapFilterDropdown extends StatelessWidget {
     return SizedBox(
       width: 160,
       child: DropdownButtonFormField<String>(
-        value: value,
+        initialValue: value,
         isExpanded: true,
         decoration: InputDecoration(
           labelText: label,
