@@ -55,6 +55,7 @@ class KeyboardShortcutOverlay extends StatelessWidget {
                       description: 'Go to Investigations',
                     ),
                     _ShortcutRow(key: 'Alt+C', description: 'Go to CAPAs'),
+                    _ShortcutRow(key: 'Alt+S', description: 'Global Search'),
                   ],
                 ),
                 const SizedBox(height: 16),

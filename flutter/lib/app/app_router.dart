@@ -21,6 +21,7 @@ import '../features/admin/pages/factor_types_page.dart';
 import '../features/admin/pages/osha_export_page.dart';
 import '../features/audit_log/pages/audit_log_page.dart';
 import '../features/notifications/pages/notification_preferences_page.dart';
+import '../features/search/pages/search_results_page.dart';
 import '../features/training/pages/training_list_page.dart';
 import '../features/training/pages/training_detail_page.dart';
 
@@ -275,6 +276,15 @@ GoRouter appRouter(AuthService authService) {
             path: '/audit-log',
             name: 'auditLog',
             builder: (context, state) => const AuditLogPage(),
+          ),
+          // Global search route
+          GoRoute(
+            path: '/search',
+            name: 'search',
+            builder: (context, state) {
+              final q = state.uri.queryParameters['q'] ?? '';
+              return SearchResultsPage(initialQuery: q);
+            },
           ),
           GoRoute(
             path: '/notification-preferences',

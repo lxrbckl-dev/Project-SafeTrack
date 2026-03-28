@@ -50,6 +50,11 @@ class _ClosePanelIntent extends Intent {
   const _ClosePanelIntent();
 }
 
+/// Navigate to the global search page.
+class _NavigateSearchIntent extends Intent {
+  const _NavigateSearchIntent();
+}
+
 /// Show the keyboard shortcuts overlay.
 class _ShowShortcutsIntent extends Intent {
   const _ShowShortcutsIntent();
@@ -173,6 +178,7 @@ bool _isTextFieldFocused() {
 /// - **Alt+I** → /incidents
 /// - **Alt+V** → /investigations
 /// - **Alt+C** → /capas
+/// - **Alt+S** → /search (global search)
 /// - **Alt+K** or **/** → Toggle AI Chat (no-op if chat widget not present)
 /// - **Escape** → Close any open panel
 /// - **?** (Shift+/) → Show keyboard shortcuts overlay
@@ -252,6 +258,10 @@ class _AppShortcutsWrapper extends StatelessWidget {
         SingleActivator(LogicalKeyboardKey.keyC, alt: true):
             _NavigateCAPAsIntent(),
 
+        // Global search: Alt+S
+        SingleActivator(LogicalKeyboardKey.keyS, alt: true):
+            _NavigateSearchIntent(),
+
         // Chat toggle: Alt+K (all platforms) — does not conflict with browser
         SingleActivator(LogicalKeyboardKey.keyK, alt: true):
             _ToggleChatIntent(),
@@ -294,6 +304,13 @@ class _AppShortcutsWrapper extends StatelessWidget {
             onInvoke: (_) {
               // Alt+C — modifier combo does not produce text; no guard needed.
               context.go('/capas');
+              return null;
+            },
+          ),
+          _NavigateSearchIntent: CallbackAction<_NavigateSearchIntent>(
+            onInvoke: (_) {
+              // Alt+S — modifier combo does not produce text; no guard needed.
+              context.go('/search');
               return null;
             },
           ),
@@ -350,12 +367,24 @@ class _DesktopShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Top AppBar carries the notification bell on desktop.
+      // Top AppBar carries the search icon and notification bell on desktop.
       appBar: AppBar(
         title: const Text(''),
         backgroundColor: HerzogColors.richBlack,
         elevation: 0,
-        actions: const [NotificationBell(), SizedBox(width: 8)],
+        actions: [
+          Semantics(
+            label: 'Search, shortcut Alt+S',
+            button: true,
+            child: IconButton(
+              icon: const Icon(Icons.search, color: HerzogColors.smoke),
+              tooltip: 'Search (Alt+S)',
+              onPressed: () => context.go('/search'),
+            ),
+          ),
+          const NotificationBell(),
+          const SizedBox(width: 8),
+        ],
         shape: const Border(
           bottom: BorderSide(color: HerzogColors.gold, width: 3),
         ),
@@ -737,12 +766,24 @@ class _MobileShell extends StatelessWidget {
     final selectedIndex = _selectedIndex(currentLocation);
 
     return Scaffold(
-      // Top AppBar carries the notification bell on mobile.
+      // Top AppBar carries the search icon and notification bell on mobile.
       appBar: AppBar(
         title: const Text(''),
         backgroundColor: HerzogColors.richBlack,
         elevation: 0,
-        actions: const [NotificationBell(), SizedBox(width: 8)],
+        actions: [
+          Semantics(
+            label: 'Search, shortcut Alt+S',
+            button: true,
+            child: IconButton(
+              icon: const Icon(Icons.search, color: HerzogColors.smoke),
+              tooltip: 'Search (Alt+S)',
+              onPressed: () => context.go('/search'),
+            ),
+          ),
+          const NotificationBell(),
+          const SizedBox(width: 8),
+        ],
         shape: const Border(
           bottom: BorderSide(color: HerzogColors.gold, width: 3),
         ),
