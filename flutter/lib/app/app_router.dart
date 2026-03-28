@@ -3,7 +3,8 @@ import '../features/auth/data/auth_service.dart';
 import '../features/auth/data/role.dart';
 import '../features/auth/pages/dev_login_page.dart';
 import '../features/shell/pages/app_shell_page.dart';
-import '../features/dashboard/pages/dashboard_placeholder_page.dart';
+import '../features/dashboard/pages/safety_dashboard_page.dart';
+import '../features/dashboard/pages/hours_worked_page.dart';
 import '../features/incidents/pages/incident_list_page.dart';
 import '../features/incidents/pages/incident_form_page.dart';
 import '../features/incidents/pages/incident_detail_page.dart';
@@ -86,7 +87,14 @@ GoRouter appRouter(AuthService authService) {
           GoRoute(
             path: '/dashboard',
             name: 'dashboard',
-            builder: (context, state) => const DashboardPlaceholderPage(),
+            builder: (context, state) => const SafetyDashboardPage(),
+            routes: [
+              GoRoute(
+                path: 'hours-worked',
+                name: 'hoursWorked',
+                builder: (context, state) => const HoursWorkedPage(),
+              ),
+            ],
           ),
 
           // Incident routes
