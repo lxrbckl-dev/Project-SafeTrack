@@ -38,7 +38,12 @@ func RegisterIncidentRoutes(api *http.ServeMux, db *gorm.DB) {
 
 // canAccessMedical returns true if the user role is allowed to see
 // decrypted medical data on injured persons.
-func canAccessMedical(role string) bool {
+// Edge case 11: agents are never allowed to view medical data, even if
+// the underlying user role would otherwise permit it.
+func canAccessMedical(role string, isAgent bool) bool {
+	if isAgent {
+		return false
+	}
 	switch role {
 	case "safety_coordinator", "safety_manager", "admin":
 		return true
@@ -121,6 +126,7 @@ func CreateIncident(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		// RBAC: Executive is read-only — cannot create.
 		if middleware.IsReadOnlyRole(userRole) {
@@ -164,7 +170,7 @@ func CreateIncident(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		LogAction(db, userID, userRole, "create", "incident", incident.ID, "", toJSON(incident), "")
+		LogAction(db, userID, userRole, "create", "incident", incident.ID, "", toJSON(incident), "", isAgent)
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
@@ -178,6 +184,7 @@ func ListIncidents(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		query := db.Model(&models.Incident{}).Preload("InjuredPersons")
 
@@ -236,7 +243,7 @@ func ListIncidents(db *gorm.DB) http.HandlerFunc {
 			Find(&incidents)
 
 		// Handle medical data visibility.
-		medicalAccess := canAccessMedical(userRole)
+		medicalAccess := canAccessMedical(userRole, isAgent)
 		for i := range incidents {
 			if len(incidents[i].InjuredPersons) > 0 {
 				if medicalAccess {
@@ -262,6 +269,7 @@ func GetIncident(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		id := r.PathValue("id")
 		var incident models.Incident
@@ -294,7 +302,7 @@ func GetIncident(db *gorm.DB) http.HandlerFunc {
 
 		// Medical field access control.
 		if len(incident.InjuredPersons) > 0 {
-			if canAccessMedical(userRole) {
+			if canAccessMedical(userRole, isAgent) {
 				decryptInjuredPersons(incident.InjuredPersons)
 			} else {
 				redactInjuredPersons(incident.InjuredPersons)
@@ -312,6 +320,7 @@ func UpdateIncident(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		// RBAC: Executive is read-only — cannot update.
 		if middleware.IsReadOnlyRole(userRole) {
@@ -399,7 +408,7 @@ func UpdateIncident(db *gorm.DB) http.HandlerFunc {
 			}
 		}
 
-		LogAction(db, userID, userRole, "update", "incident", existing.ID, beforeJSON, toJSON(existing), "")
+		LogAction(db, userID, userRole, "update", "incident", existing.ID, beforeJSON, toJSON(existing), "", isAgent)
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(existing)

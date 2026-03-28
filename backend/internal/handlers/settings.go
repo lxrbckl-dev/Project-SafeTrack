@@ -129,6 +129,7 @@ func UpdateSetting(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		role := middleware.GetUserRole(r)
 		userID := middleware.GetUserID(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		if !isAdminOrSafetyManager(role) {
 			http.Error(w, "forbidden", http.StatusForbidden)
@@ -162,7 +163,7 @@ func UpdateSetting(db *gorm.DB) http.HandlerFunc {
 		}
 
 		after := toJSON(setting)
-		LogAction(db, userID, role, "update", "setting", setting.ID, before, after, "")
+		LogAction(db, userID, role, "update", "setting", setting.ID, before, after, "", isAgent)
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(setting)

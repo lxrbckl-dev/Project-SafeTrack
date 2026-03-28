@@ -28,6 +28,7 @@ func CreateIncidentLink(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		if !canLinkIncidents(userRole) {
 			http.Error(w, "forbidden", http.StatusForbidden)
@@ -77,7 +78,7 @@ func CreateIncidentLink(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		LogAction(db, userID, userRole, "create", "incident_link", link.ID, "", toJSON(link), "")
+		LogAction(db, userID, userRole, "create", "incident_link", link.ID, "", toJSON(link), "", isAgent)
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
@@ -172,6 +173,7 @@ func DeleteIncidentLink(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		if !canLinkIncidents(userRole) {
 			http.Error(w, "forbidden", http.StatusForbidden)
@@ -198,7 +200,7 @@ func DeleteIncidentLink(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		LogAction(db, userID, userRole, "delete", "incident_link", link.ID, beforeJSON, "", "")
+		LogAction(db, userID, userRole, "delete", "incident_link", link.ID, beforeJSON, "", "", isAgent)
 
 		w.WriteHeader(http.StatusNoContent)
 	}

@@ -55,11 +55,17 @@ func FirebaseAuth(next http.Handler) http.Handler {
 		userDivision, _ := claims["division"].(string)
 		userProject, _ := claims["project"].(string)
 
+		// Edge case 1 (JWT backward compat): existing JWTs from /api/login
+		// won't have "is_agent". The nil→false type assertion handles this
+		// gracefully — old tokens default to human (false).
+		isAgent, _ := claims["is_agent"].(bool)
+
 		ctx := r.Context()
 		ctx = context.WithValue(ctx, "userRole", userRole)
 		ctx = context.WithValue(ctx, "userID", userID)
 		ctx = context.WithValue(ctx, "userDivision", userDivision)
 		ctx = context.WithValue(ctx, "userProject", userProject)
+		ctx = context.WithValue(ctx, "isAgent", isAgent)
 		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)

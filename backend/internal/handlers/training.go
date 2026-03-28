@@ -50,6 +50,7 @@ func CreateTraining(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		if middleware.IsReadOnlyRole(userRole) {
 			http.Error(w, "forbidden: read-only role", http.StatusForbidden)
@@ -111,7 +112,7 @@ func CreateTraining(db *gorm.DB) http.HandlerFunc {
 		}
 
 		LogAction(db, userID, userRole, "create", "training_requirement", training.ID, "", toJSON(training),
-			fmt.Sprintf("Training requirement created for CAPA %d", req.CAPAID))
+			fmt.Sprintf("Training requirement created for CAPA %d", req.CAPAID), isAgent)
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
@@ -228,6 +229,7 @@ func CompleteTraining(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		if middleware.IsReadOnlyRole(userRole) {
 			http.Error(w, "forbidden: read-only role", http.StatusForbidden)
@@ -335,13 +337,13 @@ func CompleteTraining(db *gorm.DB) http.HandlerFunc {
 		// Audit log calls are non-critical and run after the transaction succeeds.
 		LogAction(db, userID, userRole, "status_change", "training_requirement", training.ID,
 			beforeJSON, toJSON(training),
-			fmt.Sprintf("Training completed by %s, duration %.1fh", userID, req.DurationHours))
+			fmt.Sprintf("Training completed by %s, duration %.1fh", userID, req.DurationHours), isAgent)
 
 		if capaUpdated {
 			LogAction(db, userID, userRole, "status_change", "capa", capa.ID,
 				capaBeforeJSON, toJSON(capa),
 				fmt.Sprintf("CAPA auto-completed via training completion #%d, verification due %s",
-					completion.ID, capaVerificationDue.Format("2006-01-02")))
+					completion.ID, capaVerificationDue.Format("2006-01-02")), isAgent)
 		}
 
 		resp := trainingDetailResponse{

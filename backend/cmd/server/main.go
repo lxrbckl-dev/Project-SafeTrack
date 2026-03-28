@@ -32,6 +32,12 @@ func main() {
 	}
 	defer sqlDB.Close()
 
+	// Edge case 13: warn if ENCRYPTION_KEY is not set — medical data will
+	// be encrypted with a hardcoded dev key that is publicly known.
+	if os.Getenv("ENCRYPTION_KEY") == "" {
+		log.Println("WARNING: ENCRYPTION_KEY is not set. Medical data will use the hardcoded dev key. Set this in production!")
+	}
+
 	// Start WebSocket hub for real-time event broadcasting.
 	hub := handlers.NewHub()
 	go hub.Run()
@@ -42,6 +48,10 @@ func main() {
 	// Public routes
 	mux.HandleFunc("GET /health", handlers.Health)
 	mux.HandleFunc("POST /api/login", handlers.Login(db))
+
+	// Edge case 3: /api/agent/auth is a PUBLIC route — agents authenticate
+	// with an API key to obtain a JWT, so it cannot sit behind JWT middleware.
+	mux.HandleFunc("POST /api/agent/auth", handlers.AgentAuth(db))
 
 	// WebSocket endpoint — auth via query param, not middleware.
 	mux.HandleFunc("GET /api/ws", handlers.WebSocketHandler(hub))
@@ -61,7 +71,7 @@ func main() {
 	api.HandleFunc("POST /api/sync", handlers.Sync(db))
 	api.HandleFunc("GET /api/data", handlers.GetData(db))
 	api.HandleFunc("GET /api/audit-logs", handlers.GetAuditLogs(db)) // RBAC enforced at handler level: Admin + Safety Manager only
-	api.HandleFunc("POST /api/chat", handlers.Chat())
+	api.HandleFunc("POST /api/chat", handlers.Chat(db))
 	handlers.RegisterSettingsRoutes(api, db)
 
 	// Incident domain routes (CRUD, OSHA, railroad, photos, status)
@@ -102,6 +112,9 @@ func main() {
 
 	// Live activity feed (RBAC-scoped, human-readable audit log entries)
 	handlers.RegisterActivityRoutes(api, db)
+
+	// Agent API key management routes (create, list, revoke — authenticated)
+	handlers.RegisterAgentRoutes(api, db)
 
 	mux.Handle("/api/", middleware.FirebaseAuth(api))
 

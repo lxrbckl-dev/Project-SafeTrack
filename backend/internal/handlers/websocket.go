@@ -38,7 +38,7 @@ func WebSocketHandler(hub *Hub) http.HandlerFunc {
 			return
 		}
 
-		userID, role, division, project, err := parseWSToken(tokenStr)
+		userID, role, division, project, isAgent, err := parseWSToken(tokenStr)
 		if err != nil {
 			log.Printf("[ws] auth failed: %v", err)
 			http.Error(w, "unauthorized: invalid token", http.StatusUnauthorized)
@@ -60,6 +60,7 @@ func WebSocketHandler(hub *Hub) http.HandlerFunc {
 			Role:     role,
 			Division: division,
 			Project:  project,
+			IsAgent:  isAgent,
 		}
 
 		hub.register <- client
@@ -73,7 +74,7 @@ func WebSocketHandler(hub *Hub) http.HandlerFunc {
 // parseWSToken verifies an HS256 JWT from the WebSocket query parameter
 // and extracts the user claims. Reuses the same signing secret as the
 // auth middleware.
-func parseWSToken(tokenStr string) (userID, role, division, project string, err error) {
+func parseWSToken(tokenStr string) (userID, role, division, project string, isAgent bool, err error) {
 	claims := jwt.MapClaims{}
 	token, err := jwt.ParseWithClaims(tokenStr, claims, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -82,17 +83,19 @@ func parseWSToken(tokenStr string) (userID, role, division, project string, err 
 		return middleware.DevJWTSecret(), nil
 	})
 	if err != nil || !token.Valid {
-		return "", "", "", "", fmt.Errorf("invalid token: %w", err)
+		return "", "", "", "", false, fmt.Errorf("invalid token: %w", err)
 	}
 
 	userID, _ = claims["sub"].(string)
 	role, _ = claims["role"].(string)
 	division, _ = claims["division"].(string)
 	project, _ = claims["project"].(string)
+	// Edge case 1: backward compat — missing is_agent defaults to false.
+	isAgent, _ = claims["is_agent"].(bool)
 
 	if userID == "" {
-		return "", "", "", "", fmt.Errorf("token missing sub claim")
+		return "", "", "", "", false, fmt.Errorf("token missing sub claim")
 	}
 
-	return userID, role, division, project, nil
+	return userID, role, division, project, isAgent, nil
 }

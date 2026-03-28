@@ -12,10 +12,17 @@ import (
 
 // key returns the 32-byte AES-256 encryption key from the environment.
 // Falls back to a dev-only default so local development works without config.
+//
+// SECURITY WARNING (edge case 13): In production, the ENCRYPTION_KEY env var
+// MUST be set to a unique, randomly generated 32-byte value. The hardcoded
+// dev fallback is publicly known in the source code. Any agent (or person)
+// with access to the source code can decrypt medical data if the default key
+// is used in production. Set ENCRYPTION_KEY before deploying.
 func key() []byte {
 	k := os.Getenv("ENCRYPTION_KEY")
 	if k == "" {
-		// Dev-only fallback — 32 bytes for AES-256
+		// Dev-only fallback — 32 bytes for AES-256.
+		// WARNING: Do NOT use this default in production. See comment above.
 		k = "highlander-dev-key-change-in-prod!"[:32]
 	}
 	b := []byte(k)

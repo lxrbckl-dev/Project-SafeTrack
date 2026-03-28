@@ -182,6 +182,7 @@ func CreateCAPA(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		// RBAC: Executive is read-only.
 		if middleware.IsReadOnlyRole(userRole) {
@@ -259,11 +260,11 @@ func CreateCAPA(db *gorm.DB) http.HandlerFunc {
 				http.Error(w, "database error updating incident status", http.StatusInternalServerError)
 				return
 			}
-			LogAction(db, userID, userRole, "status_change", "incident", incident.ID, incidentBefore, toJSON(incident), "CAPA assigned")
+			LogAction(db, userID, userRole, "status_change", "incident", incident.ID, incidentBefore, toJSON(incident), "CAPA assigned", isAgent)
 		}
 
 		LogAction(db, userID, userRole, "create", "capa", capa.ID, "", toJSON(capa),
-			fmt.Sprintf("CAPA created for investigation %d, incident %d", req.InvestigationID, req.IncidentID))
+			fmt.Sprintf("CAPA created for investigation %d, incident %d", req.InvestigationID, req.IncidentID), isAgent)
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
@@ -422,6 +423,7 @@ func UpdateCAPA(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		// RBAC: Executive is read-only.
 		if middleware.IsReadOnlyRole(userRole) {
@@ -497,13 +499,13 @@ func UpdateCAPA(db *gorm.DB) http.HandlerFunc {
 					incident.Status = "CAPA In Progress"
 					if err := db.Save(&incident).Error; err == nil {
 						LogAction(db, userID, userRole, "status_change", "incident", incident.ID,
-							incidentBefore, toJSON(incident), "CAPA moved to In Progress")
+							incidentBefore, toJSON(incident), "CAPA moved to In Progress", isAgent)
 					}
 				}
 			}
 		}
 
-		LogAction(db, userID, userRole, "update", "capa", existing.ID, beforeJSON, toJSON(existing), "")
+		LogAction(db, userID, userRole, "update", "capa", existing.ID, beforeJSON, toJSON(existing), "", isAgent)
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(existing)

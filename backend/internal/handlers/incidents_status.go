@@ -49,6 +49,7 @@ func TransitionIncidentStatus(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		// RBAC: Executive is read-only.
 		if middleware.IsReadOnlyRole(userRole) {
@@ -87,7 +88,7 @@ func TransitionIncidentStatus(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		LogAction(db, userID, userRole, "status_change", "incident", incident.ID, beforeJSON, toJSON(incident), "Status changed to "+req.Status)
+		LogAction(db, userID, userRole, "status_change", "incident", incident.ID, beforeJSON, toJSON(incident), "Status changed to "+req.Status, isAgent)
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(incident)
@@ -101,6 +102,7 @@ func CloseIncident(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		// RBAC: Executive is read-only.
 		if middleware.IsReadOnlyRole(userRole) {
@@ -161,7 +163,7 @@ func CloseIncident(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		LogAction(db, userID, userRole, "status_change", "incident", incident.ID, beforeJSON, toJSON(incident), "Incident closed")
+		LogAction(db, userID, userRole, "status_change", "incident", incident.ID, beforeJSON, toJSON(incident), "Incident closed", isAgent)
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(incident)
@@ -174,6 +176,7 @@ func ReopenIncident(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		// RBAC: Executive is read-only.
 		if middleware.IsReadOnlyRole(userRole) {
@@ -201,7 +204,7 @@ func ReopenIncident(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		LogAction(db, userID, userRole, "status_change", "incident", incident.ID, beforeJSON, toJSON(incident), "Incident reopened")
+		LogAction(db, userID, userRole, "status_change", "incident", incident.ID, beforeJSON, toJSON(incident), "Incident reopened", isAgent)
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(incident)

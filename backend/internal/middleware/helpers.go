@@ -39,3 +39,13 @@ func GetUserProject(r *http.Request) string {
 	}
 	return ""
 }
+
+// GetIsAgent reads the is_agent flag from the request context.
+// Returns true when the request was made via an agent API key session.
+// Defaults to false for human logins and old JWTs that lack the claim.
+func GetIsAgent(r *http.Request) bool {
+	if isAgent, ok := r.Context().Value("isAgent").(bool); ok {
+		return isAgent
+	}
+	return false
+}

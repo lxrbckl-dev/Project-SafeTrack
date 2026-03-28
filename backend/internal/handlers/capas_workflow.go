@@ -28,6 +28,7 @@ func CompleteCAPA(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		// RBAC: Executive is read-only.
 		if middleware.IsReadOnlyRole(userRole) {
@@ -71,7 +72,7 @@ func CompleteCAPA(db *gorm.DB) http.HandlerFunc {
 		}
 
 		LogAction(db, userID, userRole, "status_change", "capa", capa.ID, beforeJSON, toJSON(capa),
-			fmt.Sprintf("CAPA completed, verification due %s", verificationDue.Format("2006-01-02")))
+			fmt.Sprintf("CAPA completed, verification due %s", verificationDue.Format("2006-01-02")), isAgent)
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(capa)
@@ -94,6 +95,7 @@ func VerifyCAPA(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		// RBAC: Executive is read-only.
 		if middleware.IsReadOnlyRole(userRole) {
@@ -149,7 +151,7 @@ func VerifyCAPA(db *gorm.DB) http.HandlerFunc {
 		}
 
 		LogAction(db, userID, userRole, "status_change", "capa", capa.ID, beforeJSON, toJSON(capa),
-			fmt.Sprintf("CAPA verified as %s", capa.Status))
+			fmt.Sprintf("CAPA verified as %s", capa.Status), isAgent)
 
 		// Build response. For ineffective CAPAs, include prompt for next steps.
 		response := map[string]interface{}{

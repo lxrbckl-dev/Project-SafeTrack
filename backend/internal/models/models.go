@@ -22,5 +22,6 @@ func AllModels() []interface{} {
 		&DismissedSuggestion{},
 		&TrainingRequirement{},
 		&TrainingCompletion{},
+		&AgentApiKey{},
 	}
 }

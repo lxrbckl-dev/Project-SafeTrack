@@ -138,6 +138,7 @@ func UpdateNotificationPreferences(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		callerID := middleware.GetUserID(r)
 		callerRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 		targetID := r.PathValue("id")
 
 		// Users can only update their own preferences unless admin.
@@ -168,7 +169,7 @@ func UpdateNotificationPreferences(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		LogAction(db, callerID, callerRole, "update", "user", user.ID, "", fmt.Sprintf(`{"notificationPreference":"%s"}`, req.Preference), "notification preference updated")
+		LogAction(db, callerID, callerRole, "update", "user", user.ID, "", fmt.Sprintf(`{"notificationPreference":"%s"}`, req.Preference), "notification preference updated", isAgent)
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(notificationPreferenceResponse{

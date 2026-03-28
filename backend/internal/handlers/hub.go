@@ -45,6 +45,7 @@ type Client struct {
 	Role     string
 	Division string
 	Project  string
+	IsAgent  bool
 }
 
 // readPump reads messages from the WebSocket connection. The only purpose is
@@ -198,6 +199,19 @@ func (h *Hub) broadcastToClients(event WSEvent) {
 				targetUserID, ok := dataMap["userId"].(string)
 				if ok && client.UserID != targetUserID {
 					continue // skip this client
+				}
+			}
+		}
+
+		// Edge case 10: filter out activity events caused by this agent
+		// session so agents don't receive echoes of their own actions.
+		if client.IsAgent && event.Type == "activity" {
+			dataMap, ok := event.Data.(map[string]interface{})
+			if ok {
+				eventUserID, _ := dataMap["userId"].(string)
+				eventIsAgent, _ := dataMap["isAgent"].(bool)
+				if eventUserID == client.UserID && eventIsAgent {
+					continue // skip echo of agent's own action
 				}
 			}
 		}

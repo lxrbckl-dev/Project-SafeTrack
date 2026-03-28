@@ -29,6 +29,7 @@ func OshaDetermination(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		// RBAC: Executive is read-only.
 		if middleware.IsReadOnlyRole(userRole) {
@@ -74,7 +75,7 @@ func OshaDetermination(db *gorm.DB) http.HandlerFunc {
 		}
 
 		LogAction(db, userID, userRole, "osha_determination", "incident", incident.ID, beforeJSON, toJSON(incident),
-			"OSHA determination applied — recordable="+boolStr(recordable)+", DART="+boolStr(dart))
+			"OSHA determination applied — recordable="+boolStr(recordable)+", DART="+boolStr(dart), isAgent)
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(incident)
@@ -94,6 +95,7 @@ func OshaOverride(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		// RBAC: Executive is read-only.
 		if middleware.IsReadOnlyRole(userRole) {
@@ -129,7 +131,7 @@ func OshaOverride(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		LogAction(db, userID, userRole, "osha_override", "incident", incident.ID, beforeJSON, toJSON(incident), req.Justification)
+		LogAction(db, userID, userRole, "osha_override", "incident", incident.ID, beforeJSON, toJSON(incident), req.Justification, isAgent)
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(incident)

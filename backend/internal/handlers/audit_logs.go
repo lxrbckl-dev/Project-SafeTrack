@@ -29,7 +29,7 @@ func SetWSHub(h *Hub) {
 // When a WebSocket hub is configured (via SetWSHub), this also broadcasts
 // an "activity" event to connected clients so they get real-time updates
 // without polling.
-func LogAction(db *gorm.DB, userID, userRole, action, entityType string, entityID uint, before, after, notes string) error {
+func LogAction(db *gorm.DB, userID, userRole, action, entityType string, entityID uint, before, after, notes string, isAgent bool) error {
 	entry := models.AuditLog{
 		UserID:     userID,
 		UserRole:   userRole,
@@ -39,6 +39,7 @@ func LogAction(db *gorm.DB, userID, userRole, action, entityType string, entityI
 		Before:     before,
 		After:      after,
 		Notes:      notes,
+		IsAgent:    isAgent,
 	}
 	if err := db.Create(&entry).Error; err != nil {
 		return err
@@ -57,6 +58,7 @@ func LogAction(db *gorm.DB, userID, userRole, action, entityType string, entityI
 				"entityType": entry.EntityType,
 				"entityId":   entry.EntityID,
 				"notes":      entry.Notes,
+				"isAgent":    entry.IsAgent,
 			},
 		})
 	}

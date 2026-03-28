@@ -8,6 +8,10 @@ import (
 	"os"
 	"regexp"
 	"strings"
+
+	"gorm.io/gorm"
+
+	"github.com/lxRbckl/highlander/backend/internal/middleware"
 )
 
 // ChatRequest is the JSON body sent by the Flutter client.
@@ -87,7 +91,7 @@ var jsonBlockRe = regexp.MustCompile("(?s)```json\\s*\\n?(.*?)\\n?```")
 //	{"response": "I'll help you...", "actions": [{"action": "navigate", "route": "/incidents/new"}]}
 //
 // If no actions are detected the actions array is empty.
-func Chat() http.HandlerFunc {
+func Chat(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ollamaURL := os.Getenv("OLLAMA_URL")
 		if ollamaURL == "" {
@@ -150,6 +154,21 @@ func Chat() http.HandlerFunc {
 		chatResp := ChatResponse{
 			Response: cleanText,
 			Actions:  actions,
+		}
+
+		// Edge case 12: audit log chat requests so agent usage is visible.
+		userID := middleware.GetUserID(r)
+		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
+		if db != nil {
+			// Truncate prompt for audit log (avoid storing large payloads).
+			promptSnippet := req.Prompt
+			if len(promptSnippet) > 200 {
+				promptSnippet = promptSnippet[:200] + "..."
+			}
+			LogAction(db, userID, userRole, "chat_request", "chat", 0, "",
+				toJSON(map[string]interface{}{"promptLength": len(req.Prompt), "actionsCount": len(actions)}),
+				promptSnippet, isAgent)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
