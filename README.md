@@ -100,3 +100,4 @@ lsof -ti:3000 | xargs kill -9
 | Port 5432 conflict (local Postgres) | `lsof -ti:5432 \| xargs kill -9` then `docker-compose up -d` |
 | Need a fresh database | `docker-compose down -v && docker-compose up -d`, then re-seed |
 | AI assistant returns empty responses | Wait ~30s for model pull, or run `docker logs highlander-ollama-pull-1` to check progress |
+| Login returns "unauthorized" | Docker backend is running an old image. Stop it and run locally: `docker-compose stop backend` then `cd backend && go run ./cmd/server/; cd ..` |
