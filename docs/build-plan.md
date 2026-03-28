@@ -856,7 +856,15 @@
 - URL example: `/incidents/new?type=Near+Miss&division=Construction&location=Rail+Yard+5`
 - Fields pre-filled but editable — user reviews before submitting
 
-**QA:** Navigate to `/incidents/new?type=Injury&division=Construction` → verify Type and Division are pre-filled. Verify all supported params work on each form. Verify URL with no params still works (empty form). Verify pre-filled fields are editable.
+**Edge cases to handle:**
+- Query param pre-fill MUST NOT run in edit mode — guard against `_isEditMode` to prevent race condition with `_loadExisting()` API fetch
+- URL-encoded values: `Rail+Yard+5` and `Rail%20Yard%205` must both decode correctly
+- Invalid enum values in query params (e.g., `?type=InvalidType`) — ignore gracefully, don't crash
+- Deep-link with params while not logged in: auth redirect must preserve query params so they survive the login → redirect-back flow
+- FormFillService conflict: if AI dispatch queues pending fields AND URL has query params, query params take precedence (clear pending fields on param-based init)
+- Type coercion: `?severity=High` is invalid (severity uses Fatality/Lost Time/etc, not High/Low) — must validate against actual enum values
+
+**QA:** Navigate to `/incidents/new?type=Injury&division=Construction` → verify Type and Division are pre-filled. Verify all supported params work on each form. Verify URL with no params still works (empty form). Verify pre-filled fields are editable. Verify edit mode (`/incidents/5/edit?type=Injury`) ignores query params and loads from API. Verify invalid enum values are ignored.
 
 ---
 
@@ -878,7 +886,17 @@
 - Update `ChatWidget` message rendering to detect markdown links `[text](url)` and render as clickable `InkWell` widgets that call `context.go(url)`
 - Style clickable links with Herzog gold underline
 
-**QA:** Ask AI "I need to report an injury at the downtown office" → verify it generates a clickable URL → click it → verify incident form opens with type=Injury and location pre-filled. Test with various natural language inputs. Verify non-URL responses still render normally. Verify RBAC — AI should not generate URLs for pages the user's role can't access.
+**Edge cases to handle:**
+- Whitelist valid action types in `parseActions()` — unknown types from Qwen must be logged and dropped, not silently swallowed
+- Chat UI currently uses `SelectableText` (no markdown) — must add `[text](url)` link detection and render as tappable widgets
+- AI must not generate URLs for routes the user's role can't access (e.g., no `/admin` links for Field Reporter)
+- Query params with special characters must be URL-encoded in AI output
+- Keep JSON action dispatch working alongside URL generation — don't break existing form-fill behavior
+- Malformed markdown links from AI (e.g., `[Report][/url]`, `[[double brackets]]`) — render as plain text, don't crash
+- Onboarding tour overlay: if tour is active, AI-generated URL clicks may be blocked by coach-mark overlay — test this interaction
+- API key material must NEVER appear in error logs, stack traces, or monitoring output
+
+**QA:** Ask AI "I need to report an injury at the downtown office" → verify it generates a clickable URL → click it → verify incident form opens with type=Injury and location pre-filled. Test with various natural language inputs. Verify non-URL responses still render normally. Verify RBAC — AI should not generate URLs for pages the user's role can't access. Verify existing JSON action dispatch still works (backward compat). Test with malformed markdown — verify graceful degradation to plain text.
 
 ---
 
@@ -911,7 +929,19 @@
 - `features/admin/pages/api_keys_page.dart` — manage API keys: create (show key once in modal), list active keys, revoke
 - Route: `/admin/api-keys` (Admin + Safety Manager only)
 
-**QA:** Create API key → authenticate with it via curl → verify JWT has is_agent=true. Verify RBAC is identical to user's role. Revoke key → verify auth fails. Verify audit log shows agent attribution. Verify only Admin/Safety Manager can manage keys.
+**Edge cases to handle:**
+- **HIGH: JWT backward compatibility** — existing JWTs from `/api/login` won't have `is_agent` claim. Middleware MUST default missing claim to `false`, not crash. Extract with: `isAgent, _ := claims["is_agent"].(bool)` (nil → false)
+- **MEDIUM: Audit log migration** — add `IsAgent bool` field to AuditLog model with `gorm:"default:false"`. GORM auto-migrates. Old records default to false (human). Update `LogAction()` to accept `isAgent` parameter
+- `/api/agent/auth` must be a PUBLIC route (no JWT required — agents authenticate with API key to GET a JWT)
+- API key generation must use crypto/rand, not math/rand
+- Show full key exactly once in the creation response, then never again — UI must warn "copy this now"
+- **HIGH: API key brute force** — add rate limiting on `/api/agent/auth` (e.g., 5 failed attempts per minute per IP)
+- **HIGH: API key in error logs** — scrub key material from all error messages and log output. Never log the full key
+- **MEDIUM: Revoked key window** — revoked API key's JWT remains valid until 24h expiry. Consider adding key ID to JWT claims so middleware can check revocation in real-time, or shorten agent JWT expiry to 1 hour
+- **CRITICAL: Use bcrypt for key hashing** — never SHA256 without salt. Verify `bcrypt.CompareHashAndPassword()` is used
+- **MEDIUM: WebSocket event loop** — if agent is connected via WebSocket, ensure it doesn't receive events for its own actions (filter by `userId` + `is_agent` on broadcast)
+
+**QA:** Create API key → authenticate with it via curl → verify JWT has is_agent=true. Verify RBAC is identical to user's role. Revoke key → verify auth fails. Verify audit log shows agent attribution. Verify only Admin/Safety Manager can manage keys. Verify old user JWTs (without is_agent) still work with default false. Verify revoked key returns 401 immediately.
 
 ---
 
@@ -948,7 +978,12 @@
 - Admin gets settings/API key capabilities
 - Field Reporter gets incident creation only
 
-**QA:** Authenticate as each of 7 roles → call capabilities → verify each role sees only their permitted actions. Verify parameter schemas are accurate. Verify unauthorized actions are not listed.
+**Edge cases to handle:**
+- Capabilities must stay in sync with actual RBAC rules — if a new endpoint is added, capabilities must be updated
+- Parameter schemas must match actual API validation (e.g., if API requires `type` as enum, schema must list exact values)
+- Capabilities for PM and Division Manager must reflect scoping (PM sees "list incidents (project-scoped)" not just "list incidents")
+
+**QA:** Authenticate as each of 7 roles → call capabilities → verify each role sees only their permitted actions. Verify parameter schemas are accurate. Verify unauthorized actions are not listed. Verify PM/Division Manager capabilities mention scoping.
 
 ---
 
@@ -987,7 +1022,16 @@
 }
 ```
 
-**QA:** Connect a test MCP client → call tools/list → verify tools match role's capabilities. Call create_incident tool → verify incident created in database. Call with wrong role → verify tool not listed. Verify JSON-RPC error handling for invalid tool names and bad parameters.
+**Edge cases to handle:**
+- **MEDIUM: Route namespace** — MCP routes at `/mcp/*` need separate auth middleware (`MCPAuth`) that accepts API keys, NOT `FirebaseAuth` which expects JWTs. Register via `handlers.RegisterMCPRoutes(mux, db)` outside the `api` mux
+- **MEDIUM: WebSocket event namespacing** — if MCP events piggyback on existing WebSocket hub, namespace types as `mcp.message`, `mcp.result` to avoid collision with `notification` and `activity` types
+- **LOW: JSON-RPC library** — MCP uses JSON-RPC 2.0. Pre-select a Go library (e.g., `github.com/sourcegraph/jsonrpc2`) or implement a minimal custom parser. Must handle: method not found, invalid params, internal error
+- MCP `tools/call` must validate all input against the schema BEFORE proxying to the REST endpoint — don't pass garbage to the API
+- **HIGH: Rate limiting required** — agents can call tools much faster than humans. Implement per-key rate limiting (60 requests/minute). Without this, a single agent can DoS the system
+- **MEDIUM: Input sanitization** — MCP tool inputs pass JSON schema validation but may contain XSS/injection payloads. GORM parameterized queries handle SQL injection, but verify no raw SQL in analytics/search handlers
+- **MEDIUM: Agent offline** — MCP has no offline mode. If backend is down, agent gets connection refused. Return clear JSON-RPC error, not generic 500
+
+**QA:** Connect a test MCP client → call tools/list → verify tools match role's capabilities. Call create_incident tool → verify incident created in database. Call with wrong role → verify tool not listed. Verify JSON-RPC error handling for invalid tool names and bad parameters. Verify MCP auth rejects user JWTs (must use API key). Verify rate limiting — 61st request in 1 minute returns 429. Test XSS payload in tool input — verify stored safely, rendered safely.
 
 ---
 
@@ -1005,7 +1049,17 @@
 - Agent activity indicator in the admin dashboard — "2 agents active" badge
 - Route: `/admin/agents`
 
-**QA:** Authenticate agent via API key → verify it appears in active sessions. Wait 5+ minutes → verify it drops off. Verify only Admin can see sessions page. Verify agent activity filters correctly.
+**Edge cases to handle:**
+- Session tracking must handle multiple agents for the same user (e.g., user has 3 API keys, 2 active simultaneously)
+- "Last used" timestamp must update on every API call, not just auth — use middleware to update `AgentApiKey.LastUsedAt`
+- Session timeout (5 min) is a display heuristic, not a real session — agents don't have persistent connections (except WebSocket)
+
+**Edge cases to handle (additional):**
+- **HIGH: Division scoping on agent activity** — agent activity feed must respect division/project scoping. A Safety Coordinator for East Plant should not see agent actions in West Plant
+- Agent activity must show rollback/rejection actions, not just creates — if Safety Manager rejects an agent-created investigation, that rejection must appear in agent activity
+- Audit log pagination: with agents generating high volumes, ensure audit log viewer handles 10,000+ records without OOM (cursor-based pagination, not offset)
+
+**QA:** Authenticate agent via API key → verify it appears in active sessions. Wait 5+ minutes → verify it drops off. Verify only Admin can see sessions page. Verify agent activity filters correctly. Verify multiple concurrent agents for same user show separately. Verify division-scoped agent activity. Verify rejection/rollback events visible in agent activity.
 
 ---
 
