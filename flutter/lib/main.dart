@@ -24,19 +24,27 @@ void main() async {
   SemanticsBinding.instance.ensureSemantics();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   final prefs = await SharedPreferences.getInstance();
-  runApp(MyApp(prefs: prefs));
+
+  // Restore persisted auth session before building the widget tree so the
+  // router's redirect guard sees the correct login state on first frame
+  // (fix #148 — auth state lost on browser refresh).
+  final authService = AuthService(prefs);
+  await authService.restoreSession();
+
+  runApp(MyApp(prefs: prefs, authService: authService));
 }
 
 class MyApp extends StatelessWidget {
   final SharedPreferences prefs;
+  final AuthService authService;
 
-  const MyApp({super.key, required this.prefs});
+  const MyApp({super.key, required this.prefs, required this.authService});
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthService()),
+        ChangeNotifierProvider.value(value: authService),
         // NotificationService depends on the JWT from AuthService.
         // ProxyProvider propagates the token whenever AuthService changes.
         ChangeNotifierProxyProvider<AuthService, NotificationService>(
