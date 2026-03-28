@@ -14,49 +14,40 @@ Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutt
 | Flutter | [flutter.dev](https://flutter.dev/docs/get-started/install) |
 | Go | `brew install go` |
 
-### Step 1: Start the backend services
+All commands are run from the project root directory.
+
+### Step 1: Start the backend services (Go API + PostgreSQL + Ollama)
 
 ```bash
 docker-compose up -d
 ```
 
-This starts PostgreSQL, Ollama, and exposes ports:
-- PostgreSQL: `localhost:5432`
-- Ollama: `localhost:11434`
-
-Wait a few seconds for PostgreSQL to be healthy before proceeding.
-
-### Step 2: Start the Go API server
-
-```bash
-cd backend && go run ./cmd/server/
-```
-
-Verify it's running:
+Wait for PostgreSQL to be healthy (~5 seconds), then verify:
 ```bash
 curl localhost:8000/health
 # Should return: {"status":"ok"}
 ```
 
-### Step 3: Seed the database (first time only)
+### Step 2: Seed the database (first time only)
 
 ```bash
-cd backend && SEED_DATA=true go run ./cmd/server/
+SEED_DATA=true go run ./backend/cmd/server/
 ```
 
-This creates demo users (3+ per role), 18 incidents, 7 investigations, 14 CAPAs, hours worked data, and admin settings. It only seeds if the database is empty.
+This creates demo users (3+ per role), 18 incidents, 7 investigations, 14 CAPAs, hours worked data, and admin settings. It only seeds if the database is empty. The server will exit with "address already in use" after seeding — that's expected since Docker is already running the backend on :8000.
 
-### Step 4: Start Flutter web
+### Step 3: Start Flutter web
 
 ```bash
-cd flutter && flutter run -d chrome --web-port=3000 \
+lsof -ti:3000 | xargs kill -9 2>/dev/null
+flutter run -d chrome --web-port=3000 \
   --web-header=Cross-Origin-Opener-Policy=same-origin \
   --web-header=Cross-Origin-Embedder-Policy=require-corp
 ```
 
 Open `http://localhost:3000` — you'll see the dev login page with 7 role cards.
 
-### Step 5 (optional): Pull the Qwen model for AI chat
+### Step 4 (optional): Pull the Qwen model for AI chat
 
 ```bash
 docker exec -it $(docker ps -q -f ancestor=ollama/ollama) ollama pull qwen2.5:7b
