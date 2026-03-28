@@ -1,124 +1,101 @@
 # SafeTrack
 
-Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutter/Dart app with Go backend, built for a hackathon using a multi-agent Claude Code team.
+Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutter app with Go backend, built using a multi-agent Claude Code team.
+
+## Contents
+
+| Section | |
+|---|---|
+| [Quick Start](#quick-start) | Get the app running locally |
+| [Stopping Everything](#stopping-everything) | Shut down services |
+| [Demo Roles](#demo-roles) | 7 roles to explore |
+| [Keyboard Shortcuts](#keyboard-shortcuts) | Navigation hotkeys |
+| [Troubleshooting](#troubleshooting) | Common issues & fixes |
 
 ---
 
-## Local Deployment
+## Quick Start
 
-### Prerequisites
+**Prerequisites:** [Docker Desktop](https://www.docker.com/products/docker-desktop/), [Flutter](https://flutter.dev/docs/get-started/install), [Go](https://go.dev/dl/)
 
-| Tool | Install |
-|---|---|
-| Docker Desktop | [docker.com](https://www.docker.com/products/docker-desktop/) |
-| Flutter | [flutter.dev](https://flutter.dev/docs/get-started/install) |
-| Go | `brew install go` |
-
-All commands are run from the project root directory.
-
-### Step 1: Start the backend services (Go API + PostgreSQL + Ollama)
-
+**1. Start backend** (Go API + PostgreSQL + Ollama):
 ```bash
 docker-compose up -d
 ```
 
-Wait for PostgreSQL to be healthy (~5 seconds), then verify:
+**2. Seed demo data** (first time only):
 ```bash
-curl localhost:8000/health
-# Should return: {"status":"ok"}
+cd backend && SEED_DATA=true go run ./cmd/server/
 ```
+> The server will exit with "address already in use" — that's expected since Docker is already running it.
 
-### Step 2: Seed the database (first time only)
-
+**3. Start the app:**
 ```bash
-SEED_DATA=true go run ./backend/cmd/server/
-```
-
-This creates demo users (3+ per role), 18 incidents, 7 investigations, 14 CAPAs, hours worked data, and admin settings. It only seeds if the database is empty. The server will exit with "address already in use" after seeding — that's expected since Docker is already running the backend on :8000.
-
-### Step 3: Start Flutter web
-
-```bash
-lsof -ti:3000 | xargs kill -9 2>/dev/null
-flutter run -d chrome --web-port=3000 \
+cd flutter && flutter run -d chrome --web-port=3000 \
   --web-header=Cross-Origin-Opener-Policy=same-origin \
   --web-header=Cross-Origin-Embedder-Policy=require-corp
 ```
 
-Open `http://localhost:3000` — you'll see the dev login page with 7 role cards.
+**4. Open** `http://localhost:3000` — pick a role and explore.
 
-### Step 4 (optional): Pull the Qwen model for AI chat
-
+**5. (Optional) Enable AI chat:**
 ```bash
 docker exec -it $(docker ps -q -f ancestor=ollama/ollama) ollama pull qwen2.5:7b
 ```
 
 ---
 
-## Troubleshooting
+## Stopping Everything
 
-### Port 3000 already in use
+```bash
+docker-compose down        # stop services, keep data
+```
 
+To also wipe the database and start fresh:
+```bash
+docker-compose down -v     # stop services + delete data
+```
+
+If the Flutter dev server is still running, press `q` in its terminal or:
 ```bash
 lsof -ti:3000 | xargs kill -9
 ```
-
-Then re-run the Flutter command.
-
-### PostgreSQL connection refused
-
-Make sure Docker Desktop is running and containers are up:
-```bash
-docker-compose ps
-```
-
-If PostgreSQL isn't healthy, restart:
-```bash
-docker-compose down && docker-compose up -d
-```
-
-Wait 5-10 seconds for the healthcheck to pass before starting the Go backend.
-
-### Port 5432 already in use (local PostgreSQL conflict)
-
-If you have a local PostgreSQL installation, it may conflict with Docker's PostgreSQL:
-```bash
-lsof -ti:5432 | xargs kill -9
-docker-compose up -d
-```
-
-### Database needs a fresh start
-
-```bash
-docker-compose down -v && docker-compose up -d
-```
-
-The `-v` flag removes the PostgreSQL volume. Re-run with `SEED_DATA=true` to repopulate.
 
 ---
 
 ## Demo Roles
 
-Log in with any of the 7 roles via the dev login screen:
-
 | Role | What you can do |
 |---|---|
-| Field Reporter | Create incidents |
-| Safety Coordinator | Manage investigations/CAPAs, link incidents |
-| Safety Manager | Approve investigations, assign investigators, configure system |
-| PM | View project-scoped data |
-| Division Manager | View division-scoped data |
-| Executive | View all data (read-only) |
-| Admin | Configure system settings, view audit log |
+| **Field Reporter** | Create incidents |
+| **Safety Coordinator** | Manage investigations/CAPAs, link incidents |
+| **Safety Manager** | Approve investigations, assign investigators, configure system |
+| **PM** | View project-scoped data |
+| **Division Manager** | View division-scoped data |
+| **Executive** | View all data (read-only) |
+| **Admin** | Configure system settings, view audit log |
+
+> **Suggested walkthrough:** Start as Field Reporter to create an incident, then switch to Safety Manager to investigate it.
 
 ### Keyboard Shortcuts
 
 | Key | Action |
 |---|---|
-| `D` | Go to Dashboard |
-| `I` | Go to Incidents |
-| `V` | Go to Investigations |
-| `C` | Go to CAPAs |
+| `D` | Dashboard |
+| `I` | Incidents |
+| `V` | Investigations |
+| `C` | CAPAs |
 | `Ctrl+K` | Toggle AI chat |
-| `?` | Show shortcut overlay |
+| `?` | Show all shortcuts |
 | `Esc` | Close panels |
+
+---
+
+## Troubleshooting
+
+| Problem | Fix |
+|---|---|
+| Port 3000 in use | `lsof -ti:3000 \| xargs kill -9` |
+| PostgreSQL connection refused | Start Docker Desktop, then `docker-compose up -d` |
+| Port 5432 conflict (local Postgres) | `lsof -ti:5432 \| xargs kill -9` then `docker-compose up -d` |
+| Need a fresh database | `docker-compose down -v && docker-compose up -d`, then re-seed |

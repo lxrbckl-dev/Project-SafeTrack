@@ -381,3 +381,17 @@ Already installed: Flutter 3.41.4, Xcode 26.3, Playwright 1.58.2
 - Renamed project from "Highlander" to "SafeTrack" across all user-facing files
 - Updated: CLAUDE.md, README.md, main.dart, index.html, manifest.json, wiki.md (both copies), role.dart, auth_service.dart, chat_widget.dart
 - Did NOT change: GitHub repo name, Flutter package name (pubspec.yaml), Firebase bundle IDs, domain name
+
+---
+
+## 2026-03-28 — Late Night
+
+### Local Dev Setup & README Cleanup
+- Diagnosed PostgreSQL connection refused error — Docker Desktop wasn't running
+- Fixed port 3000 already in use (stale Flutter process)
+- Fixed Go module error — `go run ./backend/cmd/server/` must be run from `backend/`, not project root
+- Fixed README.md seed command: `SEED_DATA=true go run ./backend/cmd/server/` → `cd backend && SEED_DATA=true go run ./cmd/server/`
+- Simplified README for judges: condensed from 122 to ~70 lines, collapsed troubleshooting into a table
+- Added "Stopping Everything" section with `docker-compose down` instructions
+- Added table of contents with anchor links
+- Added suggested walkthrough hint for judges (Field Reporter → Safety Manager)
