@@ -1167,7 +1167,7 @@ class _IndicatorRow extends StatelessWidget {
 
     return Semantics(
       label:
-          '$label: actual ${actual.toStringAsFixed(1)}$unit, target ${target.toStringAsFixed(1)}$unit',
+          '$label: actual ${actual.toStringAsFixed(1)} $unit, target ${target.toStringAsFixed(1)} $unit',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1176,7 +1176,7 @@ class _IndicatorRow extends StatelessWidget {
             children: [
               Flexible(child: Text(label, style: HerzogText.body())),
               Text(
-                '${actual.toStringAsFixed(1)}$unit / ${target.toStringAsFixed(1)}$unit',
+                '${actual.toStringAsFixed(1)} $unit / ${target.toStringAsFixed(1)} $unit',
                 style: HerzogText.body(fontWeight: FontWeight.w600),
               ),
             ],
