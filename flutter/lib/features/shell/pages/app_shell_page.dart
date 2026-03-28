@@ -50,8 +50,8 @@ List<_NavItem> _visibleNavItems(Role? role) {
     ),
   ];
 
-  // Admin section: admin role only
-  if (role != null && role == Role.admin) {
+  // Admin section: admin or safety manager (fix #10)
+  if (role != null && (role == Role.admin || role == Role.safetyManager)) {
     all.add(
       const _NavItem(label: 'Admin', icon: Icons.settings, route: '/admin'),
     );

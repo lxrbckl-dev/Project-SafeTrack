@@ -4,7 +4,10 @@ import '../features/auth/data/role.dart';
 import '../features/auth/pages/dev_login_page.dart';
 import '../features/shell/pages/app_shell_page.dart';
 import '../features/dashboard/pages/dashboard_placeholder_page.dart';
-import '../features/incidents/pages/incidents_placeholder_page.dart';
+import '../features/incidents/pages/incident_list_page.dart';
+import '../features/incidents/pages/incident_form_page.dart';
+import '../features/incidents/pages/incident_detail_page.dart';
+import '../features/incidents/pages/osha_determination_page.dart';
 import '../features/investigations/pages/investigations_placeholder_page.dart';
 import '../features/capas/pages/capas_placeholder_page.dart';
 import '../features/admin/pages/admin_settings_page.dart';
@@ -19,7 +22,7 @@ import '../features/audit_log/pages/audit_log_placeholder_page.dart';
 /// Auth redirect rules:
 /// - Unauthenticated → /login
 /// - Authenticated on /login → /dashboard
-/// - /admin: Admin role only → else /dashboard
+/// - /admin: Admin or Safety Manager → else /dashboard (fix #10)
 /// - /audit-log: Admin or Safety Manager → else /dashboard
 ///
 /// Shell: all authenticated routes are wrapped in [AppShellPage]
@@ -45,8 +48,11 @@ GoRouter appRouter(AuthService authService) {
         return '/dashboard';
       }
 
-      // Role gate: /admin — Admin only
-      if (location.startsWith('/admin') && role != null && role != Role.admin) {
+      // Role gate: /admin — Admin or Safety Manager (fix #10: was Admin only)
+      if (location.startsWith('/admin') &&
+          role != null &&
+          role != Role.admin &&
+          role != Role.safetyManager) {
         return '/dashboard';
       }
 
@@ -78,11 +84,53 @@ GoRouter appRouter(AuthService authService) {
             name: 'dashboard',
             builder: (context, state) => const DashboardPlaceholderPage(),
           ),
+
+          // Incident routes
           GoRoute(
             path: '/incidents',
             name: 'incidents',
-            builder: (context, state) => const IncidentsPlaceholderPage(),
+            builder: (context, state) => const IncidentListPage(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'incidentNew',
+                builder: (context, state) => const IncidentFormPage(),
+              ),
+              GoRoute(
+                path: ':id',
+                name: 'incidentDetail',
+                builder: (context, state) {
+                  final id = int.tryParse(state.pathParameters['id'] ?? '');
+                  if (id == null) {
+                    return const IncidentListPage();
+                  }
+                  return IncidentDetailPage(incidentId: id);
+                },
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    name: 'incidentEdit',
+                    builder: (context, state) {
+                      final id = int.tryParse(state.pathParameters['id'] ?? '');
+                      return IncidentFormPage(incidentId: id);
+                    },
+                  ),
+                  GoRoute(
+                    path: 'osha',
+                    name: 'incidentOsha',
+                    builder: (context, state) {
+                      final id = int.tryParse(state.pathParameters['id'] ?? '');
+                      if (id == null) {
+                        return const IncidentListPage();
+                      }
+                      return OshaDeterminationPage(incidentId: id);
+                    },
+                  ),
+                ],
+              ),
+            ],
           ),
+
           GoRoute(
             path: '/investigations',
             name: 'investigations',
