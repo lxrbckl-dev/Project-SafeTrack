@@ -1051,6 +1051,16 @@ T10     TASK-019: AI Agent             (polish)                       Tests 017-
 | Phase 10 (planned) | 2 tasks — TASK-044, 045 |
 | Phase 11 (planned) | 4 tasks — TASK-046, 047, 048, 049 |
 
+## Bonus / Future Features
+
+> Ideas validated but not yet specced into tasks. Implement if time permits or as post-hackathon enhancements.
+
+- **Claude Desktop / Claude.ai Integration** — Once the MCP server (TASK-048) is live, register SafeTrack as an MCP server in Claude Desktop config or Claude.ai project integrations. Users can then interact with SafeTrack entirely through natural conversation in Claude: "Show me overdue investigations", "Create a near miss incident at Houston rail yard", "Verify CAPA #12 as effective". All role-scoped, audit-logged, zero custom UI needed. This is the ultimate demo: an enterprise safety system that any AI assistant can plug into natively.
+- **Multi-language / i18n (Spanish)** — Construction workforce is heavily Spanish-speaking. Flutter has built-in i18n. Translate incident form, key UI labels, and AI assistant responses.
+- **Photo annotation** — Draw circles/arrows on incident photos to highlight hazards. Practical for safety teams documenting scene evidence.
+- **QR code job site check-in** — Generate QR codes for job sites, scan to pre-fill incident location. Reduces GPS dependency indoors.
+- **Bulk CSV import/export** — Import historical incidents from CSV for migration. Export data for external analysis tools.
+
 ## Shared File Coordination
 
 Only one SWE touches these files at a time:
