@@ -10,6 +10,7 @@ import '../data/dashboard_repository.dart';
 import '../widgets/body_map_chart.dart';
 import '../widgets/division_radar_chart.dart';
 import '../widgets/time_heatmap_chart.dart';
+import '../widgets/welcome_header.dart';
 
 /// Full safety dashboard replacing the placeholder.
 ///
@@ -165,86 +166,97 @@ class _SafetyDashboardPageState extends State<SafetyDashboardPage> {
           final isWide = constraints.maxWidth >= 900;
           return SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _KPICards(data: data, isWide: isWide),
-                const SizedBox(height: 24),
-                if (isWide)
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                // Welcome header with role badge and quick-action cards.
+                const WelcomeHeader(),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Expanded(child: _IncidentTrendChart(data: data)),
-                      const SizedBox(width: 16),
-                      Expanded(child: _TRIRTrendChart(data: data)),
+                      _KPICards(data: data, isWide: isWide),
+                      const SizedBox(height: 24),
+                      if (isWide)
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(child: _IncidentTrendChart(data: data)),
+                            const SizedBox(width: 16),
+                            Expanded(child: _TRIRTrendChart(data: data)),
+                          ],
+                        )
+                      else ...[
+                        _IncidentTrendChart(data: data),
+                        const SizedBox(height: 24),
+                        _TRIRTrendChart(data: data),
+                      ],
+                      const SizedBox(height: 24),
+                      if (isWide)
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(child: _DivisionChart(data: data)),
+                            const SizedBox(width: 16),
+                            Expanded(child: _SeverityDonut(data: data)),
+                          ],
+                        )
+                      else ...[
+                        _DivisionChart(data: data),
+                        const SizedBox(height: 24),
+                        _SeverityDonut(data: data),
+                      ],
+                      const SizedBox(height: 24),
+                      _LeadingIndicatorsCard(data: data),
+                      const SizedBox(height: 24),
+                      _RecentIncidentsTable(data: data),
+                      // --- Advanced Analytics ---
+                      if (_timeHeatmapData != null ||
+                          _bodyMapData != null ||
+                          _divisionRadarData != null) ...[
+                        const SizedBox(height: 32),
+                        Semantics(
+                          header: true,
+                          child: Text(
+                            'ADVANCED ANALYTICS',
+                            style: HerzogText.heading(fontSize: 20),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      // Time heatmap
+                      if (_timeHeatmapData != null) ...[
+                        TimeHeatmapChart(data: _timeHeatmapData!),
+                        const SizedBox(height: 24),
+                      ],
+                      // Body map and division radar side-by-side on wide screens
+                      if (isWide &&
+                          _bodyMapData != null &&
+                          _divisionRadarData != null)
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(child: BodyMapChart(data: _bodyMapData!)),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: DivisionRadarChart(
+                                data: _divisionRadarData!,
+                              ),
+                            ),
+                          ],
+                        )
+                      else ...[
+                        if (_bodyMapData != null) ...[
+                          BodyMapChart(data: _bodyMapData!),
+                          const SizedBox(height: 24),
+                        ],
+                        if (_divisionRadarData != null)
+                          DivisionRadarChart(data: _divisionRadarData!),
+                      ],
                     ],
-                  )
-                else ...[
-                  _IncidentTrendChart(data: data),
-                  const SizedBox(height: 24),
-                  _TRIRTrendChart(data: data),
-                ],
-                const SizedBox(height: 24),
-                if (isWide)
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(child: _DivisionChart(data: data)),
-                      const SizedBox(width: 16),
-                      Expanded(child: _SeverityDonut(data: data)),
-                    ],
-                  )
-                else ...[
-                  _DivisionChart(data: data),
-                  const SizedBox(height: 24),
-                  _SeverityDonut(data: data),
-                ],
-                const SizedBox(height: 24),
-                _LeadingIndicatorsCard(data: data),
-                const SizedBox(height: 24),
-                _RecentIncidentsTable(data: data),
-                // --- Advanced Analytics ---
-                if (_timeHeatmapData != null ||
-                    _bodyMapData != null ||
-                    _divisionRadarData != null) ...[
-                  const SizedBox(height: 32),
-                  Semantics(
-                    header: true,
-                    child: Text(
-                      'ADVANCED ANALYTICS',
-                      style: HerzogText.heading(fontSize: 20),
-                    ),
                   ),
-                  const SizedBox(height: 16),
-                ],
-                // Time heatmap
-                if (_timeHeatmapData != null) ...[
-                  TimeHeatmapChart(data: _timeHeatmapData!),
-                  const SizedBox(height: 24),
-                ],
-                // Body map and division radar side-by-side on wide screens
-                if (isWide &&
-                    _bodyMapData != null &&
-                    _divisionRadarData != null)
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(child: BodyMapChart(data: _bodyMapData!)),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: DivisionRadarChart(data: _divisionRadarData!),
-                      ),
-                    ],
-                  )
-                else ...[
-                  if (_bodyMapData != null) ...[
-                    BodyMapChart(data: _bodyMapData!),
-                    const SizedBox(height: 24),
-                  ],
-                  if (_divisionRadarData != null)
-                    DivisionRadarChart(data: _divisionRadarData!),
-                ],
+                ),
               ],
             ),
           );

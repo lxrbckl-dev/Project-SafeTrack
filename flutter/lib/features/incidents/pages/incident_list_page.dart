@@ -9,6 +9,7 @@ import '../../../core/services/sync_service.dart';
 import '../../../core/services/sync_status.dart';
 import '../../auth/data/auth_service.dart';
 import '../../auth/data/role.dart';
+import '../../dashboard/widgets/welcome_header.dart';
 import '../data/incident_repository.dart';
 import '../widgets/status_badge.dart';
 
@@ -157,6 +158,8 @@ class _IncidentListPageState extends State<IncidentListPage> {
       appBar: AppBar(title: const Text('INCIDENTS')),
       body: Column(
         children: [
+          // Welcome header shown to Field Reporter (their primary landing page).
+          if (auth.currentRole == Role.fieldReporter) const WelcomeHeader(),
           // Filters
           _buildFilters(),
           const Divider(height: 1),
