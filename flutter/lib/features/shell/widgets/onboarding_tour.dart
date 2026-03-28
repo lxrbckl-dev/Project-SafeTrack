@@ -156,10 +156,13 @@ class _OnboardingTourState extends State<OnboardingTour> {
           enableOverlayTab: true,
           shape: ShapeLightFocus.RRect,
           radius: 8,
+          color: HerzogColors.navyBlue,
+          paddingFocus: 4,
           borderSide: const BorderSide(color: HerzogColors.gold, width: 2),
           contents: [
             TargetContent(
-              align: ContentAlign.right,
+              align: ContentAlign.custom,
+              customPosition: CustomTargetContentPosition(top: 100, left: 280),
               padding: const EdgeInsets.all(16),
               child: _TourCard(
                 step: '1 of 5',
@@ -389,7 +392,7 @@ class _OnboardingTourState extends State<OnboardingTour> {
       colorShadow: HerzogColors.richBlack,
       opacityShadow: 0.85,
       textSkip: 'Skip Tour',
-      alignSkip: Alignment.topRight,
+      alignSkip: Alignment.bottomRight,
       textStyleSkip: const TextStyle(
         color: HerzogColors.gold,
         fontWeight: FontWeight.w700,
