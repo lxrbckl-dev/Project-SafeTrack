@@ -94,13 +94,13 @@ List<_NavItem> _visibleNavItems(Role? role) {
       label: 'Dashboard',
       icon: Icons.dashboard,
       route: '/dashboard',
-      shortcutHint: 'Alt+D',
+      shortcutHint: 'Ctrl+Shift+H',
     ),
     const _NavItem(
       label: 'Incidents',
       icon: Icons.report_problem,
       route: '/incidents',
-      shortcutHint: 'Alt+I',
+      shortcutHint: 'Ctrl+Shift+N',
     ),
   ];
 
@@ -111,7 +111,7 @@ List<_NavItem> _visibleNavItems(Role? role) {
         label: 'Investigations',
         icon: Icons.search,
         route: '/investigations',
-        shortcutHint: 'Alt+V',
+        shortcutHint: 'Ctrl+Shift+V',
       ),
     );
   }
@@ -123,7 +123,7 @@ List<_NavItem> _visibleNavItems(Role? role) {
         label: 'CAPAs',
         icon: Icons.assignment_turned_in,
         route: '/capas',
-        shortcutHint: 'Alt+C',
+        shortcutHint: 'Ctrl+Shift+A',
       ),
     );
   }
@@ -172,16 +172,16 @@ bool _isTextFieldFocused() {
 /// The main authenticated app shell.
 ///
 /// Wraps the layout in [Shortcuts] + [Actions] to provide app-wide keyboard
-/// navigation shortcuts. Alt+letter shortcuts do not produce text input, so
-/// they do not need to be guarded against text field focus.
+/// navigation shortcuts. Ctrl+Shift+letter shortcuts do not produce text
+/// input, so they do not need to be guarded against text field focus.
 ///
 /// **Shortcuts:**
-/// - **Alt+D** → /dashboard
-/// - **Alt+I** → /incidents
-/// - **Alt+V** → /investigations
-/// - **Alt+C** → /capas
-/// - **Alt+S** → /search (global search)
-/// - **Alt+K** or **/** → Toggle AI Chat (no-op if chat widget not present)
+/// - **Ctrl+Shift+H** → /dashboard
+/// - **Ctrl+Shift+N** → /incidents
+/// - **Ctrl+Shift+V** → /investigations
+/// - **Ctrl+Shift+A** → /capas
+/// - **Ctrl+Shift+S** → /search (global search)
+/// - **Ctrl+Shift+K** or **/** → Toggle AI Chat (no-op if chat widget not present)
 /// - **Escape** → Close any open panel
 /// - **?** (Shift+/) → Show keyboard shortcuts overlay
 ///
@@ -239,10 +239,11 @@ class AppShellPage extends StatelessWidget {
 
 /// Wraps the app shell with [Shortcuts] and [Actions] for keyboard navigation.
 ///
-/// Alt+letter shortcuts do not produce text input and require no text-field
-/// guard. The `/` shortcut is still guarded via [_isTextFieldFocused] because
-/// it is a bare character key. Alt+K and Escape work regardless of focus
-/// state and do not conflict with browser defaults (Ctrl+C, Ctrl+V, etc.).
+/// Ctrl+Shift+letter shortcuts do not produce text input and require no
+/// text-field guard. The `/` shortcut is still guarded via
+/// [_isTextFieldFocused] because it is a bare character key. Ctrl+Shift+K
+/// and Escape work regardless of focus state and do not conflict with browser
+/// defaults.
 class _AppShortcutsWrapper extends StatelessWidget {
   final Widget child;
 
@@ -252,22 +253,37 @@ class _AppShortcutsWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return Shortcuts(
       shortcuts: const <ShortcutActivator, Intent>{
-        // Alt+letter navigation — modifier combo won't conflict with text input
-        SingleActivator(LogicalKeyboardKey.keyD, alt: true):
+        // ---------------------------------------------------------------
+        // Ctrl+Shift+letter navigation (fixes #136 — macOS web compat)
+        //
+        // Alt+key combos were intercepted by macOS before reaching the
+        // Flutter web canvas, producing accented characters instead of
+        // triggering shortcuts. Ctrl+Shift is safe on all platforms.
+        //
+        // Some Ctrl+Shift combos conflict with Chrome DevTools:
+        //   Ctrl+Shift+I = DevTools       → remapped to N (New incident)
+        //   Ctrl+Shift+D = Bookmark bar   → remapped to H (Home/dashboard)
+        //   Ctrl+Shift+C = Element picker  → remapped to A (Actions/CAPAs)
+        //   Ctrl+Shift+S = no conflict    → kept as S (Search)
+        //   Ctrl+Shift+K = no conflict    → kept as K (chat toggle)
+        //   Ctrl+Shift+V = paste-plain in Chrome, but Flutter canvas
+        //       intercepts before the browser → kept as V (investigations)
+        // ---------------------------------------------------------------
+        SingleActivator(LogicalKeyboardKey.keyH, control: true, shift: true):
             _NavigateDashboardIntent(),
-        SingleActivator(LogicalKeyboardKey.keyI, alt: true):
+        SingleActivator(LogicalKeyboardKey.keyN, control: true, shift: true):
             _NavigateIncidentsIntent(),
-        SingleActivator(LogicalKeyboardKey.keyV, alt: true):
+        SingleActivator(LogicalKeyboardKey.keyV, control: true, shift: true):
             _NavigateInvestigationsIntent(),
-        SingleActivator(LogicalKeyboardKey.keyC, alt: true):
+        SingleActivator(LogicalKeyboardKey.keyA, control: true, shift: true):
             _NavigateCAPAsIntent(),
 
-        // Global search: Alt+S
-        SingleActivator(LogicalKeyboardKey.keyS, alt: true):
+        // Global search: Ctrl+Shift+S
+        SingleActivator(LogicalKeyboardKey.keyS, control: true, shift: true):
             _NavigateSearchIntent(),
 
-        // Chat toggle: Alt+K (all platforms) — does not conflict with browser
-        SingleActivator(LogicalKeyboardKey.keyK, alt: true):
+        // Chat toggle: Ctrl+Shift+K (all platforms)
+        SingleActivator(LogicalKeyboardKey.keyK, control: true, shift: true):
             _ToggleChatIntent(),
 
         // Chat toggle: forward-slash (/) — single key, guarded against text fields
@@ -284,14 +300,14 @@ class _AppShortcutsWrapper extends StatelessWidget {
         actions: <Type, Action<Intent>>{
           _NavigateDashboardIntent: CallbackAction<_NavigateDashboardIntent>(
             onInvoke: (_) {
-              // Alt+D — modifier combo does not produce text; no guard needed.
+              // Ctrl+Shift+H — modifier combo; no guard needed.
               context.go('/dashboard');
               return null;
             },
           ),
           _NavigateIncidentsIntent: CallbackAction<_NavigateIncidentsIntent>(
             onInvoke: (_) {
-              // Alt+I — modifier combo does not produce text; no guard needed.
+              // Ctrl+Shift+N — modifier combo; no guard needed.
               context.go('/incidents');
               return null;
             },
@@ -299,21 +315,21 @@ class _AppShortcutsWrapper extends StatelessWidget {
           _NavigateInvestigationsIntent:
               CallbackAction<_NavigateInvestigationsIntent>(
                 onInvoke: (_) {
-                  // Alt+V — modifier combo does not produce text; no guard needed.
+                  // Ctrl+Shift+V — modifier combo; no guard needed.
                   context.go('/investigations');
                   return null;
                 },
               ),
           _NavigateCAPAsIntent: CallbackAction<_NavigateCAPAsIntent>(
             onInvoke: (_) {
-              // Alt+C — modifier combo does not produce text; no guard needed.
+              // Ctrl+Shift+A — modifier combo; no guard needed.
               context.go('/capas');
               return null;
             },
           ),
           _NavigateSearchIntent: CallbackAction<_NavigateSearchIntent>(
             onInvoke: (_) {
-              // Alt+S — modifier combo does not produce text; no guard needed.
+              // Ctrl+Shift+S — modifier combo; no guard needed.
               context.go('/search');
               return null;
             },
@@ -322,7 +338,7 @@ class _AppShortcutsWrapper extends StatelessWidget {
             onInvoke: (_) {
               // The `/` key binding fires this intent; guard against text-field
               // focus so that typing `/` in a form field is not intercepted.
-              // Alt+K is a modifier combo and does not need this guard.
+              // Ctrl+Shift+K is a modifier combo and does not need this guard.
               if (_isTextFieldFocused()) return null;
               // Chat widget from TASK-017 may not be present.
               // No-op gracefully if chat is absent; chat widget self-registers
@@ -378,11 +394,11 @@ class _DesktopShell extends StatelessWidget {
         elevation: 0,
         actions: [
           Semantics(
-            label: 'Search, shortcut Alt+S',
+            label: 'Search, shortcut Ctrl+Shift+S',
             button: true,
             child: IconButton(
               icon: const Icon(Icons.search, color: HerzogColors.smoke),
-              tooltip: 'Search (Alt+S)',
+              tooltip: 'Search (Ctrl+Shift+S)',
               onPressed: () => context.go('/search'),
             ),
           ),
@@ -905,11 +921,11 @@ class _MobileShell extends StatelessWidget {
         elevation: 0,
         actions: [
           Semantics(
-            label: 'Search, shortcut Alt+S',
+            label: 'Search, shortcut Ctrl+Shift+S',
             button: true,
             child: IconButton(
               icon: const Icon(Icons.search, color: HerzogColors.smoke),
-              tooltip: 'Search (Alt+S)',
+              tooltip: 'Search (Ctrl+Shift+S)',
               onPressed: () => context.go('/search'),
             ),
           ),

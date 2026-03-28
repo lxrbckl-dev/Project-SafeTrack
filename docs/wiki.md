@@ -147,12 +147,12 @@ Clickable URLs are rendered with a gold underline in the chat panel. Tapping a U
 
 | Key | Action |
 |---|---|
-| Alt+D (Option+D on Mac) | Go to Dashboard |
-| Alt+I (Option+I on Mac) | Go to Incidents |
-| Alt+V (Option+V on Mac) | Go to Investigations |
-| Alt+C (Option+C on Mac) | Go to CAPAs |
-| Alt+K (Option+K on Mac) | Toggle AI chat |
-| Alt+S (Option+S on Mac) | Focus search |
+| Ctrl+Shift+H | Go to Dashboard |
+| Ctrl+Shift+N | Go to Incidents |
+| Ctrl+Shift+V | Go to Investigations |
+| Ctrl+Shift+A | Go to CAPAs |
+| Ctrl+Shift+K | Toggle AI chat |
+| Ctrl+Shift+S | Focus search |
 | / | Toggle AI chat (disabled in text fields) |
 | ? | Show keyboard shortcuts overlay |
 | Esc | Close open panels |
