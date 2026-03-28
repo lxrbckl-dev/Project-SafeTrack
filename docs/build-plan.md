@@ -940,6 +940,9 @@
 - **MEDIUM: Revoked key window** — revoked API key's JWT remains valid until 24h expiry. Consider adding key ID to JWT claims so middleware can check revocation in real-time, or shorten agent JWT expiry to 1 hour
 - **CRITICAL: Use bcrypt for key hashing** — never SHA256 without salt. Verify `bcrypt.CompareHashAndPassword()` is used
 - **MEDIUM: WebSocket event loop** — if agent is connected via WebSocket, ensure it doesn't receive events for its own actions (filter by `userId` + `is_agent` on broadcast)
+- **HIGH: Agent medical data access** — `canAccessMedical()` in incidents handler has no `is_agent` check. An agent with safety_coordinator role can decrypt injured person data. Decide: should agents ever see medical data? If not, add `is_agent` guard to `canAccessMedical()`
+- **MEDIUM: Chat endpoint not audit-logged** — `handlers/chat.go` never calls `GetUserID`/`GetUserRole`. Agent chat usage is invisible in audit trail. Add audit logging for chat requests
+- **MEDIUM: Encryption key fallback** — if `ENCRYPTION_KEY` env var is unset, medical data is encrypted with a hardcoded dev key. Agent with source code access can decrypt. Document that production MUST set this env var
 
 **QA:** Create API key → authenticate with it via curl → verify JWT has is_agent=true. Verify RBAC is identical to user's role. Revoke key → verify auth fails. Verify audit log shows agent attribution. Verify only Admin/Safety Manager can manage keys. Verify old user JWTs (without is_agent) still work with default false. Verify revoked key returns 401 immediately.
 
@@ -1036,6 +1039,9 @@
 - **MEDIUM: Concurrent tool calls** — same agent can fire multiple `tools/call` in parallel creating duplicates. Consider idempotency key header (`X-Idempotency-Key`) or request deduplication
 - **HIGH: Notification loop** — agent creates investigation → triggers notification → WebSocket broadcasts to agent → agent processes notification → potential loop. Filter WebSocket broadcasts: don't send notifications to the agent session that triggered them
 - **LOW: Protocol version** — return `protocolVersion: "1.0"` in `initialize` response. Reject unsupported client versions with JSON-RPC error
+- **MEDIUM: Photo upload via MCP** — current photo endpoint requires multipart/form-data. MCP agents use JSON. Either add a base64 JSON photo upload endpoint (`POST /api/incidents/{id}/photos/json`) or document that photo upload is not available via MCP
+- **MEDIUM: DB connection pool** — MaxOpenConns=25. Parallel agent tool calls can exhaust the pool. Add context timeouts (30s read, 10s write) so stale connections are released
+- **MEDIUM: WebSocket hub goroutine leak** — when send buffer is full, a goroutine is spawned to unregister. Rapid agent disconnects can cause unbounded goroutine growth. Add goroutine cap or sync unregister
 
 **QA:** Connect a test MCP client → call tools/list → verify tools match role's capabilities. Call create_incident tool → verify incident created in database. Call with wrong role → verify tool not listed. Verify JSON-RPC error handling for invalid tool names and bad parameters. Verify MCP auth rejects user JWTs (must use API key). Verify rate limiting — 61st request in 1 minute returns 429. Test XSS payload in tool input — verify stored safely, rendered safely.
 
