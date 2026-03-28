@@ -207,6 +207,16 @@ func buildActivityMessage(displayName string, log models.AuditLog) string {
 	case "assign":
 		return fmt.Sprintf("%s assigned %s #%d", displayName, entityLabel, log.EntityID)
 	case "status_change":
+		// For CAPAs, detect complete/verify transitions from the After JSON status.
+		if log.EntityType == "capa" {
+			afterStatus := extractJSONField(log.After, "status")
+			if afterStatus == "Verification Pending" {
+				return fmt.Sprintf("%s completed %s #%d", displayName, entityLabel, log.EntityID)
+			}
+			if afterStatus == "Verified Effective" || afterStatus == "Verified Ineffective" {
+				return buildVerifyMessage(displayName, log, entityLabel)
+			}
+		}
 		return fmt.Sprintf("%s updated the status of %s #%d", displayName, entityLabel, log.EntityID)
 	case "update":
 		return fmt.Sprintf("%s updated %s #%d", displayName, entityLabel, log.EntityID)
@@ -228,10 +238,10 @@ func buildCreateMessage(displayName string, log models.AuditLog, entityLabel str
 		return fmt.Sprintf("%s reported an incident", displayName)
 	case "investigation":
 		return fmt.Sprintf("%s assigned %s #%d", displayName, entityLabel, log.EntityID)
-	case "link":
+	case "incident_link":
 		// For link creation, try to extract linked entity IDs.
-		sourceID := extractJSONField(log.After, "incidentId")
-		linkedID := extractJSONField(log.After, "linkedIncidentId")
+		sourceID := extractJSONField(log.After, "incidentId1")
+		linkedID := extractJSONField(log.After, "incidentId2")
 		if sourceID != "" && linkedID != "" {
 			return fmt.Sprintf("%s linked Incident #%s to Incident #%s", displayName, sourceID, linkedID)
 		}
@@ -248,6 +258,12 @@ func buildVerifyMessage(displayName string, log models.AuditLog, entityLabel str
 	if effectiveness == "" {
 		effectiveness = extractJSONField(log.After, "effectiveness")
 	}
+	// For CAPAs logged via status_change, the result is stored in the status field.
+	if effectiveness == "" {
+		if s := extractJSONField(log.After, "status"); s == "Verified Effective" || s == "Verified Ineffective" {
+			effectiveness = s
+		}
+	}
 	if effectiveness != "" {
 		return fmt.Sprintf("%s verified %s #%d as %s", displayName, entityLabel, log.EntityID, effectiveness)
 	}
@@ -263,7 +279,7 @@ func formatEntityType(entityType string) string {
 		return "Investigation"
 	case "capa":
 		return "CAPA"
-	case "link":
+	case "link", "incident_link":
 		return "Link"
 	case "setting":
 		return "Setting"
