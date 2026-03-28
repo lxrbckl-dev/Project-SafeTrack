@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
 	"github.com/lxRbckl/highlander/backend/internal/crypto"
@@ -40,6 +41,50 @@ func SeedData(db *gorm.DB) {
 		return enc
 	}
 
+	// uid converts a user's uint ID to the string format used in all UserID fields.
+	uid := func(id uint) string {
+		return fmt.Sprintf("%d", id)
+	}
+
+	// -------------------------------------------------------------------------
+	// Users — seeded first; their IDs are used by all subsequent seed data.
+	// All test accounts use password "demo1234".
+	// -------------------------------------------------------------------------
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("demo1234"), bcrypt.DefaultCost)
+	if err != nil {
+		log.Fatalf("Seed: failed to hash password: %v", err)
+	}
+	pw := string(hashedPassword)
+
+	// Primary 7 demo users (one per role)
+	reporter := models.User{Email: "reporter@safetrack.demo", PasswordHash: pw, DisplayName: "Maria Santos", Role: "field_reporter", Division: "Construction"}
+	coordinator := models.User{Email: "coordinator@safetrack.demo", PasswordHash: pw, DisplayName: "James Chen", Role: "safety_coordinator"}
+	manager := models.User{Email: "manager@safetrack.demo", PasswordHash: pw, DisplayName: "Sarah Williams", Role: "safety_manager"}
+	pm := models.User{Email: "pm@safetrack.demo", PasswordHash: pw, DisplayName: "Michael Torres", Role: "pm", Project: "Project Alpha"}
+	director := models.User{Email: "director@safetrack.demo", PasswordHash: pw, DisplayName: "Lisa Anderson", Role: "division_manager", Division: "Construction"}
+	executive := models.User{Email: "executive@safetrack.demo", PasswordHash: pw, DisplayName: "Robert Kim", Role: "executive"}
+	admin := models.User{Email: "admin@safetrack.demo", PasswordHash: pw, DisplayName: "Alex Thompson", Role: "admin"}
+
+	// Additional users to cover the _2/_3 variants used in seed data
+	reporter2 := models.User{Email: "reporter2@safetrack.demo", PasswordHash: pw, DisplayName: "Carlos Ruiz", Role: "field_reporter", Division: "Maintenance"}
+	reporter3 := models.User{Email: "reporter3@safetrack.demo", PasswordHash: pw, DisplayName: "Aisha Patel", Role: "field_reporter", Division: "Operations"}
+	coordinator2 := models.User{Email: "coordinator2@safetrack.demo", PasswordHash: pw, DisplayName: "Nina Volkov", Role: "safety_coordinator"}
+	manager2 := models.User{Email: "manager2@safetrack.demo", PasswordHash: pw, DisplayName: "David Park", Role: "safety_manager"}
+	pm2 := models.User{Email: "pm2@safetrack.demo", PasswordHash: pw, DisplayName: "Rachel Nguyen", Role: "pm", Project: "Project Beta"}
+
+	users := []*models.User{
+		&reporter, &coordinator, &manager, &pm, &director, &executive, &admin,
+		&reporter2, &reporter3, &coordinator2, &manager2, &pm2,
+	}
+
+	for _, u := range users {
+		if err := db.Create(u).Error; err != nil {
+			log.Printf("Seed: failed to create user %s: %v", u.Email, err)
+		}
+	}
+
+	log.Printf("Seed: created %d users", len(users))
+
 	// -------------------------------------------------------------------------
 	// Admin Settings — skip if already seeded by TASK-003
 	// -------------------------------------------------------------------------
@@ -47,9 +92,9 @@ func SeedData(db *gorm.DB) {
 	db.Model(&models.Setting{}).Count(&settingCount)
 	if settingCount == 0 {
 		settings := []models.Setting{
-			{Category: "safety", Key: "trir_benchmark", Value: "3.0", UpdatedBy: "dev-admin"},
-			{Category: "safety", Key: "factor_types_list", Value: `["People","Equipment","Environmental","Procedural","Management/Organizational"]`, UpdatedBy: "dev-admin"},
-			{Category: "notifications", Key: "escalation_days", Value: `[3,7,14]`, UpdatedBy: "dev-admin"},
+			{Category: "safety", Key: "trir_benchmark", Value: "3.0", UpdatedBy: uid(admin.ID)},
+			{Category: "safety", Key: "factor_types_list", Value: `["People","Equipment","Environmental","Procedural","Management/Organizational"]`, UpdatedBy: uid(admin.ID)},
+			{Category: "notifications", Key: "escalation_days", Value: `[3,7,14]`, UpdatedBy: uid(admin.ID)},
 		}
 		db.Create(&settings)
 	}
@@ -72,7 +117,7 @@ func SeedData(db *gorm.DB) {
 				ReportingPeriodEnd:   periodEnd,
 				TotalHours:           hoursPerDivisionPerMonth,
 				Division:             div,
-				EnteredByUserID:      "dev-safety_manager",
+				EnteredByUserID:      uid(manager.ID),
 			})
 		}
 	}
@@ -100,7 +145,7 @@ func SeedData(db *gorm.DB) {
 			Shift:              "Day",
 			Weather:            "Clear",
 			Status:             "Closed",
-			ReporterID:         "dev-field_reporter",
+			ReporterID:         uid(reporter.ID),
 			IsDraft:            false,
 			CompletionPercent:  100,
 			IsOshaRecordable:   &trueVal,
@@ -123,7 +168,7 @@ func SeedData(db *gorm.DB) {
 			Shift:              "Day",
 			Weather:            "Cloudy",
 			Status:             "Under Investigation",
-			ReporterID:         "dev-field_reporter_2",
+			ReporterID:         uid(reporter2.ID),
 			IsDraft:            false,
 			CompletionPercent:  75,
 			IsOshaRecordable:   &falseVal,
@@ -146,7 +191,7 @@ func SeedData(db *gorm.DB) {
 			Shift:                       "Day",
 			Weather:                     "Clear",
 			Status:                      "CAPA In Progress",
-			ReporterID:                  "dev-field_reporter",
+			ReporterID:                  uid(reporter.ID),
 			IsDraft:                     false,
 			CompletionPercent:           85,
 			IsOshaRecordable:            &falseVal,
@@ -174,7 +219,7 @@ func SeedData(db *gorm.DB) {
 			Shift:              "Evening",
 			Weather:            "Rain",
 			Status:             "Reported",
-			ReporterID:         "dev-field_reporter_3",
+			ReporterID:         uid(reporter3.ID),
 			IsDraft:            false,
 			CompletionPercent:  55,
 			IsRailroadProperty: false,
@@ -195,7 +240,7 @@ func SeedData(db *gorm.DB) {
 			Shift:              "Day",
 			Weather:            "Clear",
 			Status:             "Investigation Complete",
-			ReporterID:         "dev-field_reporter_2",
+			ReporterID:         uid(reporter2.ID),
 			IsDraft:            false,
 			CompletionPercent:  90,
 			IsOshaRecordable:   &falseVal,
@@ -218,7 +263,7 @@ func SeedData(db *gorm.DB) {
 			Shift:              "Day",
 			Weather:            "Clear",
 			Status:             "Closed",
-			ReporterID:         "dev-field_reporter",
+			ReporterID:         uid(reporter.ID),
 			IsDraft:            false,
 			CompletionPercent:  100,
 			IsOshaRecordable:   &falseVal,
@@ -241,7 +286,7 @@ func SeedData(db *gorm.DB) {
 			Shift:                       "Day",
 			Weather:                     "Clear",
 			Status:                      "CAPA Assigned",
-			ReporterID:                  "dev-field_reporter_3",
+			ReporterID:                  uid(reporter3.ID),
 			IsDraft:                     false,
 			CompletionPercent:           80,
 			IsOshaRecordable:            &trueVal,
@@ -267,7 +312,7 @@ func SeedData(db *gorm.DB) {
 			Shift:              "Day",
 			Weather:            "Windy",
 			Status:             "Under Investigation",
-			ReporterID:         "dev-field_reporter",
+			ReporterID:         uid(reporter.ID),
 			IsDraft:            false,
 			CompletionPercent:  70,
 			IsOshaRecordable:   &trueVal,
@@ -288,7 +333,7 @@ func SeedData(db *gorm.DB) {
 			Shift:              "Day",
 			Weather:            "Clear",
 			Status:             "Draft",
-			ReporterID:         "dev-field_reporter_2",
+			ReporterID:         uid(reporter2.ID),
 			IsDraft:            true,
 			CompletionPercent:  30,
 			IsRailroadProperty: false,
@@ -309,7 +354,7 @@ func SeedData(db *gorm.DB) {
 			Shift:              "Night",
 			Weather:            "Clear",
 			Status:             "Reported",
-			ReporterID:         "dev-field_reporter_3",
+			ReporterID:         uid(reporter3.ID),
 			IsDraft:            false,
 			CompletionPercent:  60,
 			IsRailroadProperty: false,
@@ -330,7 +375,7 @@ func SeedData(db *gorm.DB) {
 			Shift:              "Day",
 			Weather:            "Overcast",
 			Status:             "CAPA In Progress",
-			ReporterID:         "dev-field_reporter",
+			ReporterID:         uid(reporter.ID),
 			IsDraft:            false,
 			CompletionPercent:  88,
 			IsOshaRecordable:   &falseVal,
@@ -353,7 +398,7 @@ func SeedData(db *gorm.DB) {
 			Shift:              "Day",
 			Weather:            "Fog",
 			Status:             "Closed",
-			ReporterID:         "dev-field_reporter_2",
+			ReporterID:         uid(reporter2.ID),
 			IsDraft:            false,
 			CompletionPercent:  100,
 			IsOshaRecordable:   &trueVal,
@@ -376,7 +421,7 @@ func SeedData(db *gorm.DB) {
 			Shift:              "Day",
 			Weather:            "Clear",
 			Status:             "Reopened",
-			ReporterID:         "dev-field_reporter_3",
+			ReporterID:         uid(reporter3.ID),
 			IsDraft:            false,
 			CompletionPercent:  95,
 			IsOshaRecordable:   &trueVal,
@@ -397,7 +442,7 @@ func SeedData(db *gorm.DB) {
 			Shift:              "Evening",
 			Weather:            "Clear",
 			Status:             "Reported",
-			ReporterID:         "dev-field_reporter",
+			ReporterID:         uid(reporter.ID),
 			IsDraft:            false,
 			CompletionPercent:  45,
 			IsRailroadProperty: false,
@@ -418,7 +463,7 @@ func SeedData(db *gorm.DB) {
 			Shift:              "Day",
 			Weather:            "Windy",
 			Status:             "CAPA Assigned",
-			ReporterID:         "dev-field_reporter_2",
+			ReporterID:         uid(reporter2.ID),
 			IsDraft:            false,
 			CompletionPercent:  78,
 			IsOshaRecordable:   &falseVal,
@@ -441,7 +486,7 @@ func SeedData(db *gorm.DB) {
 			Shift:                       "Day",
 			Weather:                     "Partly Cloudy",
 			Status:                      "Under Investigation",
-			ReporterID:                  "dev-field_reporter",
+			ReporterID:                  uid(reporter.ID),
 			IsDraft:                     false,
 			CompletionPercent:           65,
 			IsRailroadProperty:          true,
@@ -467,7 +512,7 @@ func SeedData(db *gorm.DB) {
 			Shift:              "Day",
 			Weather:            "Clear",
 			Status:             "Closed",
-			ReporterID:         "dev-field_reporter_3",
+			ReporterID:         uid(reporter3.ID),
 			IsDraft:            false,
 			CompletionPercent:  100,
 			IsOshaRecordable:   &falseVal,
@@ -490,7 +535,7 @@ func SeedData(db *gorm.DB) {
 			Shift:              "Day",
 			Weather:            "Indoor",
 			Status:             "Reported",
-			ReporterID:         "dev-field_reporter",
+			ReporterID:         uid(reporter.ID),
 			IsDraft:            false,
 			CompletionPercent:  50,
 			IsOshaRecordable:   &trueVal,
@@ -570,13 +615,13 @@ func SeedData(db *gorm.DB) {
 		// Inv 1 — for incident 1 (Injury/Closed) — Approved
 		{
 			IncidentID:             incidents[0].ID,
-			LeadInvestigatorID:     "dev-safety_coordinator",
-			TeamMembers:            `["dev-safety_coordinator_2","dev-pm"]`,
+			LeadInvestigatorID:     uid(coordinator.ID),
+			TeamMembers:            fmt.Sprintf(`["%s","%s"]`, uid(coordinator2.ID), uid(pm.ID)),
 			TargetCompletionDate:   now.AddDate(0, -10, 20),
 			ActualCompletionDate:   timePtr(now.AddDate(0, -10, 25)),
 			Status:                 "Approved",
-			AssignedBy:             "dev-safety_manager",
-			ReviewedBy:             "dev-safety_manager",
+			AssignedBy:             uid(manager.ID),
+			ReviewedBy:             uid(manager.ID),
 			ReviewComments:         "Thorough investigation. Root cause clearly identified. CAPAs are appropriate.",
 			ReviewDate:             timePtr(now.AddDate(0, -10, 26)),
 			IsOverdue:              false,
@@ -585,24 +630,24 @@ func SeedData(db *gorm.DB) {
 		// Inv 2 — for incident 2 (Near Miss) — In Progress
 		{
 			IncidentID:             incidents[1].ID,
-			LeadInvestigatorID:     "dev-safety_coordinator",
-			TeamMembers:            `["dev-safety_coordinator_2"]`,
+			LeadInvestigatorID:     uid(coordinator.ID),
+			TeamMembers:            fmt.Sprintf(`["%s"]`, uid(coordinator2.ID)),
 			TargetCompletionDate:   now.AddDate(0, -7, 11),
 			Status:                 "In Progress",
-			AssignedBy:             "dev-safety_manager",
+			AssignedBy:             uid(manager.ID),
 			IsOverdue:              true,
 			OverdueEscalationLevel: 3,
 		},
 		// Inv 3 — for incident 3 (Property Damage/Railroad) — Approved
 		{
 			IncidentID:             incidents[2].ID,
-			LeadInvestigatorID:     "dev-safety_coordinator_2",
-			TeamMembers:            `["dev-safety_coordinator"]`,
+			LeadInvestigatorID:     uid(coordinator2.ID),
+			TeamMembers:            fmt.Sprintf(`["%s"]`, uid(coordinator.ID)),
 			TargetCompletionDate:   now.AddDate(0, -5, 24),
 			ActualCompletionDate:   timePtr(now.AddDate(0, -5, 22)),
 			Status:                 "Approved",
-			AssignedBy:             "dev-safety_manager_2",
-			ReviewedBy:             "dev-safety_manager_2",
+			AssignedBy:             uid(manager2.ID),
+			ReviewedBy:             uid(manager2.ID),
 			ReviewComments:         "Good documentation. Railroad notification timeline confirmed.",
 			ReviewDate:             timePtr(now.AddDate(0, -5, 23)),
 			IsOverdue:              false,
@@ -611,13 +656,13 @@ func SeedData(db *gorm.DB) {
 		// Inv 4 — for incident 5 (Vehicle) — Approved (Investigation Complete)
 		{
 			IncidentID:             incidents[4].ID,
-			LeadInvestigatorID:     "dev-safety_coordinator",
-			TeamMembers:            `["dev-pm_2"]`,
+			LeadInvestigatorID:     uid(coordinator.ID),
+			TeamMembers:            fmt.Sprintf(`["%s"]`, uid(pm2.ID)),
 			TargetCompletionDate:   now.AddDate(0, -6, 9),
 			ActualCompletionDate:   timePtr(now.AddDate(0, -6, 8)),
 			Status:                 "Approved",
-			AssignedBy:             "dev-safety_manager",
-			ReviewedBy:             "dev-safety_manager",
+			AssignedBy:             uid(manager.ID),
+			ReviewedBy:             uid(manager.ID),
 			ReviewComments:         "Investigation complete. Recommended defensive driving refresher.",
 			ReviewDate:             timePtr(now.AddDate(0, -6, 9)),
 			IsOverdue:              false,
@@ -626,33 +671,33 @@ func SeedData(db *gorm.DB) {
 		// Inv 5 — for incident 7 (Utility Strike/Critical) — Under Review
 		{
 			IncidentID:             incidents[6].ID,
-			LeadInvestigatorID:     "dev-safety_coordinator_2",
-			TeamMembers:            `["dev-safety_coordinator","dev-safety_manager_2"]`,
+			LeadInvestigatorID:     uid(coordinator2.ID),
+			TeamMembers:            fmt.Sprintf(`["%s","%s"]`, uid(coordinator.ID), uid(manager2.ID)),
 			TargetCompletionDate:   now.AddDate(0, -2, 20),
 			Status:                 "Under Review",
-			AssignedBy:             "dev-safety_manager_2",
+			AssignedBy:             uid(manager2.ID),
 			IsOverdue:              false,
 			OverdueEscalationLevel: 0,
 		},
 		// Inv 6 — for incident 8 (Scaffold Fall) — In Progress, overdue
 		{
 			IncidentID:             incidents[7].ID,
-			LeadInvestigatorID:     "dev-safety_coordinator",
-			TeamMembers:            `["dev-safety_coordinator_2","dev-pm"]`,
+			LeadInvestigatorID:     uid(coordinator.ID),
+			TeamMembers:            fmt.Sprintf(`["%s","%s"]`, uid(coordinator2.ID), uid(pm.ID)),
 			TargetCompletionDate:   overduePast,
 			Status:                 "In Progress",
-			AssignedBy:             "dev-safety_manager",
+			AssignedBy:             uid(manager.ID),
 			IsOverdue:              true,
 			OverdueEscalationLevel: 2,
 		},
 		// Inv 7 — for incident 16 (Property Damage/NS Railroad) — Assigned
 		{
 			IncidentID:             incidents[15].ID,
-			LeadInvestigatorID:     "dev-safety_coordinator_2",
+			LeadInvestigatorID:     uid(coordinator2.ID),
 			TeamMembers:            `[]`,
 			TargetCompletionDate:   now14,
 			Status:                 "Assigned",
-			AssignedBy:             "dev-safety_manager_2",
+			AssignedBy:             uid(manager2.ID),
 			IsOverdue:              false,
 			OverdueEscalationLevel: 0,
 		},
@@ -856,8 +901,8 @@ func SeedData(db *gorm.DB) {
 			Type:                "Corrective",
 			Category:            "Procedure Change",
 			Description:         "Revise cutting tool procedure to require blade guard verification before and after use. Supervisor sign-off required.",
-			AssignedToUserID:    "dev-safety_coordinator",
-			AssignedByUserID:    "dev-safety_manager",
+			AssignedToUserID:    uid(coordinator.ID),
+			AssignedByUserID:    uid(manager.ID),
 			DueDate:             now.AddDate(0, -10, 12),
 			Priority:            "Critical",
 			VerificationMethod:  "Procedure document review and field observation at next cutting operation.",
@@ -866,7 +911,7 @@ func SeedData(db *gorm.DB) {
 			CompletionNotes:     "New procedure published and distributed. All operators briefed.",
 			CompletionEvidence:  "Revised Procedure SOP-CUT-007 v2.0",
 			CompletionDate:      &comp1,
-			VerifiedByUserID:    "dev-safety_manager",
+			VerifiedByUserID:    uid(manager.ID),
 			VerificationDate:    timePtr(vDue5.AddDate(0, 0, -5)),
 			VerificationNotes:   "Field observation confirmed blade guard in place for all cutting operations. SOP updated in system.",
 			IsOverdue:           false,
@@ -878,8 +923,8 @@ func SeedData(db *gorm.DB) {
 			Type:                "Preventive",
 			Category:            "Training",
 			Description:         "Mandatory refresher training on tool safety and PPE requirements for all equipment operators.",
-			AssignedToUserID:    "dev-safety_coordinator_2",
-			AssignedByUserID:    "dev-safety_manager",
+			AssignedToUserID:    uid(coordinator2.ID),
+			AssignedByUserID:    uid(manager.ID),
 			DueDate:             now.AddDate(0, -10, 7),
 			Priority:            "High",
 			VerificationMethod:  "Training attendance records and post-training assessment results.",
@@ -888,7 +933,7 @@ func SeedData(db *gorm.DB) {
 			CompletionNotes:     "22 of 22 operators completed training. Average assessment score: 94%.",
 			CompletionEvidence:  "Training attendance sheet; assessment records",
 			CompletionDate:      &comp2,
-			VerifiedByUserID:    "dev-safety_manager",
+			VerifiedByUserID:    uid(manager.ID),
 			VerificationDate:    timePtr(vDue1.AddDate(0, 0, -10)),
 			VerificationNotes:   "No recurrence of unguarded tool use in subsequent 60-day period.",
 			IsOverdue:           false,
@@ -900,8 +945,8 @@ func SeedData(db *gorm.DB) {
 			Type:             "Corrective",
 			Category:         "Procedure Change",
 			Description:      "Implement formal site layout change notification protocol requiring all active permit holders to acknowledge changes within 2 hours.",
-			AssignedToUserID: "dev-pm",
-			AssignedByUserID: "dev-safety_manager",
+			AssignedToUserID: uid(pm.ID),
+			AssignedByUserID: uid(manager.ID),
 			DueDate:          now.AddDate(0, -7, 0),
 			Priority:         "High",
 			Status:           "In Progress",
@@ -914,8 +959,8 @@ func SeedData(db *gorm.DB) {
 			Type:             "Preventive",
 			Category:         "Engineering Control",
 			Description:      "Install physical barricades separating crane swing zones from pedestrian routes for all lifts over 500 lbs.",
-			AssignedToUserID: "dev-safety_coordinator",
-			AssignedByUserID: "dev-safety_manager",
+			AssignedToUserID: uid(coordinator.ID),
+			AssignedByUserID: uid(manager.ID),
 			DueDate:          now.AddDate(0, 0, 14),
 			Priority:         "Medium",
 			Status:           "Open",
@@ -928,8 +973,8 @@ func SeedData(db *gorm.DB) {
 			Type:                "Corrective",
 			Category:            "Procedure Change",
 			Description:         "Revise ground disturbance permit to require 100% utility locate verification including fiber-optic and low-voltage systems before permit issuance.",
-			AssignedToUserID:    "dev-pm_2",
-			AssignedByUserID:    "dev-safety_manager_2",
+			AssignedToUserID:    uid(pm2.ID),
+			AssignedByUserID:    uid(manager2.ID),
 			DueDate:             now.AddDate(0, -5, 14),
 			Priority:            "Critical",
 			VerificationMethod:  "Permit audit — 10 consecutive permits reviewed for locate completeness.",
@@ -938,7 +983,7 @@ func SeedData(db *gorm.DB) {
 			CompletionNotes:     "Permit template updated. Locate verification checklist embedded. All PMs briefed.",
 			CompletionEvidence:  "Updated permit template v3.1; PM acknowledgement log",
 			CompletionDate:      &comp3,
-			VerifiedByUserID:    "dev-safety_manager_2",
+			VerifiedByUserID:    uid(manager2.ID),
 			VerificationDate:    timePtr(vDue3),
 			VerificationNotes:   "Audit of 10 permits: all included complete locate verification. No recurrence.",
 			IsOverdue:           false,
@@ -950,8 +995,8 @@ func SeedData(db *gorm.DB) {
 			Type:                "Corrective",
 			Category:            "Procedure Change",
 			Description:         "Update vehicle backing procedure to require a spotter for all reversing maneuvers on site regardless of load or distance.",
-			AssignedToUserID:    "dev-safety_coordinator",
-			AssignedByUserID:    "dev-safety_manager",
+			AssignedToUserID:    uid(coordinator.ID),
+			AssignedByUserID:    uid(manager.ID),
 			DueDate:             now.AddDate(0, -6, 2),
 			Priority:            "Medium",
 			VerificationMethod:  "Spot audits of vehicle operations over 30-day period.",
@@ -960,7 +1005,7 @@ func SeedData(db *gorm.DB) {
 			CompletionNotes:     "Backing procedure updated. All drivers acknowledged new requirement.",
 			CompletionEvidence:  "Updated driving SOP; driver acknowledgement forms",
 			CompletionDate:      &comp4,
-			VerifiedByUserID:    "dev-safety_manager",
+			VerifiedByUserID:    uid(manager.ID),
 			VerificationDate:    timePtr(vDue3.AddDate(0, 0, -3)),
 			VerificationNotes:   "Spot audits confirmed spotter use in all 12 observed reversals.",
 			IsOverdue:           false,
@@ -972,8 +1017,8 @@ func SeedData(db *gorm.DB) {
 			Type:             "Corrective",
 			Category:         "Procedure Change",
 			Description:      "Mandate potholing to confirm utility depth regardless of design depth before any ground disturbance within 5 ft of known utilities.",
-			AssignedToUserID: "dev-pm",
-			AssignedByUserID: "dev-safety_manager_2",
+			AssignedToUserID: uid(pm.ID),
+			AssignedByUserID: uid(manager2.ID),
 			DueDate:          now.AddDate(0, -1, 0),
 			Priority:         "Critical",
 			Status:           "Open",
@@ -986,8 +1031,8 @@ func SeedData(db *gorm.DB) {
 			Type:             "Preventive",
 			Category:         "Policy Change",
 			Description:      "Require as-built drawing updates every 2 years and before any ground disturbance permit for projects over 6 months in duration.",
-			AssignedToUserID: "dev-division_manager",
-			AssignedByUserID: "dev-safety_manager_2",
+			AssignedToUserID: uid(director.ID),
+			AssignedByUserID: uid(manager2.ID),
 			DueDate:          now.AddDate(0, 0, 30),
 			Priority:         "High",
 			Status:           "Open",
@@ -1000,8 +1045,8 @@ func SeedData(db *gorm.DB) {
 			Type:                "Corrective",
 			Category:            "Procedure Change",
 			Description:         "Revise scaffold inspection checklist to require OSHA 1926.451 guardrail continuity check and toe-board verification. Sub-contractor compliance must be verified by Herzog safety rep before use.",
-			AssignedToUserID:    "dev-safety_coordinator_2",
-			AssignedByUserID:    "dev-safety_manager",
+			AssignedToUserID:    uid(coordinator2.ID),
+			AssignedByUserID:    uid(manager.ID),
 			DueDate:             now.AddDate(0, -4, 0),
 			Priority:            "Critical",
 			VerificationMethod:  "Next 5 scaffold erections inspected by Safety Manager against updated checklist.",
@@ -1019,8 +1064,8 @@ func SeedData(db *gorm.DB) {
 			Type:             "Preventive",
 			Category:         "Training",
 			Description:      "Require all sub-contractors to submit scaffold erection plan for safety review 24 hours before erection commences.",
-			AssignedToUserID: "dev-pm",
-			AssignedByUserID: "dev-safety_manager",
+			AssignedToUserID: uid(pm.ID),
+			AssignedByUserID: uid(manager.ID),
 			DueDate:          now.AddDate(0, -2, 0),
 			Priority:         "High",
 			Status:           "In Progress",
@@ -1033,8 +1078,8 @@ func SeedData(db *gorm.DB) {
 			Type:             "Corrective",
 			Category:         "Engineering Control",
 			Description:      "Install vibration monitoring at all railroad-owned structures within 50 ft of compaction operations. Halt work if threshold exceeded.",
-			AssignedToUserID: "dev-safety_coordinator",
-			AssignedByUserID: "dev-safety_manager_2",
+			AssignedToUserID: uid(coordinator.ID),
+			AssignedByUserID: uid(manager2.ID),
 			DueDate:          now.AddDate(0, 0, 21),
 			Priority:         "Medium",
 			Status:           "Open",
@@ -1047,8 +1092,8 @@ func SeedData(db *gorm.DB) {
 			Type:                "Corrective",
 			Category:            "Engineering Control",
 			Description:         "Install secondary berm around concrete washout station to contain 125% of typical batch volume.",
-			AssignedToUserID:    "dev-safety_coordinator_2",
-			AssignedByUserID:    "dev-safety_manager",
+			AssignedToUserID:    uid(coordinator2.ID),
+			AssignedByUserID:    uid(manager.ID),
 			DueDate:             now.AddDate(0, -8, 5),
 			Priority:            "Medium",
 			VerificationMethod:  "Visual inspection after next washout event.",
@@ -1057,7 +1102,7 @@ func SeedData(db *gorm.DB) {
 			CompletionNotes:     "Berm raised by 6 inches using soil. No concrete liner added.",
 			CompletionEvidence:  "Before/after photos of berm",
 			CompletionDate:      timePtr(now.AddDate(0, -8, 2)),
-			VerifiedByUserID:    "dev-safety_manager",
+			VerifiedByUserID:    uid(manager.ID),
 			VerificationDate:    timePtr(now.AddDate(0, -7, 5)),
 			VerificationNotes:   "Berm failed during next event — water still overflowed at northeast corner. Concrete liner required.",
 			IsOverdue:           false,
@@ -1069,8 +1114,8 @@ func SeedData(db *gorm.DB) {
 			Type:             "Corrective",
 			Category:         "Engineering Control",
 			Description:      "Replace soil berm with poured concrete containment wall minimum 18 inches tall around washout station.",
-			AssignedToUserID: "dev-pm_2",
-			AssignedByUserID: "dev-safety_manager",
+			AssignedToUserID: uid(pm2.ID),
+			AssignedByUserID: uid(manager.ID),
 			DueDate:          now.AddDate(0, 0, 45),
 			Priority:         "High",
 			Status:           "Open",
@@ -1083,8 +1128,8 @@ func SeedData(db *gorm.DB) {
 			Type:             "Corrective",
 			Category:         "PPE",
 			Description:      "Require tethering systems for all tools and materials handled above 10 ft elevation. Install drop-zone barriers.",
-			AssignedToUserID: "dev-safety_coordinator",
-			AssignedByUserID: "dev-safety_manager_2",
+			AssignedToUserID: uid(coordinator.ID),
+			AssignedByUserID: uid(manager2.ID),
 			DueDate:          now.AddDate(0, -3, 12),
 			Priority:         "High",
 			Status:           "In Progress",
@@ -1111,7 +1156,7 @@ func SeedData(db *gorm.DB) {
 			IncidentID2:    incidents[7].ID,
 			SimilarityType: "Same Type",
 			Notes:          "Both are injury incidents in the Maintenance/Construction divisions involving inadequate PPE or equipment safeguards.",
-			LinkedByUserID: "dev-safety_coordinator",
+			LinkedByUserID: uid(coordinator.ID),
 		},
 		// Incidents 3 & 16 — both railroad property damage
 		{
@@ -1119,7 +1164,7 @@ func SeedData(db *gorm.DB) {
 			IncidentID2:    incidents[15].ID,
 			SimilarityType: "Same Location",
 			Notes:          "Both occurred on active railroad right-of-way. Common thread: ground disturbance near railroad infrastructure.",
-			LinkedByUserID: "dev-safety_coordinator_2",
+			LinkedByUserID: uid(coordinator2.ID),
 		},
 		// Incidents 7 & 17 — both utility strikes
 		{
@@ -1127,7 +1172,7 @@ func SeedData(db *gorm.DB) {
 			IncidentID2:    incidents[16].ID,
 			SimilarityType: "Same Root Cause",
 			Notes:          "Both utility strikes share the root cause of inadequate ground disturbance permit and locate verification process.",
-			LinkedByUserID: "dev-safety_coordinator",
+			LinkedByUserID: uid(coordinator.ID),
 		},
 	}
 	db.Create(&incidentLinks)
@@ -1137,7 +1182,7 @@ func SeedData(db *gorm.DB) {
 	// -------------------------------------------------------------------------
 	notifications := []models.Notification{
 		{
-			UserID:          "dev-safety_manager",
+			UserID:          uid(manager.ID),
 			Title:           "Investigation Overdue: Near Miss (Crane)",
 			Message:         "Investigation INV-002 is 30+ days overdue. Immediate follow-up required.",
 			Type:            "overdue_investigation",
@@ -1147,7 +1192,7 @@ func SeedData(db *gorm.DB) {
 			IsRead:          false,
 		},
 		{
-			UserID:          "dev-safety_manager",
+			UserID:          uid(manager.ID),
 			Title:           "Investigation Overdue: Scaffold Fall",
 			Message:         "Investigation INV-006 is overdue. Worker injury investigation requires priority attention.",
 			Type:            "overdue_investigation",
@@ -1157,7 +1202,7 @@ func SeedData(db *gorm.DB) {
 			IsRead:          false,
 		},
 		{
-			UserID:          "dev-pm",
+			UserID:          uid(pm.ID),
 			Title:           "CAPA Overdue: Site Layout Protocol",
 			Message:         "CAPA for incident 'Near Miss – Crane' is past due. Please update status or request extension.",
 			Type:            "overdue_capa",
@@ -1167,7 +1212,7 @@ func SeedData(db *gorm.DB) {
 			IsRead:          false,
 		},
 		{
-			UserID:          "dev-safety_manager_2",
+			UserID:          uid(manager2.ID),
 			Title:           "CAPA Critical Overdue: Utility Strike Gas Line",
 			Message:         "Critical CAPA for utility strike incident is overdue. Immediate corrective action needed.",
 			Type:            "overdue_capa",
@@ -1177,7 +1222,7 @@ func SeedData(db *gorm.DB) {
 			IsRead:          false,
 		},
 		{
-			UserID:          "dev-safety_manager",
+			UserID:          uid(manager.ID),
 			Title:           "Investigation Ready for Review: Utility Strike",
 			Message:         "Investigation INV-005 has been submitted for review by the lead investigator.",
 			Type:            "review_request",
@@ -1187,7 +1232,7 @@ func SeedData(db *gorm.DB) {
 			IsRead:          true,
 		},
 		{
-			UserID:          "dev-safety_manager",
+			UserID:          uid(manager.ID),
 			Title:           "Railroad Notification Overdue: UP Utility Strike",
 			Message:         "Incident on UP railroad property has not been reported to UP within the required timeframe.",
 			Type:            "railroad_notification",
@@ -1204,31 +1249,31 @@ func SeedData(db *gorm.DB) {
 	// -------------------------------------------------------------------------
 	auditLogs := []models.AuditLog{
 		// Incident 1 lifecycle
-		{Timestamp: now.AddDate(0, -11, 5), UserID: "dev-field_reporter", UserRole: "field_reporter", Action: "create", EntityType: "incident", EntityID: incidents[0].ID, Before: "", After: `{"type":"Injury","status":"Reported","division":"Construction"}`, Notes: "Incident reported"},
-		{Timestamp: now.AddDate(0, -11, 6), UserID: "dev-safety_manager", UserRole: "safety_manager", Action: "assign", EntityType: "investigation", EntityID: investigations[0].ID, Before: "", After: `{"status":"Assigned","leadInvestigatorId":"dev-safety_coordinator"}`, Notes: "Investigation assigned"},
-		{Timestamp: now.AddDate(0, -10, 25), UserID: "dev-safety_coordinator", UserRole: "safety_coordinator", Action: "status_change", EntityType: "investigation", EntityID: investigations[0].ID, Before: `{"status":"In Progress"}`, After: `{"status":"Under Review"}`, Notes: "Submitted for review"},
-		{Timestamp: now.AddDate(0, -10, 26), UserID: "dev-safety_manager", UserRole: "safety_manager", Action: "approve", EntityType: "investigation", EntityID: investigations[0].ID, Before: `{"status":"Under Review"}`, After: `{"status":"Approved"}`, Notes: "Thorough investigation. Root cause clearly identified."},
-		{Timestamp: now.AddDate(0, -10, 26), UserID: "dev-safety_manager", UserRole: "safety_manager", Action: "create", EntityType: "capa", EntityID: capas[0].ID, Before: "", After: `{"type":"Corrective","priority":"Critical","status":"Open"}`, Notes: "CAPA created from investigation"},
-		{Timestamp: now.AddDate(0, -10, 15), UserID: "dev-safety_coordinator", UserRole: "safety_coordinator", Action: "status_change", EntityType: "capa", EntityID: capas[0].ID, Before: `{"status":"In Progress"}`, After: `{"status":"Completed"}`, Notes: "Corrective procedure published"},
-		{Timestamp: now.AddDate(0, -9, 5), UserID: "dev-safety_manager", UserRole: "safety_manager", Action: "verify", EntityType: "capa", EntityID: capas[0].ID, Before: `{"status":"Verification Pending"}`, After: `{"status":"Verified Effective"}`, Notes: "Field observation confirmed compliance"},
-		{Timestamp: now.AddDate(0, -8, 20), UserID: "dev-safety_manager", UserRole: "safety_manager", Action: "status_change", EntityType: "incident", EntityID: incidents[0].ID, Before: `{"status":"CAPA In Progress"}`, After: `{"status":"Closed"}`, Notes: "All CAPAs verified effective. Incident closed."},
+		{Timestamp: now.AddDate(0, -11, 5), UserID: uid(reporter.ID), UserRole: "field_reporter", Action: "create", EntityType: "incident", EntityID: incidents[0].ID, Before: "", After: `{"type":"Injury","status":"Reported","division":"Construction"}`, Notes: "Incident reported"},
+		{Timestamp: now.AddDate(0, -11, 6), UserID: uid(manager.ID), UserRole: "safety_manager", Action: "assign", EntityType: "investigation", EntityID: investigations[0].ID, Before: "", After: fmt.Sprintf(`{"status":"Assigned","leadInvestigatorId":"%s"}`, uid(coordinator.ID)), Notes: "Investigation assigned"},
+		{Timestamp: now.AddDate(0, -10, 25), UserID: uid(coordinator.ID), UserRole: "safety_coordinator", Action: "status_change", EntityType: "investigation", EntityID: investigations[0].ID, Before: `{"status":"In Progress"}`, After: `{"status":"Under Review"}`, Notes: "Submitted for review"},
+		{Timestamp: now.AddDate(0, -10, 26), UserID: uid(manager.ID), UserRole: "safety_manager", Action: "approve", EntityType: "investigation", EntityID: investigations[0].ID, Before: `{"status":"Under Review"}`, After: `{"status":"Approved"}`, Notes: "Thorough investigation. Root cause clearly identified."},
+		{Timestamp: now.AddDate(0, -10, 26), UserID: uid(manager.ID), UserRole: "safety_manager", Action: "create", EntityType: "capa", EntityID: capas[0].ID, Before: "", After: `{"type":"Corrective","priority":"Critical","status":"Open"}`, Notes: "CAPA created from investigation"},
+		{Timestamp: now.AddDate(0, -10, 15), UserID: uid(coordinator.ID), UserRole: "safety_coordinator", Action: "status_change", EntityType: "capa", EntityID: capas[0].ID, Before: `{"status":"In Progress"}`, After: `{"status":"Completed"}`, Notes: "Corrective procedure published"},
+		{Timestamp: now.AddDate(0, -9, 5), UserID: uid(manager.ID), UserRole: "safety_manager", Action: "verify", EntityType: "capa", EntityID: capas[0].ID, Before: `{"status":"Verification Pending"}`, After: `{"status":"Verified Effective"}`, Notes: "Field observation confirmed compliance"},
+		{Timestamp: now.AddDate(0, -8, 20), UserID: uid(manager.ID), UserRole: "safety_manager", Action: "status_change", EntityType: "incident", EntityID: incidents[0].ID, Before: `{"status":"CAPA In Progress"}`, After: `{"status":"Closed"}`, Notes: "All CAPAs verified effective. Incident closed."},
 
 		// Incident 7 (utility strike) — partial lifecycle
-		{Timestamp: now.AddDate(0, -3, 8), UserID: "dev-field_reporter_3", UserRole: "field_reporter", Action: "create", EntityType: "incident", EntityID: incidents[6].ID, Before: "", After: `{"type":"Utility Strike","status":"Reported","division":"Construction","isRailroadProperty":true}`, Notes: "Critical utility strike reported"},
-		{Timestamp: now.AddDate(0, -3, 8), UserID: "dev-safety_manager_2", UserRole: "safety_manager", Action: "assign", EntityType: "investigation", EntityID: investigations[4].ID, Before: "", After: `{"status":"Assigned","leadInvestigatorId":"dev-safety_coordinator_2"}`, Notes: "Urgent investigation assigned"},
-		{Timestamp: now.AddDate(0, -2, 22), UserID: "dev-safety_coordinator_2", UserRole: "safety_coordinator", Action: "status_change", EntityType: "investigation", EntityID: investigations[4].ID, Before: `{"status":"In Progress"}`, After: `{"status":"Under Review"}`, Notes: "Investigation complete, submitted for Safety Manager review"},
+		{Timestamp: now.AddDate(0, -3, 8), UserID: uid(reporter3.ID), UserRole: "field_reporter", Action: "create", EntityType: "incident", EntityID: incidents[6].ID, Before: "", After: `{"type":"Utility Strike","status":"Reported","division":"Construction","isRailroadProperty":true}`, Notes: "Critical utility strike reported"},
+		{Timestamp: now.AddDate(0, -3, 8), UserID: uid(manager2.ID), UserRole: "safety_manager", Action: "assign", EntityType: "investigation", EntityID: investigations[4].ID, Before: "", After: fmt.Sprintf(`{"status":"Assigned","leadInvestigatorId":"%s"}`, uid(coordinator2.ID)), Notes: "Urgent investigation assigned"},
+		{Timestamp: now.AddDate(0, -2, 22), UserID: uid(coordinator2.ID), UserRole: "safety_coordinator", Action: "status_change", EntityType: "investigation", EntityID: investigations[4].ID, Before: `{"status":"In Progress"}`, After: `{"status":"Under Review"}`, Notes: "Investigation complete, submitted for Safety Manager review"},
 
 		// CAPA 12 (Verified Ineffective) — full lifecycle
-		{Timestamp: now.AddDate(0, -9, 0), UserID: "dev-safety_manager", UserRole: "safety_manager", Action: "create", EntityType: "capa", EntityID: capas[11].ID, Before: "", After: `{"type":"Corrective","priority":"Medium","status":"Open"}`, Notes: "Concrete washout containment CAPA created"},
-		{Timestamp: now.AddDate(0, -8, 5), UserID: "dev-safety_coordinator_2", UserRole: "safety_coordinator", Action: "status_change", EntityType: "capa", EntityID: capas[11].ID, Before: `{"status":"In Progress"}`, After: `{"status":"Completed"}`, Notes: "Berm raised. Evidence uploaded."},
-		{Timestamp: now.AddDate(0, -7, 5), UserID: "dev-safety_manager", UserRole: "safety_manager", Action: "verify", EntityType: "capa", EntityID: capas[11].ID, Before: `{"status":"Verification Pending"}`, After: `{"status":"Verified Ineffective"}`, Notes: "Berm failed during next event. Concrete liner required."},
-		{Timestamp: now.AddDate(0, -7, 5), UserID: "dev-safety_manager", UserRole: "safety_manager", Action: "create", EntityType: "capa", EntityID: capas[12].ID, Before: "", After: `{"type":"Corrective","priority":"High","status":"Open"}`, Notes: "Follow-up CAPA created after ineffective verification"},
+		{Timestamp: now.AddDate(0, -9, 0), UserID: uid(manager.ID), UserRole: "safety_manager", Action: "create", EntityType: "capa", EntityID: capas[11].ID, Before: "", After: `{"type":"Corrective","priority":"Medium","status":"Open"}`, Notes: "Concrete washout containment CAPA created"},
+		{Timestamp: now.AddDate(0, -8, 5), UserID: uid(coordinator2.ID), UserRole: "safety_coordinator", Action: "status_change", EntityType: "capa", EntityID: capas[11].ID, Before: `{"status":"In Progress"}`, After: `{"status":"Completed"}`, Notes: "Berm raised. Evidence uploaded."},
+		{Timestamp: now.AddDate(0, -7, 5), UserID: uid(manager.ID), UserRole: "safety_manager", Action: "verify", EntityType: "capa", EntityID: capas[11].ID, Before: `{"status":"Verification Pending"}`, After: `{"status":"Verified Ineffective"}`, Notes: "Berm failed during next event. Concrete liner required."},
+		{Timestamp: now.AddDate(0, -7, 5), UserID: uid(manager.ID), UserRole: "safety_manager", Action: "create", EntityType: "capa", EntityID: capas[12].ID, Before: "", After: `{"type":"Corrective","priority":"High","status":"Open"}`, Notes: "Follow-up CAPA created after ineffective verification"},
 
 		// Settings change
-		{Timestamp: now.AddDate(0, -2, 0), UserID: "dev-admin", UserRole: "admin", Action: "update", EntityType: "setting", EntityID: 1, Before: `{"key":"trir_benchmark","value":"3.5"}`, After: `{"key":"trir_benchmark","value":"3.0"}`, Notes: "Benchmark adjusted to industry average"},
+		{Timestamp: now.AddDate(0, -2, 0), UserID: uid(admin.ID), UserRole: "admin", Action: "update", EntityType: "setting", EntityID: 1, Before: `{"key":"trir_benchmark","value":"3.5"}`, After: `{"key":"trir_benchmark","value":"3.0"}`, Notes: "Benchmark adjusted to industry average"},
 
 		// Incident link creation
-		{Timestamp: now.AddDate(0, -3, 5), UserID: "dev-safety_coordinator", UserRole: "safety_coordinator", Action: "create", EntityType: "incident_link", EntityID: incidentLinks[2].ID, Before: "", After: `{"similarityType":"Same Root Cause","incidentId1":7,"incidentId2":17}`, Notes: "Linked utility strike incidents sharing common root cause"},
+		{Timestamp: now.AddDate(0, -3, 5), UserID: uid(coordinator.ID), UserRole: "safety_coordinator", Action: "create", EntityType: "incident_link", EntityID: incidentLinks[2].ID, Before: "", After: `{"similarityType":"Same Root Cause","incidentId1":7,"incidentId2":17}`, Notes: "Linked utility strike incidents sharing common root cause"},
 	}
 
 	db.Create(&auditLogs)

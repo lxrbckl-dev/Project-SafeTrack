@@ -5,7 +5,7 @@
  * Covers both the API backend and the Flutter UI.
  *
  * API tests call the Go backend directly via Playwright's request context,
- * using the dev-login endpoint to obtain a JWT.
+ * using the login endpoint to obtain a JWT.
  *
  * Run API tests against the PR branch backend on port 8001:
  *   PORT=8001 go run ./cmd/server/ &
@@ -47,13 +47,26 @@ const BASE = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3001';
 // Helpers
 // ---------------------------------------------------------------------------
 
+/** Maps role names to test account emails for POST /api/login. */
+const ROLE_EMAILS: Record<string, string> = {
+  field_reporter: 'reporter@safetrack.demo',
+  safety_coordinator: 'coordinator@safetrack.demo',
+  safety_manager: 'manager@safetrack.demo',
+  pm: 'pm@safetrack.demo',
+  project_manager: 'pm@safetrack.demo',
+  division_manager: 'director@safetrack.demo',
+  executive: 'executive@safetrack.demo',
+  admin: 'admin@safetrack.demo',
+};
+
 async function devLogin(
   request: import('@playwright/test').APIRequestContext,
   role: string,
-  displayName?: string,
+  _displayName?: string,
 ): Promise<{ token: string; userId: string }> {
-  const res = await request.post(`${API}/api/dev-login`, {
-    data: { role, displayName: displayName ?? `QA ${role}` },
+  const email = ROLE_EMAILS[role] ?? `${role}@safetrack.demo`;
+  const res = await request.post(`${API}/api/login`, {
+    data: { email, password: 'demo1234' },
   });
   expect(res.ok()).toBeTruthy();
   const body = await res.json();

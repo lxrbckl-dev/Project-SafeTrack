@@ -36,7 +36,7 @@ func main() {
 
 	// Public routes
 	mux.HandleFunc("GET /health", handlers.Health)
-	mux.HandleFunc("POST /api/dev-login", handlers.DevLogin())
+	mux.HandleFunc("POST /api/login", handlers.Login(db))
 
 	// Seed default settings on startup (no-op if rows already exist)
 	handlers.SeedDefaultSettings(db)

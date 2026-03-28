@@ -4,6 +4,7 @@ package models
 // Add new models here as you build features.
 func AllModels() []interface{} {
 	return []interface{}{
+		&User{},
 		&Note{},
 		&AuditLog{},
 		&Setting{},
