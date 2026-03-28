@@ -92,6 +92,9 @@ func main() {
 	// Incident lifecycle timeline route (cross-entity chronological view)
 	handlers.RegisterIncidentTimelineRoutes(api, db)
 
+	// Live activity feed (RBAC-scoped, human-readable audit log entries)
+	handlers.RegisterActivityRoutes(api, db)
+
 	mux.Handle("/api/", middleware.FirebaseAuth(api))
 
 	handler := middleware.CORS(middleware.Logger(mux))

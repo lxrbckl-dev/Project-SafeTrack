@@ -11,6 +11,7 @@ import '../widgets/body_map_chart.dart';
 import '../widgets/division_radar_chart.dart';
 import '../widgets/time_heatmap_chart.dart';
 import '../widgets/welcome_header.dart';
+import '../../activity/widgets/activity_feed.dart';
 
 /// Full safety dashboard replacing the placeholder.
 ///
@@ -254,6 +255,9 @@ class _SafetyDashboardPageState extends State<SafetyDashboardPage> {
                         if (_divisionRadarData != null)
                           DivisionRadarChart(data: _divisionRadarData!),
                       ],
+                      // --- Recent Activity Feed ---
+                      const SizedBox(height: 32),
+                      const _RecentActivitySection(),
                     ],
                   ),
                 ),
@@ -262,6 +266,69 @@ class _SafetyDashboardPageState extends State<SafetyDashboardPage> {
           );
         },
       ),
+    );
+  }
+}
+
+// ---------- Recent Activity Section ----------
+
+class _RecentActivitySection extends StatefulWidget {
+  const _RecentActivitySection();
+
+  @override
+  State<_RecentActivitySection> createState() => _RecentActivitySectionState();
+}
+
+class _RecentActivitySectionState extends State<_RecentActivitySection> {
+  bool _expanded = true;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        InkWell(
+          onTap: () => setState(() => _expanded = !_expanded),
+          borderRadius: BorderRadius.circular(4),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              children: [
+                Semantics(
+                  header: true,
+                  child: Text(
+                    'RECENT ACTIVITY',
+                    style: HerzogText.heading(fontSize: 20),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  _expanded ? Icons.expand_less : Icons.expand_more,
+                  color: isDark
+                      ? HerzogDarkColors.textSecondary
+                      : HerzogColors.midGray,
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (_expanded) ...[
+          const SizedBox(height: 12),
+          Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+              side: BorderSide(
+                color: isDark
+                    ? HerzogDarkColors.border
+                    : HerzogColors.borderGray,
+              ),
+            ),
+            child: const ActivityFeed(compact: true, maxItems: 10),
+          ),
+        ],
+      ],
     );
   }
 }
