@@ -101,19 +101,37 @@ func CloseIncident(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		// TODO: When the CAPA model exists, validate that all CAPAs for this
-		// incident have status "Verified Effective" before allowing close.
-		// For now, allow close without CAPA validation.
-		//
-		// Example future code:
-		//   var unverifiedCount int64
-		//   db.Model(&models.CAPA{}).
-		//     Where("incident_id = ? AND status != ?", incident.ID, "Verified Effective").
-		//     Count(&unverifiedCount)
-		//   if unverifiedCount > 0 {
-		//     http.Error(w, "all CAPAs must be Verified Effective before closing", http.StatusBadRequest)
-		//     return
-		//   }
+		// Validate that ALL CAPAs for this incident are "Verified Effective".
+		var totalCAPAs int64
+		db.Model(&models.CAPA{}).Where("incident_id = ?", incident.ID).Count(&totalCAPAs)
+
+		if totalCAPAs == 0 {
+			http.Error(w, "cannot close incident: no CAPAs exist for this incident", http.StatusBadRequest)
+			return
+		}
+
+		var incompleteCAPAs []models.CAPA
+		db.Where("incident_id = ? AND status != ?", incident.ID, "Verified Effective").
+			Find(&incompleteCAPAs)
+
+		if len(incompleteCAPAs) > 0 {
+			type incompleteSummary struct {
+				ID     uint   `json:"id"`
+				Status string `json:"status"`
+				Type   string `json:"type"`
+			}
+			summaries := make([]incompleteSummary, len(incompleteCAPAs))
+			for i, c := range incompleteCAPAs {
+				summaries[i] = incompleteSummary{ID: c.ID, Status: c.Status, Type: c.Type}
+			}
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"error":           "all CAPAs must be Verified Effective before closing",
+				"incompleteCAPAs": summaries,
+			})
+			return
+		}
 
 		beforeJSON := toJSON(incident)
 		incident.Status = "Closed"

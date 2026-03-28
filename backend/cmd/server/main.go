@@ -55,6 +55,9 @@ func main() {
 	// Investigation domain routes (CRUD, five-whys, factors, witnesses, workflow)
 	handlers.RegisterInvestigationRoutes(api, db)
 
+	// CAPA domain routes (CRUD, complete, verify, dashboard)
+	handlers.RegisterCAPARoutes(api, db)
+
 	mux.Handle("/api/", middleware.FirebaseAuth(api))
 
 	handler := middleware.CORS(middleware.Logger(mux))
