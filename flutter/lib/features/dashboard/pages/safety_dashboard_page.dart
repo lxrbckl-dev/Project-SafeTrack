@@ -7,12 +7,16 @@ import '../../../app/herzog_theme.dart';
 import '../../auth/data/auth_service.dart';
 import '../../auth/data/role.dart';
 import '../data/dashboard_repository.dart';
+import '../widgets/body_map_chart.dart';
+import '../widgets/division_radar_chart.dart';
+import '../widgets/time_heatmap_chart.dart';
 
 /// Full safety dashboard replacing the placeholder.
 ///
 /// Shows KPI cards, charts (TRIR trend, incident trend stacked bar,
-/// division grouped bar, severity donut), leading indicators, and a
-/// recent-incidents table.
+/// division grouped bar, severity donut), leading indicators,
+/// recent-incidents table, and advanced analytics (body map, time heatmap,
+/// division radar).
 class SafetyDashboardPage extends StatefulWidget {
   const SafetyDashboardPage({super.key});
 
@@ -24,6 +28,11 @@ class _SafetyDashboardPageState extends State<SafetyDashboardPage> {
   DashboardData? _data;
   bool _loading = true;
   String? _error;
+
+  // Advanced analytics data
+  List<BodyPartCount>? _bodyMapData;
+  List<TimeHeatmapCell>? _timeHeatmapData;
+  List<DivisionRadarEntry>? _divisionRadarData;
 
   @override
   void initState() {
@@ -39,12 +48,55 @@ class _SafetyDashboardPageState extends State<SafetyDashboardPage> {
     try {
       final auth = context.read<AuthService>();
       final repo = DashboardRepository(auth);
+
+      // Load main dashboard data
       final data = await repo.getDashboard();
       if (mounted) setState(() => _data = data);
+
+      // Load advanced analytics in parallel (non-blocking)
+      _loadAnalytics(auth, repo);
     } catch (e) {
       if (mounted) setState(() => _error = e.toString());
     } finally {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  /// Loads advanced analytics data independently. Failures are silently
+  /// handled — the sections simply won't render if their data is unavailable.
+  Future<void> _loadAnalytics(
+    AuthService auth,
+    DashboardRepository repo,
+  ) async {
+    // Time heatmap and division radar are available to all authenticated users
+    final heatmapFuture = repo.getTimeHeatmap();
+    final radarFuture = repo.getDivisionRadar();
+
+    // Body map requires Safety Coordinator+ (the API enforces this)
+    final canViewMedical = auth.isAtLeast(Role.safetyCoordinator);
+    final bodyMapFuture = canViewMedical ? repo.getBodyMap() : null;
+
+    try {
+      final heatmap = await heatmapFuture;
+      if (mounted) setState(() => _timeHeatmapData = heatmap);
+    } catch (_) {
+      // Silently ignore — section won't render
+    }
+
+    try {
+      final radar = await radarFuture;
+      if (mounted) setState(() => _divisionRadarData = radar);
+    } catch (_) {
+      // Silently ignore — section won't render
+    }
+
+    if (bodyMapFuture != null) {
+      try {
+        final bodyMap = await bodyMapFuture;
+        if (mounted) setState(() => _bodyMapData = bodyMap);
+      } catch (_) {
+        // Silently ignore — section won't render
+      }
     }
   }
 
@@ -146,6 +198,47 @@ class _SafetyDashboardPageState extends State<SafetyDashboardPage> {
                 _LeadingIndicatorsCard(data: data),
                 const SizedBox(height: 24),
                 _RecentIncidentsTable(data: data),
+                // --- Advanced Analytics ---
+                if (_timeHeatmapData != null ||
+                    _bodyMapData != null ||
+                    _divisionRadarData != null) ...[
+                  const SizedBox(height: 32),
+                  Semantics(
+                    header: true,
+                    child: Text(
+                      'ADVANCED ANALYTICS',
+                      style: HerzogText.heading(fontSize: 20),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                // Time heatmap
+                if (_timeHeatmapData != null) ...[
+                  TimeHeatmapChart(data: _timeHeatmapData!),
+                  const SizedBox(height: 24),
+                ],
+                // Body map and division radar side-by-side on wide screens
+                if (isWide &&
+                    _bodyMapData != null &&
+                    _divisionRadarData != null)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(child: BodyMapChart(data: _bodyMapData!)),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: DivisionRadarChart(data: _divisionRadarData!),
+                      ),
+                    ],
+                  )
+                else ...[
+                  if (_bodyMapData != null) ...[
+                    BodyMapChart(data: _bodyMapData!),
+                    const SizedBox(height: 24),
+                  ],
+                  if (_divisionRadarData != null)
+                    DivisionRadarChart(data: _divisionRadarData!),
+                ],
               ],
             ),
           );

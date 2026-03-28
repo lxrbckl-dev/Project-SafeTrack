@@ -77,6 +77,9 @@ func main() {
 	// Recurrence detection routes (automated similarity scanning, dismiss suggestions)
 	handlers.RegisterRecurrenceRoutes(api, db)
 
+	// Advanced analytics routes (body map, time heatmap, division radar)
+	handlers.RegisterAnalyticsRoutes(api, db)
+
 	mux.Handle("/api/", middleware.FirebaseAuth(api))
 
 	handler := middleware.CORS(middleware.Logger(mux))
