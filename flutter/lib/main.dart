@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'app/app_router.dart';
 import 'app/herzog_theme.dart';
+import 'features/auth/data/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,10 +21,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'Highlander',
-      theme: herzogTheme(),
-      routerConfig: appRouter,
+    return MultiProvider(
+      providers: [ChangeNotifierProvider(create: (_) => AuthService())],
+      child: Builder(
+        builder: (context) => MaterialApp.router(
+          title: 'Highlander',
+          theme: herzogTheme(),
+          routerConfig: appRouter(context.read<AuthService>()),
+        ),
+      ),
     );
   }
 }
