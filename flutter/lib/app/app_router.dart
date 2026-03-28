@@ -11,7 +11,9 @@ import '../features/incidents/pages/osha_determination_page.dart';
 import '../features/investigations/pages/investigation_list_page.dart';
 import '../features/investigations/pages/investigation_detail_page.dart';
 import '../features/investigations/pages/investigation_form_page.dart';
-import '../features/capas/pages/capas_placeholder_page.dart';
+import '../features/capas/pages/capa_dashboard_page.dart';
+import '../features/capas/pages/capa_detail_page.dart';
+import '../features/capas/pages/capa_form_page.dart';
 import '../features/admin/pages/admin_settings_page.dart';
 import '../features/admin/pages/factor_types_page.dart';
 import '../features/audit_log/pages/audit_log_placeholder_page.dart';
@@ -162,10 +164,34 @@ GoRouter appRouter(AuthService authService) {
               ),
             ],
           ),
+          // CAPA routes
           GoRoute(
             path: '/capas',
             name: 'capas',
-            builder: (context, state) => const CapasPlaceholderPage(),
+            builder: (context, state) => const CAPADashboardPage(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'capaNew',
+                builder: (context, state) {
+                  final investigationId = int.tryParse(
+                    state.uri.queryParameters['investigationId'] ?? '',
+                  );
+                  return CAPAFormPage(investigationId: investigationId);
+                },
+              ),
+              GoRoute(
+                path: ':id',
+                name: 'capaDetail',
+                builder: (context, state) {
+                  final id = int.tryParse(state.pathParameters['id'] ?? '');
+                  if (id == null) {
+                    return const CAPADashboardPage();
+                  }
+                  return CAPADetailPage(capaId: id);
+                },
+              ),
+            ],
           ),
           GoRoute(
             path: '/admin',
