@@ -57,9 +57,9 @@ var incidentUpdateParams = incidentCreateParams
 
 // investigationCreateParams lists parameters accepted by POST /api/investigations.
 var investigationCreateParams = map[string]string{
-	"incidentId":  "uint (required)",
-	"description": "string",
-	"status":      "string enum [Draft, In Progress, Under Review, Approved, Rejected]",
+	"incidentId":         "uint (required)",
+	"leadInvestigatorId": "string (required)",
+	"teamMembers":        "string",
 }
 
 // investigationUpdateParams for PUT /api/investigations/{id}.
@@ -77,7 +77,7 @@ var capaCreateParams = map[string]string{
 	"investigationId":  "uint (required)",
 	"title":            "string (required)",
 	"description":      "string",
-	"category":         "string enum [Engineering, Administrative, PPE, Training, Procedural]",
+	"category":         "string enum [Training, Procedure Change, Engineering Control, PPE, Equipment Modification, Policy Change, Other]",
 	"priority":         "string enum [Critical, High, Medium, Low]",
 	"assignedToUserId": "string",
 	"dueDate":          "string (RFC3339)",
@@ -87,7 +87,7 @@ var capaCreateParams = map[string]string{
 var capaUpdateParams = map[string]string{
 	"title":            "string",
 	"description":      "string",
-	"category":         "string enum [Engineering, Administrative, PPE, Training, Procedural]",
+	"category":         "string enum [Training, Procedure Change, Engineering Control, PPE, Equipment Modification, Policy Change, Other]",
 	"priority":         "string enum [Critical, High, Medium, Low]",
 	"assignedToUserId": "string",
 	"dueDate":          "string (RFC3339)",
@@ -113,10 +113,10 @@ var hoursWorkedCreateParams = map[string]string{
 
 // incidentLinkCreateParams for POST /api/incident-links.
 var incidentLinkCreateParams = map[string]string{
-	"incidentId1": "uint (required)",
-	"incidentId2": "uint (required)",
-	"linkType":    "string enum [Related, Recurrence, Root Cause]",
-	"notes":       "string",
+	"incidentId1":    "uint (required)",
+	"incidentId2":    "uint (required)",
+	"similarityType": "string enum [Same Location, Same Type, Same Root Cause, Same Equipment, Same Person]",
+	"notes":          "string",
 }
 
 // fiveWhyParams for POST /api/investigations/{id}/five-whys.
@@ -393,9 +393,9 @@ func safetyManagerCaps() []Capability {
 			Action:      "approve_investigation",
 			Method:      "POST",
 			Path:        "/api/investigations/{id}/review",
-			Description: "Approve or reject a submitted investigation",
+			Description: "Approve or return a submitted investigation",
 			Parameters: map[string]string{
-				"decision": "string enum [approved, rejected] (required)",
+				"decision": "string enum [approve, return] (required)",
 				"comments": "string",
 			},
 		},
