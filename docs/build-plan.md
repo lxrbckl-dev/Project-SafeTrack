@@ -574,6 +574,143 @@
 
 ---
 
+## Phase 7: Judge Differentiators
+
+> These features go beyond the rubric to show production readiness and polish. High visual impact for demo sessions.
+
+### TASK-033: PDF Incident Report Export
+- **Difficulty:** Complex
+- **Assignee:** SWE-1
+- **Dependencies:** TASK-005 merged (incident UI), TASK-007 merged (investigation UI), TASK-009 merged (CAPA UI)
+
+**Flutter:**
+- Add `pdf` and `printing` packages to `pubspec.yaml`
+- `features/incidents/services/incident_pdf_service.dart` — generates formatted PDF report containing:
+  - Incident summary (type, date, location, severity, description, immediate actions)
+  - Photos (embedded in PDF)
+  - OSHA determination result and justification
+  - Railroad notification status (if applicable)
+  - Injured person details (if Safety Coordinator+ — respect RBAC for medical data)
+  - Investigation summary: 5-Why chain, contributing factors, witness statements
+  - CAPAs: status, assignee, due date, completion notes, verification result
+  - Audit trail summary (key status changes with timestamps)
+- "Export PDF" button on `IncidentDetailPage` — generates and opens print/save dialog via `printing` package
+- Herzog branding in PDF: Oswald headings, gold accent bars, company logo header
+- Works on web (download) and mobile (share sheet)
+
+**QA:** PDF generates with all sections populated. Medical data redacted for unauthorized roles. Photos embedded. Branding correct. Works on Chrome web and mobile. Print dialog opens.
+
+---
+
+### TASK-034: Global Search
+- **Difficulty:** Complex
+- **Assignee:** SWE-2
+- **Dependencies:** TASK-002 merged (app shell)
+
+**Go:**
+- `handlers/search.go` — `GET /api/search?q=` searches across incidents (description, location, type), investigations (team members, review comments), and CAPAs (description, category). Returns unified results with entity type, ID, title, snippet, and relevance. RBAC-scoped (user only sees results they have access to). Limit 20 results
+- Full-text search via PostgreSQL `ILIKE` or `to_tsvector/to_tsquery` for better performance
+
+**Flutter:**
+- Search icon button in AppBar (both desktop and mobile layouts in `app_shell_page.dart`)
+- `Alt+S` keyboard shortcut to focus search
+- `features/search/pages/search_results_page.dart` — grouped results by entity type (Incidents, Investigations, CAPAs) with clickable rows that navigate to detail pages
+- Search input with debounced API calls (300ms)
+- Route: `/search?q=`
+
+**QA:** Search returns results across all 3 entity types. RBAC-scoped (Field Reporter doesn't see admin data). Debounce works. Clicking result navigates to correct detail page. Empty state for no results. Alt+S focuses search. Responsive at 375px.
+
+---
+
+### TASK-035: Incident Lifecycle Timeline
+- **Difficulty:** Routine
+- **Assignee:** SWE-1
+- **Dependencies:** TASK-005 merged (incident detail), TASK-012 merged (audit log)
+
+**Go:**
+- `GET /api/incidents/{id}/timeline` — queries audit log by `entity_type=incident, entity_id={id}` plus related investigations and CAPAs. Returns chronological list of events: `{timestamp, action, userDisplayName, userRole, description, entityType}`. Includes cross-entity events (investigation created, CAPA assigned, CAPA verified)
+
+**Flutter:**
+- `features/incidents/widgets/incident_timeline.dart` — vertical timeline widget with:
+  - Color-coded dots by action type (green=created, blue=updated, amber=status change, red=escalation)
+  - Timestamp, user name, action description
+  - Connecting line between events
+- New "Timeline" tab on `IncidentDetailPage` (6th tab after Recurrence)
+- ADA: semantic labels per event, keyboard navigable
+
+**QA:** Timeline shows all lifecycle events in chronological order. Cross-entity events included (investigation, CAPAs). Color coding correct. Scrollable for long timelines. Screen reader accessible.
+
+---
+
+### TASK-036: Dark Mode
+- **Difficulty:** Routine
+- **Assignee:** SWE-2
+- **Dependencies:** TASK-002 merged (app shell with theme)
+
+**Flutter:**
+- `flutter/lib/app/herzog_theme.dart` — add `herzogDarkTheme()` function:
+  - Background: dark navy (#0D1B2A) instead of off-white
+  - Surface: dark gray (#1B2838) for cards
+  - Text: light gray/white instead of rich black
+  - Keep gold accent (#FFD100) and navy action (#1E3A5F) — gold pops on dark backgrounds
+  - Status badge colors adjusted for dark contrast (WCAG AA)
+  - Charts (fl_chart) colors adjusted for dark backgrounds
+- `core/services/theme_service.dart` — `ChangeNotifier` that toggles between light/dark, persists preference to `SharedPreferences`
+- Register `ThemeService` in `main.dart` MultiProvider
+- `MaterialApp` uses `Consumer<ThemeService>` to switch `theme`/`darkTheme`
+- Toggle button in app shell sidebar (bottom, near shortcut hint) — sun/moon icon
+- Add `shared_preferences` to `pubspec.yaml` if not already present
+
+**QA:** Toggle switches between light and dark. All pages readable in dark mode. WCAG AA contrast ratios met. Charts visible. Preference persists across sessions. Gold branding still prominent.
+
+---
+
+### TASK-037: Role-Based Landing Pages
+- **Difficulty:** Routine
+- **Assignee:** SWE-1
+- **Dependencies:** TASK-001 merged (auth/roles), TASK-010 merged (dashboard)
+
+**Flutter:**
+- Update `app_router.dart` redirect logic: after login, route to role-appropriate landing:
+  - **Field Reporter** → `/incidents` (their incidents, with "New Incident" prominent)
+  - **Safety Coordinator** → `/dashboard` (full safety dashboard)
+  - **Safety Manager** → `/dashboard` with pending review count badge
+  - **PM** → `/dashboard` (project-scoped KPIs)
+  - **Division Manager** → `/dashboard` (division-scoped KPIs)
+  - **Executive** → `/dashboard` (read-only overview)
+  - **Admin** → `/dashboard`
+- Add "Welcome back, [Name]" header with role badge on landing
+- Quick action cards on landing: role-specific shortcuts (e.g., Field Reporter sees "Report New Incident", Safety Manager sees "3 Investigations Pending Review")
+
+**QA:** Each role lands on correct page after login. Welcome message shows correct name and role. Quick action cards are role-appropriate. Navigation still works normally after landing.
+
+---
+
+### TASK-038: Live Activity Feed
+- **Difficulty:** Complex
+- **Assignee:** SWE-2
+- **Dependencies:** TASK-012 merged (audit log), TASK-023 merged (user accounts)
+
+**Go:**
+- `handlers/activity.go` — `GET /api/activity?since=` returns recent audit log entries formatted as human-readable feed items: `{id, timestamp, userDisplayName, userRole, message, entityType, entityId, action}`
+- Message templates: "Maria Santos reported a Near Miss incident", "Sarah Williams approved Investigation #4", "James Chen completed CAPA #12"
+- RBAC-scoped: users only see activity for entities they can access
+- Returns last 50 items, or items since a given timestamp
+
+**Flutter:**
+- `features/activity/widgets/activity_feed.dart` — scrollable feed with:
+  - User avatar/initials circle
+  - Formatted message with entity link
+  - Relative timestamp ("2 minutes ago", "1 hour ago")
+  - Action-type icon (report, approve, complete, etc.)
+- Accessible from dashboard page as a collapsible panel or dedicated section
+- Auto-refreshes every 30 seconds (same polling pattern as notifications)
+- Route: `/activity` (or embedded in dashboard)
+
+**QA:** Feed shows recent actions across the system. Messages are human-readable. Clicking entity link navigates correctly. RBAC-scoped (Field Reporter doesn't see admin actions). Auto-refresh works. Responsive.
+
+---
+
 ## Parallelism Map
 
 ```
@@ -601,14 +738,17 @@ T10     TASK-019: AI Agent             (polish)                       Tests 017-
 
 | Metric | Value |
 |---|---|
-| Total tasks | 27 (20 complete + 7 planned) |
+| Total tasks | 33 (21 complete + 12 planned) |
 | Trivial | 0 |
-| Routine | 10 (001, 002, 003, 011, 013, 015, 016, 017, 018, 030) |
-| Complex | 16 (004, 005, 006, 007, 008, 009, 010, 012, 019, 023, 026, 027, 028, 029, 031, 032) |
+| Routine | 13 (001, 002, 003, 011, 013, 015, 016, 017, 018, 024, 030, 035, 036) |
+| Complex | 19 (004, 005, 006, 007, 008, 009, 010, 012, 019, 023, 026, 027, 028, 029, 031, 032, 033, 034, 038) |
 | Critical | 1 (014) |
 | Phases 0-5 (complete) | 19 tasks — all merged and QA verified |
+| TASK-021, 022 (complete) | Keyboard shortcut updates — merged (PRs #44, #46) |
 | TASK-023 (complete) | Login system — merged (PR #48) |
+| TASK-024 (complete) | Playwright fixes — merged (PR #51) |
 | Phase 6 (planned) | 7 tasks — TASK-026, 027, 028, 029, 030, 031, 032 |
+| Phase 7 (planned) | 6 tasks — TASK-033, 034, 035, 036, 037, 038 |
 
 ## Shared File Coordination
 

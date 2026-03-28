@@ -11,7 +11,7 @@ Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutt
 | Navigation | `go_router` |
 | Local DB | Drift (SQLite mobile, WASM web) |
 | Remote DB | PostgreSQL (via Go API) |
-| Auth | Three-layer: Dev login (role picker for demo) + Firebase Auth (real SSO) + Azure AD-ready (provider-agnostic JWT middleware) |
+| Auth | Three-layer: Email/password login (seeded demo accounts, bcrypt) + Firebase Auth (real SSO) + Azure AD-ready (provider-agnostic JWT middleware) |
 | Offline detection | `connectivity_plus` |
 | Local LLM | Ollama — Qwen 2.5 7B |
 | Testing (Primary) | Playwright |

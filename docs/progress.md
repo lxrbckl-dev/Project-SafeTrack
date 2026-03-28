@@ -144,7 +144,7 @@ Each agent is trained with embedded skills in their definition files (`.claude/a
 | Feature | Notes |
 |---|---|
 | ~~In-app AI agent (page nav + form filling)~~ | ~~JSON action dispatch to go_router/TextEditingController. Not started.~~ — DONE (TASK-019, QA PASSED) |
-| Keyboard shortcuts | Flutter Shortcuts/Actions system. Not started. |
+| ~~Keyboard shortcuts~~ | ~~Flutter Shortcuts/Actions system. Not started.~~ — DONE (TASK-018 initial, TASK-021 Alt modifier, TASK-022 Alt+K chat) |
 | Playwright test suite | QA agent writes tests during hackathon. Infrastructure ready. |
 | Claude browser agent QA | Secondary QA — exploratory validation. |
 | ADA/WCAG compliance | Built into every feature during hackathon — requirement per accessibility.md |

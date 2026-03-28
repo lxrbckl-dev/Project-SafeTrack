@@ -22,7 +22,7 @@ func devJWTSecret() []byte {
 // FirebaseAuth verifies the JWT token from the Authorization header,
 // extracts user identity, and sets it on the request context.
 //
-// Dev mode: decode self-signed HS256 JWT issued by /api/dev-login.
+// Dev mode: decode self-signed HS256 JWT issued by /api/login.
 // Prod mode (TODO): verify Firebase / Azure AD RS256 JWT against public keys.
 func FirebaseAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

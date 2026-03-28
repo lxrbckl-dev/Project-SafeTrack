@@ -71,10 +71,14 @@ highlander/
 | Local Ollama | `http://localhost:11434` | LLM (direct, dev only) |
 | Go Chat Proxy | `http://localhost:8000/api/chat` | LLM via Go (production path) |
 
-**Test user (Firebase):** `test@marchproject.com` / `TestPass123!`
-
-**Dev login (demo mode):** No credentials needed — pick a role from the dropdown:
-Field Reporter, Safety Coordinator, Safety Manager, PM, Division Manager, Executive, Admin
+**Test accounts (seeded in database):** All use password `demo1234`
+- `reporter@safetrack.demo` (Field Reporter)
+- `coordinator@safetrack.demo` (Safety Coordinator)
+- `manager@safetrack.demo` (Safety Manager)
+- `pm@safetrack.demo` (Project Manager)
+- `director@safetrack.demo` (Division Manager)
+- `executive@safetrack.demo` (Executive)
+- `admin@safetrack.demo` (Admin)
 
 ## Firebase Setup (Auth Only)
 
