@@ -113,7 +113,35 @@ All data flows through the Go API to PostgreSQL:
 - **Role-Based Landing**: Field Reporter lands on Incidents, others on Dashboard
 - **PDF Export**: Generate formatted incident reports with all details, photos, and audit trail
 - **Audit Log**: Immutable trail of all actions with before/after JSON diffs
-- **AI Assistant**: Qwen 2.5 7B via Ollama with wiki-as-RAG context, page navigation and form filling via JSON action dispatch
+- **AI Assistant**: Qwen 2.5 7B via Ollama with wiki-as-RAG context, page navigation and form filling via JSON action dispatch, and clickable URL generation
+
+## AI Chat URL Generation
+
+The AI assistant can generate clickable markdown URLs in its responses to help users navigate the app with pre-filled query parameters.
+
+**Format:** `[Descriptive action text](/route?param=value&param2=value2)`
+
+**Examples:**
+- User: "I need to report a near miss at Houston rail yard"
+- AI: `[Report Near Miss Incident](/incidents/new?type=Near+Miss&location=Houston+Rail+Yard)`
+
+- User: "Create a corrective action for investigation 5"
+- AI: `[Create Corrective Action](/capas/new?investigationId=5&type=Corrective)`
+
+- User: "Search for incidents at Building A"
+- AI: `[Search Building A Incidents](/search?q=Building+A)`
+
+**Supported routes with query parameters:**
+| Route | Query Parameters |
+|---|---|
+| `/incidents/new` | type, location, division, project, severity, shift, weather |
+| `/investigations/new` | incidentId |
+| `/capas/new` | investigationId, type, priority |
+| `/search` | q |
+
+The AI is role-aware: it only generates URLs for routes the current user's role can access. For example, a Field Reporter will not receive links to `/admin` or `/investigations`.
+
+Clickable URLs are rendered with a gold underline in the chat panel. Tapping a URL navigates to the route. The existing JSON action dispatch (navigate, fill, navigate_and_fill) continues to work alongside URL generation for backward compatibility.
 
 ## Keyboard Shortcuts
 

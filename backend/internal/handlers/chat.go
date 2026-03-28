@@ -3,7 +3,9 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"regexp"
@@ -34,39 +36,91 @@ type ChatResponse struct {
 	Actions  []ChatAction `json:"actions"`
 }
 
-// agentSystemPrompt tells Qwen it can return JSON action blocks for in-app
-// navigation and form filling.  The prompt is prepended to any user-supplied
-// system prompt.
-const agentSystemPrompt = `You are an AI safety assistant for the Highlander Incident Investigation & Corrective Action System. You help users navigate the app and fill out forms.
+// validActionTypes is the whitelist of action types the AI is allowed to return.
+// Unknown types are logged and dropped (TASK-045 edge case #1).
+var validActionTypes = map[string]bool{
+	"navigate":          true,
+	"fill":              true,
+	"navigate_and_fill": true,
+}
 
-When the user asks you to navigate somewhere or fill a form, you MUST include a JSON action block in your response. The JSON block must be wrapped in triple backticks with the json language tag.
+// roleRouteAccess defines which routes each role can access.
+// Routes not listed are accessible to all authenticated roles.
+// Key: route prefix. Value: map of allowed roles (true = allowed).
+var roleRouteAccess = map[string]map[string]bool{
+	"/investigations": {
+		"safety_coordinator": true,
+		"safety_manager":     true,
+		"pm":                 true,
+		"division_manager":   true,
+		"executive":          true,
+		"admin":              true,
+	},
+	"/capas": {
+		"safety_coordinator": true,
+		"safety_manager":     true,
+		"pm":                 true,
+		"division_manager":   true,
+		"executive":          true,
+		"admin":              true,
+	},
+	"/training": {
+		"safety_coordinator": true,
+		"safety_manager":     true,
+		"pm":                 true,
+		"division_manager":   true,
+		"executive":          true,
+		"admin":              true,
+	},
+	"/admin": {
+		"safety_manager": true,
+		"admin":          true,
+	},
+	"/audit-log": {
+		"safety_manager": true,
+		"admin":          true,
+	},
+}
 
-Available actions:
-1. Navigate to a page:
-` + "```json" + `
-{"action": "navigate", "route": "/incidents/new"}
-` + "```" + `
+// agentSystemPromptBase is the core system prompt for the AI chat.
+// It is combined with role-specific route information at request time.
+const agentSystemPromptBase = `You are an AI safety assistant for the Highlander Incident Investigation & Corrective Action System. You help users navigate the app and fill out forms.
 
-2. Fill form fields on the current page:
+IMPORTANT: You have TWO ways to help users take action:
+
+## Method 1: Clickable Markdown URLs (PREFERRED for navigation with pre-filled data)
+When the user describes an action that involves navigating to a page (optionally with pre-filled data), generate a clickable markdown URL in your response text. The Flutter app renders these as tappable links.
+
+Format: [Descriptive action text](/route?param=value&param2=value2)
+
+URL-encode special characters in query parameter values: spaces as +, ampersands as %26, etc.
+
+Examples:
+- "I need to report a near miss at Houston rail yard" → [Report Near Miss Incident](/incidents/new?type=Near+Miss&location=Houston+Rail+Yard)
+- "Show me the CAPA dashboard" → [Open CAPA Dashboard](/capas)
+- "I want to create a corrective action for investigation 5" → [Create Corrective Action](/capas/new?investigationId=5&type=Corrective)
+- "Search for incidents at Building A" → [Search Building A Incidents](/search?q=Building+A)
+
+## Method 2: JSON Action Blocks (for form filling on the current page)
+When the user wants to fill form fields on the page they are already on (without navigation), include a JSON action block wrapped in triple backticks with the json language tag.
+
+Available JSON actions:
+1. Fill form fields on the current page:
 ` + "```json" + `
 {"action": "fill", "fields": {"type": "Near Miss", "description": "Worker slipped on wet floor"}}
 ` + "```" + `
 
-3. Navigate to a page AND fill form fields:
+2. Navigate to a page AND fill form fields (complex multi-step):
 ` + "```json" + `
 {"action": "navigate_and_fill", "route": "/incidents/new", "fields": {"type": "Injury", "location": "Building A"}}
 ` + "```" + `
 
-Valid routes:
-- /dashboard — Safety Dashboard
-- /incidents — Incident list
-- /incidents/new — Create new incident
-- /investigations — Investigation list
-- /investigations/new — Create new investigation (add ?incidentId=N)
-- /capas — CAPA dashboard
-- /capas/new — Create new CAPA (add ?investigationId=N)
-- /admin — Admin settings
-- /audit-log — Audit log
+3. Navigate to a page (simple, no pre-fill):
+` + "```json" + `
+{"action": "navigate", "route": "/incidents/new"}
+` + "```" + `
+
+Valid action types are ONLY: navigate, fill, navigate_and_fill. Do not invent other action types.
 
 Valid incident form fields: type (Injury, Near Miss, Property Damage, Environmental, Vehicle, Fire, Utility Strike), location, division, project, description, immediateActions, severity (Fatality, Lost Time, Medical Treatment, First Aid, Near Miss), potentialSeverity, shift (Day, Night, Swing), weather (Clear, Cloudy, Rain, Snow, Ice, Fog, Wind, Extreme Heat, Extreme Cold)
 
@@ -74,7 +128,71 @@ Valid investigation form fields: leadInvestigator, teamMembers
 
 Valid CAPA form fields: type (Corrective, Preventive), category (Training, Procedure Change, Engineering Control, PPE, Equipment Modification, Policy Change, Other), description, assignedTo, priority (Critical, High, Medium, Low), verificationMethod
 
-Always include a helpful text explanation alongside any action blocks. If the user just asks a question (not requesting navigation or form filling), respond with text only — no action blocks needed.`
+Always include a helpful text explanation alongside any URLs or action blocks. If the user just asks a question (not requesting navigation or form filling), respond with text only — no URLs or action blocks needed.`
+
+// buildRouteList returns the list of routes the given role can access,
+// formatted for inclusion in the system prompt.
+func buildRouteList(role string) string {
+	type routeInfo struct {
+		path        string
+		description string
+		queryParams string
+	}
+
+	allRoutes := []routeInfo{
+		{"/dashboard", "Safety Dashboard", ""},
+		{"/dashboard/hours-worked", "Hours Worked Entry", ""},
+		{"/incidents", "Incident List", ""},
+		{"/incidents/new", "Create New Incident", "?type=...&location=...&division=...&project=...&severity=...&shift=...&weather=..."},
+		{"/incidents/map", "Incident Map View", ""},
+		{"/incidents/clusters", "Incident Clusters", ""},
+		{"/incidents/:id", "Incident Detail (replace :id with number)", ""},
+		{"/incidents/:id/edit", "Edit Incident", ""},
+		{"/incidents/:id/osha", "OSHA Determination", ""},
+		{"/investigations", "Investigation List", ""},
+		{"/investigations/new", "Create New Investigation", "?incidentId=N"},
+		{"/investigations/:id", "Investigation Detail (replace :id with number)", ""},
+		{"/capas", "CAPA Dashboard", ""},
+		{"/capas/new", "Create New CAPA", "?investigationId=N&type=...&priority=..."},
+		{"/capas/:id", "CAPA Detail (replace :id with number)", ""},
+		{"/training", "Training List", ""},
+		{"/training/:id", "Training Detail (replace :id with number)", ""},
+		{"/admin", "Admin Settings", ""},
+		{"/admin/factor-types", "Factor Types Configuration", ""},
+		{"/admin/osha-export", "OSHA Log Export", ""},
+		{"/audit-log", "Audit Log", ""},
+		{"/search", "Global Search", "?q=search+terms"},
+		{"/notification-preferences", "Notification Preferences", ""},
+		{"/activity", "Activity Feed", ""},
+	}
+
+	var sb strings.Builder
+	sb.WriteString("Routes available to you:\n")
+
+	for _, r := range allRoutes {
+		// Check if this route is role-restricted.
+		allowed := true
+		for prefix, roles := range roleRouteAccess {
+			if strings.HasPrefix(r.path, prefix) {
+				if !roles[role] {
+					allowed = false
+				}
+				break
+			}
+		}
+		if !allowed {
+			continue
+		}
+
+		sb.WriteString(fmt.Sprintf("- %s — %s", r.path, r.description))
+		if r.queryParams != "" {
+			sb.WriteString(fmt.Sprintf(" (query params: %s)", r.queryParams))
+		}
+		sb.WriteString("\n")
+	}
+
+	return sb.String()
+}
 
 // jsonBlockRe matches fenced code blocks with json language tag.
 var jsonBlockRe = regexp.MustCompile("(?s)```json\\s*\\n?(.*?)\\n?```")
@@ -82,15 +200,17 @@ var jsonBlockRe = regexp.MustCompile("(?s)```json\\s*\\n?(.*?)\\n?```")
 // Chat returns an HTTP handler that proxies user prompts to Ollama (Qwen 2.5 7B)
 // and parses the response for structured action blocks.
 //
-// The handler injects a system prompt that teaches Qwen the JSON action dispatch
-// schema so it can return navigation and form-fill instructions alongside its
-// text response.
+// The handler injects a system prompt that teaches Qwen both the JSON action
+// dispatch schema and the markdown URL generation format. The prompt is
+// role-aware: it only includes routes the user's role can access (TASK-045).
 //
 // Response format:
 //
 //	{"response": "I'll help you...", "actions": [{"action": "navigate", "route": "/incidents/new"}]}
 //
 // If no actions are detected the actions array is empty.
+// Markdown URLs in the response text are preserved for the Flutter client to
+// detect and render as clickable links.
 func Chat(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ollamaURL := os.Getenv("OLLAMA_URL")
@@ -104,10 +224,22 @@ func Chat(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		// Build the system prompt: agent instructions + any user-supplied system text.
-		systemPrompt := agentSystemPrompt
+		// Read the authenticated user's role from JWT context (set by auth middleware).
+		userRole := middleware.GetUserRole(r)
+		if userRole == "" {
+			userRole = "field_reporter" // safe default: lowest privilege
+		}
+
+		// Build the system prompt: base instructions + role-specific route list.
+		roleRoutes := buildRouteList(userRole)
+		systemPrompt := agentSystemPromptBase + "\n\n" +
+			fmt.Sprintf("The current user's role is: %s\n\n", userRole) +
+			roleRoutes + "\n" +
+			"IMPORTANT: Only generate URLs and actions for routes listed above. " +
+			"Do NOT generate URLs for routes the user cannot access."
+
 		if req.System != "" {
-			systemPrompt = agentSystemPrompt + "\n\n" + req.System
+			systemPrompt = systemPrompt + "\n\n" + req.System
 		}
 
 		ollamaReq, _ := json.Marshal(map[string]interface{}{
@@ -119,6 +251,8 @@ func Chat(db *gorm.DB) http.HandlerFunc {
 
 		resp, err := http.Post(ollamaURL+"/api/generate", "application/json", bytes.NewReader(ollamaReq))
 		if err != nil {
+			// Edge case #8: never log API key material. Only log the error type.
+			log.Printf("[chat] ollama connection failed: %v", err)
 			http.Error(w, "ollama unavailable", http.StatusBadGateway)
 			return
 		}
@@ -126,6 +260,7 @@ func Chat(db *gorm.DB) http.HandlerFunc {
 
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
+			log.Printf("[chat] failed to read ollama response body")
 			http.Error(w, "failed to read ollama response", http.StatusBadGateway)
 			return
 		}
@@ -146,7 +281,8 @@ func Chat(db *gorm.DB) http.HandlerFunc {
 		actions := parseActions(rawText)
 
 		// Strip the JSON code blocks from the text response so the user sees
-		// only the natural-language part.
+		// only the natural-language part. Markdown URLs are preserved in the
+		// text for the Flutter client to render as clickable links.
 		cleanText := jsonBlockRe.ReplaceAllString(rawText, "")
 		cleanText = strings.TrimSpace(cleanText)
 
@@ -179,6 +315,9 @@ func Chat(db *gorm.DB) http.HandlerFunc {
 // parseActions extracts ChatAction objects from fenced ```json blocks in the
 // AI response text.  If no fenced blocks are found, it attempts to detect
 // bare JSON objects that look like valid actions.
+//
+// TASK-045 edge case #1: only whitelisted action types are accepted.
+// Unknown action types are logged and dropped.
 func parseActions(text string) []ChatAction {
 	var actions []ChatAction
 
@@ -191,7 +330,12 @@ func parseActions(text string) []ChatAction {
 		raw := strings.TrimSpace(match[1])
 		var action ChatAction
 		if err := json.Unmarshal([]byte(raw), &action); err == nil && action.Action != "" {
-			actions = append(actions, action)
+			if validActionTypes[action.Action] {
+				actions = append(actions, action)
+			} else {
+				// Edge case #1: log unknown action types so they can be investigated.
+				log.Printf("[chat] unknown action type dropped: %q", action.Action)
+			}
 		}
 	}
 
@@ -239,7 +383,11 @@ func parseActions(text string) []ChatAction {
 		candidate := text[start:end]
 		var action ChatAction
 		if err := json.Unmarshal([]byte(candidate), &action); err == nil && action.Action != "" {
-			actions = append(actions, action)
+			if validActionTypes[action.Action] {
+				actions = append(actions, action)
+			} else {
+				log.Printf("[chat] unknown action type dropped: %q", action.Action)
+			}
 		}
 		idx = end
 	}

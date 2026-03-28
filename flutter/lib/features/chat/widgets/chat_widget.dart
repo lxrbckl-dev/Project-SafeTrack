@@ -1,5 +1,7 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../app/herzog_theme.dart';
@@ -434,15 +436,21 @@ class _MessageBubble extends StatelessWidget {
                           ? null
                           : Border.all(color: HerzogColors.borderGray),
                     ),
-                    child: SelectableText(
-                      message.text,
-                      style: HerzogText.body(
-                        fontSize: 13,
-                        color: isUser
-                            ? HerzogColors.white
-                            : HerzogColors.darkGray,
-                      ),
-                    ),
+                    child: isUser
+                        ? SelectableText(
+                            message.text,
+                            style: HerzogText.body(
+                              fontSize: 13,
+                              color: HerzogColors.white,
+                            ),
+                          )
+                        : _MarkdownLinkText(
+                            text: message.text,
+                            baseStyle: HerzogText.body(
+                              fontSize: 13,
+                              color: HerzogColors.darkGray,
+                            ),
+                          ),
                   ),
                 ),
                 if (isUser) const SizedBox(width: 6),
@@ -458,6 +466,146 @@ class _MessageBubble extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Markdown link text
+// ---------------------------------------------------------------------------
+
+/// Regex that matches well-formed markdown links: [text](url)
+///
+/// Requires:
+/// - `[` followed by one or more non-`]` characters (the link text)
+/// - `]` immediately followed by `(`
+/// - One or more non-`)` characters (the URL)
+/// - `)`
+///
+/// Malformed variants like `[text][url]`, `[[double]]`, or `[text](` without
+/// closing `)` will NOT match and render as plain text (TASK-045 edge case #6).
+final RegExp _markdownLinkRe = RegExp(r'\[([^\]]+)\]\(([^)]+)\)');
+
+/// A text span that represents either plain text or a parsed markdown link.
+class _TextSegment {
+  final String text;
+  final String? url;
+
+  const _TextSegment.plain(this.text) : url = null;
+  const _TextSegment.link(this.text, this.url);
+
+  bool get isLink => url != null;
+}
+
+/// Parses a string containing markdown links into a list of segments.
+///
+/// Well-formed `[text](url)` patterns become link segments; everything else
+/// becomes plain text segments. Malformed markdown is left as plain text
+/// (TASK-045 edge case #6).
+List<_TextSegment> _parseMarkdownLinks(String text) {
+  final segments = <_TextSegment>[];
+  int lastEnd = 0;
+
+  for (final match in _markdownLinkRe.allMatches(text)) {
+    // Plain text before this match.
+    if (match.start > lastEnd) {
+      segments.add(_TextSegment.plain(text.substring(lastEnd, match.start)));
+    }
+
+    final linkText = match.group(1)!;
+    final linkUrl = match.group(2)!;
+    segments.add(_TextSegment.link(linkText, linkUrl));
+
+    lastEnd = match.end;
+  }
+
+  // Trailing plain text after last match.
+  if (lastEnd < text.length) {
+    segments.add(_TextSegment.plain(text.substring(lastEnd)));
+  }
+
+  // If nothing matched, return the whole text as plain.
+  if (segments.isEmpty) {
+    segments.add(_TextSegment.plain(text));
+  }
+
+  return segments;
+}
+
+/// Renders AI message text with clickable markdown links.
+///
+/// Detects `[text](url)` patterns and renders them as tappable links styled
+/// with Herzog gold underline. Internal routes (starting with `/`) navigate
+/// via `context.go(url)`. External URLs are ignored for security.
+///
+/// Malformed markdown links render as plain text (TASK-045 edge case #6).
+///
+/// ADA: Links have semantic labels and are keyboard-focusable via the
+/// [TapGestureRecognizer] on the [TextSpan].
+class _MarkdownLinkText extends StatefulWidget {
+  final String text;
+  final TextStyle baseStyle;
+
+  const _MarkdownLinkText({required this.text, required this.baseStyle});
+
+  @override
+  State<_MarkdownLinkText> createState() => _MarkdownLinkTextState();
+}
+
+class _MarkdownLinkTextState extends State<_MarkdownLinkText> {
+  final List<TapGestureRecognizer> _recognizers = [];
+
+  @override
+  void dispose() {
+    for (final r in _recognizers) {
+      r.dispose();
+    }
+    super.dispose();
+  }
+
+  void _handleLinkTap(String url) {
+    // Only navigate for internal routes starting with '/'.
+    if (url.startsWith('/')) {
+      context.go(url);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Dispose old recognizers and rebuild.
+    for (final r in _recognizers) {
+      r.dispose();
+    }
+    _recognizers.clear();
+
+    final segments = _parseMarkdownLinks(widget.text);
+    final spans = <InlineSpan>[];
+
+    for (final segment in segments) {
+      if (segment.isLink) {
+        final recognizer = TapGestureRecognizer()
+          ..onTap = () => _handleLinkTap(segment.url!);
+        _recognizers.add(recognizer);
+
+        spans.add(
+          TextSpan(
+            text: segment.text,
+            style: widget.baseStyle.copyWith(
+              color: HerzogColors.darkYellow,
+              decoration: TextDecoration.underline,
+              decorationColor: HerzogColors.gold,
+              decorationThickness: 2,
+              fontWeight: FontWeight.w600,
+            ),
+            recognizer: recognizer,
+            semanticsLabel: '${segment.text}, link to ${segment.url}',
+          ),
+        );
+      } else {
+        spans.add(TextSpan(text: segment.text, style: widget.baseStyle));
+      }
+    }
+
+    return SelectableText.rich(TextSpan(children: spans));
   }
 }
 
