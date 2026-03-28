@@ -24,6 +24,7 @@ type ActivityFeedItem struct {
 	EntityType      string    `json:"entityType"`
 	EntityID        uint      `json:"entityId"`
 	Action          string    `json:"action"`
+	IsAgent         bool      `json:"isAgent"`
 }
 
 // RegisterActivityRoutes registers the activity feed endpoint.
@@ -101,6 +102,7 @@ func GetActivityFeed(db *gorm.DB) http.HandlerFunc {
 				EntityType:      log.EntityType,
 				EntityID:        log.EntityID,
 				Action:          log.Action,
+				IsAgent:         log.IsAgent,
 			})
 		}
 
@@ -191,6 +193,9 @@ func buildDisplayNameMap(db *gorm.DB, logs []models.AuditLog) map[string]string 
 
 // buildActivityMessage generates a human-readable message from an audit log entry.
 func buildActivityMessage(displayName string, log models.AuditLog) string {
+	if log.IsAgent {
+		displayName = displayName + " (via agent)"
+	}
 	entityLabel := formatEntityType(log.EntityType)
 
 	switch log.Action {

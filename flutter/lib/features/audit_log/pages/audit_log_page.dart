@@ -323,6 +323,7 @@ class _AuditLogPageState extends State<AuditLogPage> {
                       _timestampFormat.format(entry.timestamp),
                     ),
                     _detailRow('User', entry.userId),
+                    if (entry.isAgent) _agentBadge(),
                     _detailRow('Role', entry.roleDisplay),
                     _detailRow(
                       'Entity',
@@ -342,6 +343,32 @@ class _AuditLogPageState extends State<AuditLogPage> {
           ),
         );
       },
+    );
+  }
+
+  Widget _agentBadge() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Semantics(
+        label: 'via agent',
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            color: HerzogColors.chartPurple.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(
+              color: HerzogColors.chartPurple.withValues(alpha: 0.4),
+            ),
+          ),
+          child: Text(
+            'agent',
+            style: HerzogText.label(
+              fontSize: 10,
+              color: HerzogColors.chartPurple,
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -426,10 +453,44 @@ class _AuditLogPageState extends State<AuditLogPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            entry.userId,
-                            style: HerzogText.body(fontSize: 12),
-                            overflow: TextOverflow.ellipsis,
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  entry.userId,
+                                  style: HerzogText.body(fontSize: 12),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              if (entry.isAgent) ...[
+                                const SizedBox(width: 4),
+                                Semantics(
+                                  label: 'via agent',
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                      vertical: 1,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: HerzogColors.chartPurple
+                                          .withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(4),
+                                      border: Border.all(
+                                        color: HerzogColors.chartPurple
+                                            .withValues(alpha: 0.4),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'agent',
+                                      style: HerzogText.label(
+                                        fontSize: 9,
+                                        color: HerzogColors.chartPurple,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                           Text(
                             entry.roleDisplay,

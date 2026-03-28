@@ -14,6 +14,7 @@ class ActivityFeedItem {
   final String entityType;
   final int entityId;
   final String action;
+  final bool isAgent;
 
   const ActivityFeedItem({
     required this.id,
@@ -24,6 +25,7 @@ class ActivityFeedItem {
     required this.entityType,
     required this.entityId,
     required this.action,
+    this.isAgent = false,
   });
 
   factory ActivityFeedItem.fromJson(Map<String, dynamic> json) {
@@ -38,6 +40,7 @@ class ActivityFeedItem {
       entityType: json['entityType'] as String? ?? '',
       entityId: json['entityId'] as int? ?? 0,
       action: json['action'] as String? ?? '',
+      isAgent: json['isAgent'] as bool? ?? false,
     );
   }
 }
