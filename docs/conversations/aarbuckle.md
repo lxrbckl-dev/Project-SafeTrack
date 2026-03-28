@@ -436,3 +436,29 @@ Already installed: Flutter 3.41.4, Xcode 26.3, Playwright 1.58.2
 - All seed data updated to reference real user IDs
 - Dev login page and endpoint removed
 - QA flagged: some Playwright specs still reference POST /api/dev-login (follow-up needed)
+
+### Playwright Fix (TASK-024)
+- Sub-agents fixed all 8 Playwright specs to use POST /api/login instead of dev-login: PR #51
+- Peer review caught a real bug — user IDs were replaced with emails in fields that expect IDs
+- SWE-1 fixed 3 issues, QA passed, merged. Issue #49 closed
+
+### Task Numbering Cleanup
+- TPM renumbered Phase 6 tasks to avoid conflicts with TASK-021/022 (keyboard shortcuts) and TASK-023 (login)
+- Final Phase 6 numbering: TASK-026 through TASK-032
+- TASK-023 marked as complete in build plan
+
+### Training CAPA Verification (TASK-032)
+- Discussed Training system CAPA integration from rubric — originally skipped because it seemed to need an external LMS
+- Realized we don't need videos/courses — just tracking that training was assigned and completed (what OSHA auditors care about)
+- Added TASK-032: TrainingRequirement + TrainingCompletion models, auto-created when CAPA category is "Training", completion auto-updates linked CAPA
+- All Phase 6 dependencies verified — every prerequisite model, API endpoint, and Flutter page confirmed to exist
+
+### Phase 6 Readiness
+- Verified all 7 remaining Phase 6 tasks have prerequisites in place
+- Drift, SyncService, connectivity_plus exist for offline (TASK-026)
+- ContributingFactor model exists for fishbone (TASK-027)
+- IncidentLink model exists for recurrence detection (TASK-028)
+- fl_chart + dashboard API exist for analytics (TASK-029)
+- OSHA fields exist on incident model for log generation (TASK-030)
+- Notification model + User email exist for email notifications (TASK-031)
+- CAPA Category field + User model exist for training verification (TASK-032)
