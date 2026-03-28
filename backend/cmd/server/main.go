@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"log"
 	"net/http"
@@ -147,6 +148,25 @@ func main() {
 		Addr:    ":" + port,
 		Handler: handler,
 	}
+
+	// Warm up Ollama model in the background so users don't hit cold start.
+	go func() {
+		ollamaURL := os.Getenv("OLLAMA_URL")
+		if ollamaURL == "" {
+			ollamaURL = "http://localhost:11434"
+		}
+		warmClient := &http.Client{Timeout: 120 * time.Second}
+		payload := []byte(`{"model":"qwen2.5:7b","prompt":"hello","stream":false}`)
+		start := time.Now()
+		log.Printf("Ollama warm-up: loading model...")
+		resp, err := warmClient.Post(ollamaURL+"/api/generate", "application/json", bytes.NewReader(payload))
+		if err != nil {
+			log.Printf("Ollama warm-up failed: %v", err)
+			return
+		}
+		resp.Body.Close()
+		log.Printf("Ollama warm-up complete (%dms)", time.Since(start).Milliseconds())
+	}()
 
 	// Start server in a goroutine so we can listen for shutdown signals.
 	go func() {

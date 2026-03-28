@@ -10,6 +10,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"time"
 
 	"gorm.io/gorm"
 
@@ -267,7 +268,8 @@ func Chat(db *gorm.DB) http.HandlerFunc {
 			"stream": false,
 		})
 
-		resp, err := http.Post(ollamaURL+"/api/generate", "application/json", bytes.NewReader(ollamaReq))
+		chatClient := &http.Client{Timeout: 90 * time.Second}
+		resp, err := chatClient.Post(ollamaURL+"/api/generate", "application/json", bytes.NewReader(ollamaReq))
 		if err != nil {
 			// Edge case #8: never log API key material. Only log the error type.
 			log.Printf("[chat] ollama connection failed: %v", err)
