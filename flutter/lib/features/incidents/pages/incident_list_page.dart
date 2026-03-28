@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../app/herzog_theme.dart';
+import '../../../core/database/app_database.dart';
 import '../../auth/data/auth_service.dart';
 import '../../auth/data/role.dart';
 import '../data/incident_repository.dart';
@@ -29,6 +30,7 @@ class IncidentListPage extends StatefulWidget {
 class _IncidentListPageState extends State<IncidentListPage> {
   late final IncidentRepository _repo;
   List<Incident> _incidents = [];
+  List<OfflineIncident> _offlineIncidents = [];
   bool _loading = true;
   String? _error;
 
@@ -72,6 +74,16 @@ class _IncidentListPageState extends State<IncidentListPage> {
       _error = null;
     });
     try {
+      // Load offline incidents from Drift (always available)
+      final db = context.read<AppDatabase>();
+      final offline = await db.getUnsyncedIncidents();
+      if (mounted) {
+        setState(() {
+          _offlineIncidents = offline;
+        });
+      }
+
+      // Try to load remote incidents from API
       final response = await _repo.listIncidents(
         status: _statusFilter,
         type: _typeFilter,
@@ -150,9 +162,9 @@ class _IncidentListPageState extends State<IncidentListPage> {
           Expanded(
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
-                : _error != null
+                : _error != null && _offlineIncidents.isEmpty
                 ? _buildError()
-                : _incidents.isEmpty
+                : _incidents.isEmpty && _offlineIncidents.isEmpty
                 ? _buildEmpty()
                 : _buildList(),
           ),
@@ -297,22 +309,44 @@ class _IncidentListPageState extends State<IncidentListPage> {
     return RefreshIndicator(
       onRefresh: _loadIncidents,
       color: HerzogColors.navyBlue,
-      child: ListView.builder(
+      child: ListView(
         padding: const EdgeInsets.all(16),
-        itemCount: _incidents.length,
-        itemBuilder: (context, index) {
-          final incident = _incidents[index];
-          return _IncidentCard(
-            incident: incident,
-            icon: _iconForType(incident.type),
-            severityColor: _severityColor(incident.severity),
-            onTap: () {
-              if (incident.id != null) {
-                context.go('/incidents/${incident.id}');
-              }
-            },
-          );
-        },
+        children: [
+          // Offline incidents (pending sync) shown first
+          if (_offlineIncidents.isNotEmpty) ...[
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Text(
+                'PENDING SYNC',
+                style: HerzogText.heading(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: HerzogColors.warningAmber,
+                ),
+              ),
+            ),
+            ..._offlineIncidents.map(
+              (offline) => _OfflineIncidentCard(
+                incident: offline,
+                icon: _iconForType(offline.type),
+              ),
+            ),
+            const Divider(height: 24),
+          ],
+          // Regular incidents from API
+          ..._incidents.map(
+            (incident) => _IncidentCard(
+              incident: incident,
+              icon: _iconForType(incident.type),
+              severityColor: _severityColor(incident.severity),
+              onTap: () {
+                if (incident.id != null) {
+                  context.go('/incidents/${incident.id}');
+                }
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -448,6 +482,142 @@ class _IncidentCard extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Card for an offline-saved incident with a "pending sync" badge.
+class _OfflineIncidentCard extends StatelessWidget {
+  final OfflineIncident incident;
+  final IconData icon;
+
+  const _OfflineIncidentCard({required this.incident, required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    final dateStr = incident.date != null
+        ? DateFormat('MM/dd/yyyy').format(incident.date!)
+        : 'No date';
+
+    final isError = incident.syncStatus == 'error';
+    final statusLabel = isError ? 'Sync Error' : 'Pending Sync';
+    final statusColor = isError
+        ? HerzogColors.errorRed
+        : HerzogColors.warningAmber;
+
+    return Semantics(
+      label: '${incident.type} incident, $statusLabel, $dateStr, saved offline',
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              // Type icon
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: statusColor, size: 22),
+              ),
+              const SizedBox(width: 12),
+
+              // Details
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            incident.type.isNotEmpty
+                                ? incident.type
+                                : 'Untitled',
+                            style: HerzogText.body(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: HerzogColors.richBlack,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        // Pending sync badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: statusColor.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                              color: statusColor.withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                isError
+                                    ? Icons.error_outline
+                                    : Icons.cloud_upload_outlined,
+                                size: 12,
+                                color: statusColor,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                statusLabel,
+                                style: HerzogText.label(
+                                  fontSize: 10,
+                                  color: statusColor,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '$dateStr  |  ${incident.location.isNotEmpty ? incident.location : "No location"}',
+                      style: HerzogText.body(
+                        fontSize: 12,
+                        color: HerzogColors.midGray,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (isError && incident.syncError.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          incident.syncError,
+                          style: HerzogText.body(
+                            fontSize: 11,
+                            color: HerzogColors.errorRed,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 8),
+              Icon(
+                isError ? Icons.replay : Icons.cloud_queue,
+                color: statusColor,
+                size: 20,
+                semanticLabel: statusLabel,
+              ),
+            ],
           ),
         ),
       ),

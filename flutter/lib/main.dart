@@ -5,7 +5,10 @@ import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'app/app_router.dart';
 import 'app/herzog_theme.dart';
+import 'core/database/app_database.dart';
+import 'core/database/connection.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/sync_service.dart';
 import 'features/auth/data/auth_service.dart';
 import 'features/chat/data/chat_repository.dart';
 import 'features/chat/data/form_fill_service.dart';
@@ -34,6 +37,28 @@ class MyApp extends StatelessWidget {
           update: (_, auth, previous) {
             final service = previous ?? NotificationService();
             service.setToken(auth.token);
+            return service;
+          },
+        ),
+        // AppDatabase (Drift) — single instance shared across the app.
+        // Used for offline incident storage and local caching.
+        Provider<AppDatabase>(
+          create: (_) => constructDb(),
+          dispose: (_, db) => db.close(),
+        ),
+        // SyncService — listens for connectivity changes and syncs
+        // offline incidents to the Go API when network is restored.
+        // Uses ProxyProvider to receive both the database and auth token.
+        ChangeNotifierProxyProvider2<AppDatabase, AuthService, SyncService>(
+          create: (context) {
+            final db = context.read<AppDatabase>();
+            final service = SyncService(db: db);
+            service.start();
+            return service;
+          },
+          update: (_, db, auth, previous) {
+            final service = previous ?? SyncService(db: db);
+            service.authToken = auth.token;
             return service;
           },
         ),
