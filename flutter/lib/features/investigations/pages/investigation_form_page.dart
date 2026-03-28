@@ -16,11 +16,22 @@ import '../data/investigation_repository.dart';
 /// - Fields: lead investigator (text), team members
 /// - Target completion date auto-set by severity (shown, read-only)
 /// - Route: /investigations/new?incidentId={id}
+/// - Query-parameter pre-fill (TASK-044): `leadInvestigator`
 class InvestigationFormPage extends StatefulWidget {
   /// Optional incident ID passed as a query parameter.
   final int? incidentId;
 
-  const InvestigationFormPage({super.key, this.incidentId});
+  /// Optional lead investigator pre-fill from URL query parameter.
+  ///
+  /// Non-empty values are applied directly to the lead investigator text
+  /// field. Empty strings are treated as missing (not applied).
+  final String? leadInvestigator;
+
+  const InvestigationFormPage({
+    super.key,
+    this.incidentId,
+    this.leadInvestigator,
+  });
 
   @override
   State<InvestigationFormPage> createState() => _InvestigationFormPageState();
@@ -49,11 +60,29 @@ class _InvestigationFormPageState extends State<InvestigationFormPage> {
     if (_incidentId != null) {
       _loadIncident();
     }
+    // TASK-044: Apply URL query-parameter pre-fill before FormFillService
+    // so query params take precedence (edge case #5).
+    _applyQueryParams();
     // TASK-019: Check for AI-dispatched form fill data and listen for future
     // dispatches (handles the case where the form is already mounted).
     final formFillService = context.read<FormFillService>();
     formFillService.addListener(_applyPendingFields);
     _applyPendingFields();
+  }
+
+  /// Applies URL query-parameter pre-fill values.
+  ///
+  /// Only sets fields when the value is non-empty (edge case #7).
+  /// Clears any pending FormFillService data when params are present so
+  /// query params take precedence (edge case #5).
+  void _applyQueryParams() {
+    final leadVal = widget.leadInvestigator;
+    if (leadVal == null || leadVal.isEmpty) return;
+
+    // Query param present — clear pending FormFillService data.
+    context.read<FormFillService>().clear();
+
+    _leadCtrl.text = leadVal;
   }
 
   /// Applies any pending form fill data from [FormFillService] (AI agent

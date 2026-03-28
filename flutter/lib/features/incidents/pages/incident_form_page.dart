@@ -27,11 +27,25 @@ import '../widgets/railroad_notification_section.dart';
 /// - Conditional sections: Railroad, Injured Person
 /// - Photo picker with thumbnail preview
 /// - Form validation for submit (type, date, location, description required)
+/// - Query-parameter pre-fill (create mode only) via [queryParams]
 class IncidentFormPage extends StatefulWidget {
   /// Incident ID for edit mode. Null for create mode.
   final int? incidentId;
 
-  const IncidentFormPage({super.key, this.incidentId});
+  /// Optional query parameters from the URL for create-mode pre-fill.
+  ///
+  /// Supported keys: `type`, `division`, `project`, `location`, `description`,
+  /// `shift`, `weather`, `severity`.
+  ///
+  /// Only applied when [incidentId] is null (create mode). Ignored in edit
+  /// mode to prevent a race condition with [_loadExisting].
+  final Map<String, String> queryParams;
+
+  const IncidentFormPage({
+    super.key,
+    this.incidentId,
+    this.queryParams = const {},
+  });
 
   @override
   State<IncidentFormPage> createState() => _IncidentFormPageState();
@@ -125,12 +139,105 @@ class _IncidentFormPageState extends State<IncidentFormPage> {
     _isEditMode = widget.incidentId != null;
     if (_isEditMode) {
       _loadExisting();
+    } else {
+      // TASK-044: Apply URL query-parameter pre-fill in create mode only.
+      // Must run before _applyPendingFields so that query params take
+      // precedence over any queued FormFillService data.
+      _applyQueryParams();
     }
     // TASK-019: Check for AI-dispatched form fill data and listen for future
     // dispatches (handles the case where the form is already mounted).
+    // In create mode with query params present, pending fields are cleared
+    // inside _applyQueryParams so query params win.
     final formFillService = context.read<FormFillService>();
     formFillService.addListener(_applyPendingFields);
     _applyPendingFields();
+  }
+
+  /// Applies URL query parameters as pre-filled form values (create mode only).
+  ///
+  /// Edge cases handled:
+  /// - Edit mode guard: method is never called when [_isEditMode] is true.
+  /// - URL-encoded values: GoRouter decodes both `+` (as space) and `%20`
+  ///   automatically via [Uri.queryParameters], so values arrive decoded.
+  /// - Invalid enum values: silently ignored, not applied.
+  /// - Empty string params (`?type=`): treated as missing, not applied.
+  /// - FormFillService conflict: clears pending fields when any query param
+  ///   is present so query params take precedence.
+  void _applyQueryParams() {
+    final params = widget.queryParams;
+    if (params.isEmpty) return;
+
+    // Query params are present — clear any pending FormFillService data so
+    // query params win (TASK-044 edge case #5).
+    final formFillService = context.read<FormFillService>();
+    formFillService.clear();
+
+    setState(() {
+      // type — validate against known incident types (edge case #3, #6).
+      final typeVal = params['type'];
+      if (typeVal != null && typeVal.isNotEmpty) {
+        final validTypes = _incidentTypes.map((o) => o.value).toList();
+        if (validTypes.contains(typeVal)) {
+          _type = typeVal;
+          if (typeVal == 'Injury') _hasInjuredPerson = true;
+        }
+      }
+
+      // division — direct string fill (edge case #2 handled by GoRouter).
+      final divisionVal = params['division'];
+      if (divisionVal != null && divisionVal.isNotEmpty) {
+        _divisionController.text = divisionVal;
+      }
+
+      // project — direct string fill.
+      final projectVal = params['project'];
+      if (projectVal != null && projectVal.isNotEmpty) {
+        _projectController.text = projectVal;
+      }
+
+      // location — direct string fill.
+      final locationVal = params['location'];
+      if (locationVal != null && locationVal.isNotEmpty) {
+        _locationController.text = locationVal;
+      }
+
+      // description — direct string fill.
+      final descVal = params['description'];
+      if (descVal != null && descVal.isNotEmpty) {
+        _descriptionController.text = descVal;
+      }
+
+      // severity — validate against enum values (edge case #6: High is invalid).
+      final severityVal = params['severity'];
+      if (severityVal != null && severityVal.isNotEmpty) {
+        final validSeverities = _severities.map((o) => o.value).toList();
+        if (validSeverities.contains(severityVal)) {
+          _severity = severityVal;
+        }
+      }
+
+      // shift — validate against enum values.
+      final shiftVal = params['shift'];
+      if (shiftVal != null && shiftVal.isNotEmpty) {
+        final validShifts = _shifts.map((o) => o.value).toList();
+        if (validShifts.contains(shiftVal)) {
+          _shift = shiftVal;
+        }
+      }
+
+      // weather — validate against enum values.
+      final weatherVal = params['weather'];
+      if (weatherVal != null && weatherVal.isNotEmpty) {
+        final validWeather = _weatherOptions.map((o) => o.value).toList();
+        if (validWeather.contains(weatherVal)) {
+          _weather = weatherVal;
+        }
+      }
+    });
+
+    // Mark form dirty only if any param actually set a field.
+    _markDirty();
   }
 
   /// Applies any pending form fill data from [FormFillService] (AI agent

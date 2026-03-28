@@ -60,7 +60,13 @@ GoRouter appRouter(AuthService authService) {
       // Authenticated on /login: send to role-appropriate landing page.
       // Field Reporter lands on /incidents (their primary workflow).
       // All other roles land on /dashboard.
+      // Edge case (TASK-044): if role is null (JWT deserialization failed),
+      // redirect to /login to force re-authentication.
       if (loggedIn && location == '/login') {
+        if (role == null) {
+          authService.logout(); // clear stale/malformed token
+          return '/login';
+        }
         if (role == Role.fieldReporter) {
           return '/incidents';
         }
@@ -144,7 +150,11 @@ GoRouter appRouter(AuthService authService) {
               GoRoute(
                 path: 'new',
                 name: 'incidentNew',
-                builder: (context, state) => const IncidentFormPage(),
+                // TASK-044: pass query parameters for pre-fill support.
+                // GoRouter preserves query params through auth redirect by
+                // default, so deep-links with params survive login.
+                builder: (context, state) =>
+                    IncidentFormPage(queryParams: state.uri.queryParameters),
               ),
               GoRoute(
                 path: 'map',
@@ -201,10 +211,14 @@ GoRouter appRouter(AuthService authService) {
                 path: 'new',
                 name: 'investigationNew',
                 builder: (context, state) {
-                  final incidentId = int.tryParse(
-                    state.uri.queryParameters['incidentId'] ?? '',
+                  final params = state.uri.queryParameters;
+                  final incidentId = int.tryParse(params['incidentId'] ?? '');
+                  // TASK-044: pass leadInvestigator query param for pre-fill.
+                  final leadInvestigator = params['leadInvestigator'];
+                  return InvestigationFormPage(
+                    incidentId: incidentId,
+                    leadInvestigator: leadInvestigator,
                   );
-                  return InvestigationFormPage(incidentId: incidentId);
                 },
               ),
               GoRoute(
@@ -230,10 +244,16 @@ GoRouter appRouter(AuthService authService) {
                 path: 'new',
                 name: 'capaNew',
                 builder: (context, state) {
+                  final params = state.uri.queryParameters;
                   final investigationId = int.tryParse(
-                    state.uri.queryParameters['investigationId'] ?? '',
+                    params['investigationId'] ?? '',
                   );
-                  return CAPAFormPage(investigationId: investigationId);
+                  // TASK-044: pass type/category/priority/description for
+                  // query-param pre-fill.
+                  return CAPAFormPage(
+                    investigationId: investigationId,
+                    queryParams: params,
+                  );
                 },
               ),
               GoRoute(
