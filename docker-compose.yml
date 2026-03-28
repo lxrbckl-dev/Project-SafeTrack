@@ -34,6 +34,15 @@ services:
     volumes:
       - ollama_data:/root/.ollama
 
+  ollama-pull:
+    image: ollama/ollama
+    depends_on:
+      - ollama
+    entrypoint: ["sh", "-c", "sleep 5 && ollama pull qwen2.5:7b"]
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    restart: "no"
+
 volumes:
   postgres_data:
   ollama_data:

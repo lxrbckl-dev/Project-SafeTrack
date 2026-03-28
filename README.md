@@ -38,10 +38,7 @@ cd flutter && flutter run -d chrome --web-port=3000 \
 
 **4. Open** `http://localhost:3000` — pick a role and explore.
 
-**5. (Optional) Enable AI chat:**
-```bash
-docker exec -it $(docker ps -q -f ancestor=ollama/ollama) ollama pull qwen2.5:7b
-```
+> AI chat is enabled automatically — the Qwen 2.5 7B model pulls on first startup (~30s delay).
 
 ---
 
@@ -99,4 +96,4 @@ lsof -ti:3000 | xargs kill -9
 | PostgreSQL connection refused | Start Docker Desktop, then `docker-compose up -d` |
 | Port 5432 conflict (local Postgres) | `lsof -ti:5432 \| xargs kill -9` then `docker-compose up -d` |
 | Need a fresh database | `docker-compose down -v && docker-compose up -d`, then re-seed |
-| AI assistant returns empty responses | `docker exec -it highlander-ollama-1 ollama pull qwen2.5:7b` |
+| AI assistant returns empty responses | Wait ~30s for model pull, or run `docker logs highlander-ollama-pull-1` to check progress |
