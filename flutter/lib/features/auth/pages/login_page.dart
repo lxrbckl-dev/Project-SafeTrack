@@ -202,6 +202,8 @@ class _LoginPageState extends State<LoginPage> {
 
                         // Forgot Password link
                         const SizedBox(height: 16),
+                        Divider(color: HerzogColors.borderGray),
+                        const SizedBox(height: 12),
                         Center(
                           child: Semantics(
                             button: true,
