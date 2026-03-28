@@ -48,12 +48,12 @@ docker exec -it $(docker ps -q -f ancestor=ollama/ollama) ollama pull qwen2.5:7b
 ## Stopping Everything
 
 ```bash
-docker-compose down        # stop services, keep data
+docker-compose down
 ```
 
 To also wipe the database and start fresh:
 ```bash
-docker-compose down -v     # stop services + delete data
+docker-compose down -v
 ```
 
 If the Flutter dev server is still running, press `q` in its terminal or:
