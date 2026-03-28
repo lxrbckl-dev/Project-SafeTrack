@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../app/herzog_theme.dart';
 import '../../auth/data/auth_service.dart';
 import '../../auth/data/role.dart';
+import '../../training/data/training_repository.dart';
 import '../data/capa_repository.dart';
 import '../widgets/capa_lifecycle_stepper.dart';
 import '../widgets/ineffective_action_dialog.dart';
@@ -26,9 +27,11 @@ class CAPADetailPage extends StatefulWidget {
 
 class _CAPADetailPageState extends State<CAPADetailPage> {
   late final CAPARepository _repo;
+  late final TrainingRepository _trainingRepo;
   late final AuthService _auth;
 
   CAPA? _capa;
+  TrainingRequirement? _linkedTraining;
   bool _loading = true;
   String? _error;
 
@@ -37,6 +40,7 @@ class _CAPADetailPageState extends State<CAPADetailPage> {
     super.initState();
     _auth = context.read<AuthService>();
     _repo = CAPARepository(_auth);
+    _trainingRepo = TrainingRepository(_auth);
     _loadData();
   }
 
@@ -47,9 +51,15 @@ class _CAPADetailPageState extends State<CAPADetailPage> {
     });
     try {
       final capa = await _repo.getCAPA(widget.capaId);
+      // If Training CAPA, fetch linked training requirement.
+      TrainingRequirement? linkedTraining;
+      if (capa.category == 'Training') {
+        linkedTraining = await _trainingRepo.getTrainingByCapaId(widget.capaId);
+      }
       if (mounted) {
         setState(() {
           _capa = capa;
+          _linkedTraining = linkedTraining;
           _loading = false;
         });
       }
@@ -221,6 +231,9 @@ class _CAPADetailPageState extends State<CAPADetailPage> {
                 const SizedBox(height: 12),
               ],
 
+              // Linked training requirement (for Training CAPAs)
+              if (_linkedTraining != null) _buildLinkedTraining(),
+
               // Action buttons
               _buildActions(),
               const SizedBox(height: 24),
@@ -305,6 +318,89 @@ class _CAPADetailPageState extends State<CAPADetailPage> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildLinkedTraining() {
+    final training = _linkedTraining!;
+    final isPending = training.status == 'Pending';
+    final isOverdue =
+        isPending &&
+        training.dueDate != null &&
+        training.dueDate!.isBefore(DateTime.now());
+
+    final Color bgColor;
+    final Color fgColor;
+    final IconData icon;
+    final String statusLabel;
+
+    if (isOverdue) {
+      bgColor = HerzogColors.errorLight;
+      fgColor = HerzogColors.errorRed;
+      icon = Icons.warning;
+      statusLabel = 'Overdue';
+    } else if (isPending) {
+      bgColor = HerzogColors.warningLight;
+      fgColor = HerzogColors.warningAmber;
+      icon = Icons.schedule;
+      statusLabel = 'Pending';
+    } else {
+      bgColor = HerzogColors.successLight;
+      fgColor = HerzogColors.successGreen;
+      icon = Icons.check_circle;
+      statusLabel = 'Completed';
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionTitle('LINKED TRAINING'),
+        Semantics(
+          label:
+              'Training requirement: ${training.courseName}, Status: $statusLabel',
+          button: true,
+          child: InkWell(
+            onTap: () => context.go('/training/${training.id}'),
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: bgColor,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: fgColor),
+              ),
+              child: Row(
+                children: [
+                  Icon(icon, color: fgColor, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          training.courseName,
+                          style: HerzogText.body(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: fgColor,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Status: $statusLabel | Training #${training.id}',
+                          style: HerzogText.body(fontSize: 12, color: fgColor),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.chevron_right, color: fgColor, size: 20),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
     );
   }
 

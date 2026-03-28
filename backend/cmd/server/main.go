@@ -83,6 +83,9 @@ func main() {
 	// OSHA log export routes (Form 300, 300A, 301) — Safety Manager + Admin only
 	handlers.RegisterOSHARoutes(api, db)
 
+	// Training requirement routes (linked to Training-category CAPAs)
+	handlers.RegisterTrainingRoutes(api, db)
+
 	mux.Handle("/api/", middleware.FirebaseAuth(api))
 
 	handler := middleware.CORS(middleware.Logger(mux))

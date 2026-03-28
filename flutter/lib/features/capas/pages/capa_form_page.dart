@@ -7,6 +7,7 @@ import '../../../app/herzog_theme.dart';
 import '../../auth/data/auth_service.dart';
 import '../../chat/data/form_fill_service.dart';
 import '../../investigations/data/investigation_repository.dart';
+import '../../training/data/training_repository.dart';
 import '../data/capa_repository.dart';
 
 /// Form page for creating a new CAPA from an investigation.
@@ -179,10 +180,47 @@ class _CAPAFormPageState extends State<CAPAFormPage> {
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('CAPA created successfully')),
-        );
-        context.go('/capas/${capa.id}');
+        // If Training category, auto-create training requirement and navigate to it.
+        if (_category == 'Training' && capa.id != null) {
+          try {
+            final trainingRepo = TrainingRepository(_auth);
+            final training = await trainingRepo.createTraining(
+              capaId: capa.id!,
+              courseName: _descriptionController.text.trim(),
+              assignedToUserId: _assignedToController.text.trim(),
+              description: 'Auto-created from Training CAPA #${capa.id}',
+            );
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Training CAPA and requirement created successfully',
+                  ),
+                ),
+              );
+              context.go('/training/${training.id}');
+              return;
+            }
+          } catch (_) {
+            // If training creation fails, fall through to CAPA detail.
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'CAPA created. Training requirement creation failed -- create manually.',
+                  ),
+                ),
+              );
+            }
+          }
+        }
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('CAPA created successfully')),
+          );
+          context.go('/capas/${capa.id}');
+        }
       }
     } catch (e) {
       if (mounted) {

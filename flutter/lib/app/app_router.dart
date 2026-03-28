@@ -21,6 +21,8 @@ import '../features/admin/pages/factor_types_page.dart';
 import '../features/admin/pages/osha_export_page.dart';
 import '../features/audit_log/pages/audit_log_page.dart';
 import '../features/notifications/pages/notification_preferences_page.dart';
+import '../features/training/pages/training_list_page.dart';
+import '../features/training/pages/training_detail_page.dart';
 
 /// Builds the [GoRouter] with auth redirect and shell routing.
 ///
@@ -67,6 +69,14 @@ GoRouter appRouter(AuthService authService) {
       // Role gate: /capas — Safety Coordinator and above
       // Field Reporter cannot access CAPAs.
       if (location.startsWith('/capas') &&
+          role != null &&
+          !role.isAtLeast(Role.safetyCoordinator)) {
+        return '/dashboard';
+      }
+
+      // Role gate: /training — Safety Coordinator and above
+      // Field Reporter cannot access training.
+      if (location.startsWith('/training') &&
           role != null &&
           !role.isAtLeast(Role.safetyCoordinator)) {
         return '/dashboard';
@@ -221,6 +231,25 @@ GoRouter appRouter(AuthService authService) {
                     return const CAPADashboardPage();
                   }
                   return CAPADetailPage(capaId: id);
+                },
+              ),
+            ],
+          ),
+          // Training routes
+          GoRoute(
+            path: '/training',
+            name: 'training',
+            builder: (context, state) => const TrainingListPage(),
+            routes: [
+              GoRoute(
+                path: ':id',
+                name: 'trainingDetail',
+                builder: (context, state) {
+                  final id = int.tryParse(state.pathParameters['id'] ?? '');
+                  if (id == null) {
+                    return const TrainingListPage();
+                  }
+                  return TrainingDetailPage(trainingId: id);
                 },
               ),
             ],

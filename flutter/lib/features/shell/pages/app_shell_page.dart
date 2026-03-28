@@ -121,6 +121,13 @@ List<_NavItem> _visibleNavItems(Role? role) {
     );
   }
 
+  // Training: Safety Coordinator and above (linked to Training CAPAs)
+  if (role != null && role.isAtLeast(Role.safetyCoordinator)) {
+    all.add(
+      const _NavItem(label: 'Training', icon: Icons.school, route: '/training'),
+    );
+  }
+
   // Admin section: admin or safety manager (fix #10)
   if (role != null && (role == Role.admin || role == Role.safetyManager)) {
     all.add(
