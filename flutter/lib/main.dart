@@ -106,7 +106,6 @@ class MyApp extends StatelessWidget {
         builder: (context) {
           return Consumer<ThemeService>(
             builder: (context, themeService, _) => MaterialApp.router(
-              debugShowCheckedModeBanner: false,
               title: 'SafeTrack',
               theme: herzogTheme(),
               darkTheme: herzogDarkTheme(),
