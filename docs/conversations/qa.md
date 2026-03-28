@@ -94,5 +94,17 @@
 [2026-03-28] QA PASSED PR #99 (fix #94 JWT 401 ApiClient interceptor + #97 upload 10MB MaxBytesReader). Review caught fragile error string — fixed to errors.As. Merged.
 [2026-03-28] QA PASSED PR #98 (fix #95 map cap 100→500 + #96 PopScope unsaved changes). Review caught AppBar bypass + AI fill dirty flag — both fixed inline. Merged.
 
-### Final Verification
-[2026-03-28] Integration stress test: 17/17 PASS. Resilience re-sweep: CLEAN. go build CLEAN. go vet CLEAN. dart analyze: No issues found. BUILD COMPLETE.
+### Phase 10-11
+[2026-03-28] QA PASSED PR #106 (TASK-044 Query Params, 8 edge cases). Merged.
+[2026-03-28] QA PASSED PR #107 (TASK-046 Agent Keys, 13 edge cases, security verified). Merged.
+[2026-03-28] QA PASSED PR #108 (TASK-045 AI Chat URLs, 8 edge cases). Merged.
+[2026-03-28] QA PASSED PR #109 (TASK-047 Capabilities, 4 schema fixes). Merged.
+[2026-03-28] QA PASSED PR #110 (TASK-048 MCP Server, 19 edge cases). Merged.
+[2026-03-28] QA PASSED PR #111 (TASK-049 Agent Sessions, cursor fix). Merged.
+[2026-03-28] Bug sweep: #112 enum mismatch + #113 agent attribution. PRs #114 + #115. Merged.
+
+### Post-Build Polish
+[2026-03-28] QA PASSED PRs: #117 (debug banner), #119 (icon 52px), #121 (ratio spacing), #123 (Ollama offline), #125 (forgot password), #127 (login links), #130 (pointer cursor), #131 (divider), #133 (onboarding tour), #135 (sidebar highlight), #137 (Ctrl+Shift shortcuts), #139 (heatmap horizontal), #141 (body map bar chart), #143 (remove sidebar hints), #146 (NEW INCIDENT AppBar), #147 (sidebar uppercase), #149 (auth persistence), #154 (AppBar gold border), #155 (KPI gold + 4-col).
+
+### Current Status
+[2026-03-28] 155 PRs merged. All builds clean. go build CLEAN. go vet CLEAN. dart analyze: No issues found.

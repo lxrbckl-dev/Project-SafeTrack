@@ -93,3 +93,19 @@
 ### Resilience Fixes
 [14:15] Fixed #95 (map per_page cap 100→500) + #96 (PopScope unsaved changes warning with _isDirty tracking). PR #98. Review caught 2 more bugs inline (AppBar bypassing PopScope, AI form-fill not calling _markDirty). Fixed. QA PASSED. Merged.
 [14:20] Peer reviewed SWE-1's PR #99 (fix #94 JWT 401 + #97 upload limit): Review caught fragile error string comparison. SWE-1 fixed.
+
+### Phase 10-11
+[15:00] TASK-044: Query Param Pre-Fill (Issue #100, Sonnet). 8 edge cases. PR #106. Fixed null role loop. Merged.
+[16:15] TASK-047: Agent Capabilities (Issue #103, Sonnet). 7 roles, 3 edge cases. PR #109. Fixed 4 schema bugs. Merged.
+[16:45] Peer reviewed SWE-1's PR #108 (AI Chat URLs): Found 2 blockers (executive route access, recognizer disposal). SWE-1 fixed.
+[16:50] Peer reviewed SWE-1's PR #107 (Agent Keys, Opus): LGTM — 13 edge cases verified.
+[17:15] TASK-049: Agent Session Awareness (Issue #105, Sonnet, 6 edge cases). PR #111. Fixed cursor pagination + direction. Merged.
+[18:00] Peer reviewed SWE-1's PR #110 (MCP Server): Found short key panic. SWE-1 fixed.
+[18:45] Fixed #112 (capability enum mismatch). PR #114. Merged.
+
+### Post-Build Polish
+[19:10] #118 Sidebar icon 52px → PR #119. #124 Forgot password + support → PR #125.
+[19:40] #128 Pointer cursor → PR #130. #129 Login divider → PR #131.
+[19:45] #132 Onboarding tour fixes → PR #133. #138 Heatmap horizontal → PR #139.
+[20:10] #142 Remove sidebar hints → PR #143. #145 Sidebar footer uppercase → PR #147.
+[20:30] #152+#153 Sidebar width + AppBar gold border → PR #154.

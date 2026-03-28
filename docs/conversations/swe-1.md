@@ -88,3 +88,18 @@
 ### Resilience Fixes
 [14:15] Fixed #94 (JWT 401 interceptor — new ApiClient wrapping all HTTP calls, 10 repositories updated) + #97 (upload 10MB MaxBytesReader with 413 response). PR #99. Review caught fragile error string check — upgraded to errors.As. QA PASSED. Merged.
 [14:20] Peer reviewed SWE-2's PR #98 (fix #95 map cap + #96 unsaved changes). Review caught AppBar bypassing PopScope + AI fill not marking dirty. SWE-2 fixed.
+
+### Phase 10-11
+[15:00] TASK-046: Agent API Key System (Issue #102, Opus). 25 files, 13 edge cases. PR #107. Merged.
+[16:15] TASK-045: AI Chat URL Generation (Issue #101, Opus). Markdown links, role-aware routes. PR #108. Fixed recognizer disposal. Merged.
+[16:50] Peer reviewed SWE-2's PR #109 (Capabilities): Found 4 schema bugs. SWE-2 fixed.
+[17:15] TASK-048: MCP Server Protocol (Issue #104, Opus, 19 edge cases). JSON-RPC 2.0, MCPAuth, rate limiting. PR #110. Fixed short key panic. Merged.
+[18:00] Peer reviewed SWE-2's PR #111 (Agent Sessions): Found cursor pagination bug. SWE-2 fixed.
+[18:45] Fixed #113 (agent attribution). PR #115. Merged.
+
+### Post-Build Polish
+[19:00] #116 Debug banner → PR #117. #120 Ratio spacing → PR #121. #122 Ollama offline → PR #123.
+[19:40] #126 Login links → PR #127. #134 Sidebar tour highlight → PR #135.
+[19:50] #136 Ctrl+Shift shortcuts → PR #137 (7 files). #140 Body map → bar chart → PR #141.
+[20:10] #144 NEW INCIDENT to AppBar → PR #146. #148 Auth persistence → PR #149.
+[20:30] #150+#151 KPI gold border + 4-col → PR #155.
