@@ -361,13 +361,16 @@ func AgentAuth(db *gorm.DB) http.HandlerFunc {
 		userID := fmt.Sprintf("%d", user.ID)
 
 		// Edge case 8: agent JWT expiry = 1 hour (not 24h like human sessions).
+		// key_id is embedded so UpdateAgentLastUsed middleware can update the
+		// correct AgentApiKey row on every API call without an extra DB lookup.
 		claims := jwt.MapClaims{
 			"sub":         userID,
 			"role":        user.Role,
 			"displayName": user.DisplayName,
 			"division":    user.Division,
 			"project":     user.Project,
-			"is_agent":    true, // edge case 1: agents always get this claim
+			"is_agent":    true,          // edge case 1: agents always get this claim
+			"key_id":      matchedKey.ID, // TASK-049: per-key LastUsedAt tracking
 			"exp":         time.Now().Add(1 * time.Hour).Unix(),
 			"iat":         time.Now().Unix(),
 		}

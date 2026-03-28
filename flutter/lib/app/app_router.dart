@@ -18,6 +18,7 @@ import '../features/capas/pages/capa_dashboard_page.dart';
 import '../features/capas/pages/capa_detail_page.dart';
 import '../features/capas/pages/capa_form_page.dart';
 import '../features/admin/pages/admin_settings_page.dart';
+import '../features/admin/pages/agent_sessions_page.dart';
 import '../features/admin/pages/factor_types_page.dart';
 import '../features/admin/pages/api_keys_page.dart';
 import '../features/admin/pages/osha_export_page.dart';
@@ -308,6 +309,11 @@ GoRouter appRouter(AuthService authService) {
                 path: 'api-keys',
                 name: 'apiKeys',
                 builder: (context, state) => const ApiKeysPage(),
+              ),
+              GoRoute(
+                path: 'agents',
+                name: 'agentSessions',
+                builder: (context, state) => const AgentSessionsPage(),
               ),
             ],
           ),

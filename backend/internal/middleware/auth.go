@@ -63,12 +63,23 @@ func FirebaseAuth(next http.Handler) http.Handler {
 		// gracefully — old tokens default to human (false).
 		isAgent, _ := claims["is_agent"].(bool)
 
+		// key_id is only present in agent JWTs (added by AgentAuth). Human
+		// JWTs don't carry this claim — the float64 assertion fails silently
+		// and keyID stays 0, which is the correct sentinel for "no key".
+		var keyID uint
+		if kidRaw, ok := claims["key_id"]; ok {
+			if kidF, ok2 := kidRaw.(float64); ok2 {
+				keyID = uint(kidF)
+			}
+		}
+
 		ctx := r.Context()
 		ctx = context.WithValue(ctx, "userRole", userRole)
 		ctx = context.WithValue(ctx, "userID", userID)
 		ctx = context.WithValue(ctx, "userDivision", userDivision)
 		ctx = context.WithValue(ctx, "userProject", userProject)
 		ctx = context.WithValue(ctx, "isAgent", isAgent)
+		ctx = context.WithValue(ctx, "agentKeyID", keyID)
 		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)

@@ -14,6 +14,7 @@ import '../widgets/division_radar_chart.dart';
 import '../widgets/time_heatmap_chart.dart';
 import '../widgets/welcome_header.dart';
 import '../../activity/widgets/activity_feed.dart';
+import '../../admin/data/agent_session_repository.dart';
 
 /// Full safety dashboard replacing the placeholder.
 ///
@@ -233,6 +234,7 @@ class _SafetyDashboardPageState extends State<SafetyDashboardPage> {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final isWide = constraints.maxWidth >= 900;
+          final auth = context.watch<AuthService>();
           return SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             child: Column(
@@ -322,6 +324,12 @@ class _SafetyDashboardPageState extends State<SafetyDashboardPage> {
                         ],
                         if (_divisionRadarData != null)
                           DivisionRadarChart(data: _divisionRadarData!),
+                      ],
+                      // --- Agent badge (Admin / Safety Manager only) ---
+                      if (auth.currentRole == Role.admin ||
+                          auth.currentRole == Role.safetyManager) ...[
+                        const SizedBox(height: 24),
+                        const _AgentBadge(),
                       ],
                       // --- Recent Activity Feed ---
                       const SizedBox(height: 32),
@@ -1388,6 +1396,106 @@ class _MonthYearPickerDialogState extends State<_MonthYearPickerDialog> {
           },
         ),
       ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Agent badge widget (TASK-049)
+// ---------------------------------------------------------------------------
+
+/// Compact banner showing the count of currently active agent sessions.
+///
+/// Visible to Admin and Safety Manager on the dashboard. Tapping navigates
+/// to /admin/agents for the full live-session view.
+///
+/// Color-coded: green if at least one agent is active, navy otherwise.
+/// ADA: text label always present alongside the colour (WCAG 1.4.1).
+class _AgentBadge extends StatefulWidget {
+  const _AgentBadge();
+
+  @override
+  State<_AgentBadge> createState() => _AgentBadgeState();
+}
+
+class _AgentBadgeState extends State<_AgentBadge> {
+  final AgentSessionRepository _repo = AgentSessionRepository();
+  int _count = 0;
+  bool _loaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCount();
+  }
+
+  Future<void> _loadCount() async {
+    final token = context.read<AuthService>().token;
+    if (token == null) return;
+    try {
+      final sessions = await _repo.getSessions(token);
+      if (!mounted) return;
+      setState(() {
+        _count = sessions.length;
+        _loaded = true;
+      });
+    } catch (_) {
+      // Badge is best-effort — silently ignore errors.
+      if (!mounted) return;
+      setState(() => _loaded = true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_loaded) return const SizedBox.shrink();
+
+    final hasAgents = _count > 0;
+    final label = hasAgents
+        ? '$_count agent${_count == 1 ? '' : 's'} active'
+        : 'No active agents';
+    final bgColor = hasAgents
+        ? HerzogColors.successLight
+        : HerzogColors.lightGray;
+    final fgColor = hasAgents
+        ? HerzogColors.successGreen
+        : HerzogColors.midGray;
+    final borderColor = hasAgents
+        ? HerzogColors.successGreen
+        : HerzogColors.borderGray;
+
+    return Semantics(
+      button: true,
+      label: 'Agent sessions: $label. Tap to view.',
+      child: InkWell(
+        onTap: () => context.push('/admin/agents'),
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: borderColor),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.smart_toy_outlined, color: fgColor, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  color: fgColor,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Icon(Icons.chevron_right, color: fgColor, size: 16),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
