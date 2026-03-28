@@ -72,15 +72,22 @@ class _CAPADetailPageState extends State<CAPADetailPage> {
     return role != null && role.isAtLeast(Role.safetyCoordinator);
   }
 
+  /// Whether the current user has a read-only role (Executive).
+  bool get _isReadOnly => _auth.currentRole == Role.executive;
+
   /// Complete button visible to assignee only when status is Open or In Progress.
+  /// Hidden for Executive (read-only).
   bool get _showComplete {
+    if (_isReadOnly) return false;
     final status = _capa?.status ?? '';
     return _isAssignee && (status == 'Open' || status == 'In Progress');
   }
 
   /// CRITICAL: Verify button HIDDEN from assignee entirely.
   /// Visible to other Safety Coordinator+ users when status is Verification Pending.
+  /// Hidden for Executive (read-only).
   bool get _showVerify {
+    if (_isReadOnly) return false;
     final status = _capa?.status ?? '';
     if (status != 'Verification Pending') return false;
     if (_isAssignee) return false; // HIDDEN from assignee

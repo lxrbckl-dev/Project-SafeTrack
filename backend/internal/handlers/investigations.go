@@ -171,9 +171,26 @@ func CreateInvestigation(db *gorm.DB) http.HandlerFunc {
 
 // ListInvestigations handles GET /api/investigations with query filters.
 // Supports: ?status=, ?investigator_id=, ?incident_id=, ?overdue=true
+// PM and Division Manager see scoped data via incident join.
 func ListInvestigations(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		userID := middleware.GetUserID(r)
+		userRole := middleware.GetUserRole(r)
+		// Avoid unused variable warnings — userID and userRole used for scoping below.
+		_ = userID
+		_ = userRole
+
 		query := db.Model(&models.Investigation{})
+
+		// RBAC: PM scoped — only investigations for incidents on their projects.
+		if userRole == "pm" {
+			query = query.Where("incident_id IN (SELECT id FROM incidents WHERE project_job_site = ?)", userID)
+		}
+
+		// RBAC: Division Manager scoped — only investigations for incidents in their division.
+		if userRole == "division_manager" {
+			query = query.Where("incident_id IN (SELECT id FROM incidents WHERE division = ?)", userID)
+		}
 
 		// Optional filters.
 		if status := r.URL.Query().Get("status"); status != "" {
@@ -263,10 +280,17 @@ func GetInvestigation(db *gorm.DB) http.HandlerFunc {
 }
 
 // UpdateInvestigation handles PUT /api/investigations/{id}.
+// Executive role is blocked (read-only).
 func UpdateInvestigation(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+
+		// RBAC: Executive is read-only.
+		if middleware.IsReadOnlyRole(userRole) {
+			http.Error(w, "forbidden: read-only role", http.StatusForbidden)
+			return
+		}
 
 		id := r.PathValue("id")
 		var existing models.Investigation

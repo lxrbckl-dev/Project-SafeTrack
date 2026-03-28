@@ -76,6 +76,8 @@ class _CAPADashboardPageState extends State<CAPADashboardPage> {
 
   bool get _canCreate {
     final role = _auth.currentRole;
+    // Executive is read-only — cannot create.
+    if (role == Role.executive) return false;
     return role != null && role.isAtLeast(Role.safetyCoordinator);
   }
 

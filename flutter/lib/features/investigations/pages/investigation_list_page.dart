@@ -86,8 +86,10 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Safety Manager/Admin can create investigations (but not Executive — read-only).
     final isSafetyManager =
         _auth.currentRole != null &&
+        _auth.currentRole != Role.executive &&
         (_auth.currentRole == Role.safetyManager ||
             _auth.currentRole == Role.admin);
 

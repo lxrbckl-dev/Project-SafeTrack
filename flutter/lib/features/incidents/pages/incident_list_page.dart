@@ -134,7 +134,10 @@ class _IncidentListPageState extends State<IncidentListPage> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthService>();
-    final canCreate = auth.isAtLeast(Role.fieldReporter);
+    // All roles can create incidents EXCEPT Executive (read-only).
+    final canCreate =
+        auth.isAtLeast(Role.fieldReporter) &&
+        auth.currentRole != Role.executive;
 
     return Scaffold(
       appBar: AppBar(title: const Text('INCIDENTS')),

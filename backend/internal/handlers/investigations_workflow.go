@@ -15,10 +15,17 @@ import (
 
 // CreateOrUpdateFiveWhy handles POST /api/investigations/{id}/five-whys.
 // If the body contains an ID, updates the existing entry; otherwise creates new.
+// Executive role is blocked (read-only).
 func CreateOrUpdateFiveWhy(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+
+		// RBAC: Executive is read-only.
+		if middleware.IsReadOnlyRole(userRole) {
+			http.Error(w, "forbidden: read-only role", http.StatusForbidden)
+			return
+		}
 
 		investigationID := r.PathValue("id")
 
@@ -89,10 +96,17 @@ func CreateOrUpdateFiveWhy(db *gorm.DB) http.HandlerFunc {
 
 // DeleteFiveWhy handles DELETE /api/investigations/{id}/five-whys/{whyId}.
 // Minimum 3 five-whys is enforced on submit, not on individual deletes.
+// Executive role is blocked (read-only).
 func DeleteFiveWhy(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+
+		// RBAC: Executive is read-only.
+		if middleware.IsReadOnlyRole(userRole) {
+			http.Error(w, "forbidden: read-only role", http.StatusForbidden)
+			return
+		}
 
 		investigationID := r.PathValue("id")
 		whyID := r.PathValue("whyId")
@@ -117,10 +131,17 @@ func DeleteFiveWhy(db *gorm.DB) http.HandlerFunc {
 // ---------- Contributing Factors ----------
 
 // CreateContributingFactor handles POST /api/investigations/{id}/factors.
+// Executive role is blocked (read-only).
 func CreateContributingFactor(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+
+		// RBAC: Executive is read-only.
+		if middleware.IsReadOnlyRole(userRole) {
+			http.Error(w, "forbidden: read-only role", http.StatusForbidden)
+			return
+		}
 
 		investigationID := r.PathValue("id")
 
@@ -157,10 +178,17 @@ func CreateContributingFactor(db *gorm.DB) http.HandlerFunc {
 }
 
 // DeleteContributingFactor handles DELETE /api/investigations/{id}/factors/{factorId}.
+// Executive role is blocked (read-only).
 func DeleteContributingFactor(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+
+		// RBAC: Executive is read-only.
+		if middleware.IsReadOnlyRole(userRole) {
+			http.Error(w, "forbidden: read-only role", http.StatusForbidden)
+			return
+		}
 
 		investigationID := r.PathValue("id")
 		factorID := r.PathValue("factorId")
@@ -185,10 +213,17 @@ func DeleteContributingFactor(db *gorm.DB) http.HandlerFunc {
 // ---------- Witness Statements ----------
 
 // CreateWitnessStatement handles POST /api/investigations/{id}/witnesses.
+// Executive role is blocked (read-only).
 func CreateWitnessStatement(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+
+		// RBAC: Executive is read-only.
+		if middleware.IsReadOnlyRole(userRole) {
+			http.Error(w, "forbidden: read-only role", http.StatusForbidden)
+			return
+		}
 
 		investigationID := r.PathValue("id")
 
@@ -225,10 +260,17 @@ func CreateWitnessStatement(db *gorm.DB) http.HandlerFunc {
 }
 
 // UpdateWitnessStatement handles PUT /api/investigations/{id}/witnesses/{witnessId}.
+// Executive role is blocked (read-only).
 func UpdateWitnessStatement(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+
+		// RBAC: Executive is read-only.
+		if middleware.IsReadOnlyRole(userRole) {
+			http.Error(w, "forbidden: read-only role", http.StatusForbidden)
+			return
+		}
 
 		investigationID := r.PathValue("id")
 		witnessID := r.PathValue("witnessId")
@@ -285,10 +327,17 @@ func UpdateWitnessStatement(db *gorm.DB) http.HandlerFunc {
 
 // SubmitForReview handles POST /api/investigations/{id}/submit-for-review.
 // Validates minimum 3 five-whys and at least 1 primary contributing factor.
+// Executive role is blocked (read-only).
 func SubmitForReview(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+
+		// RBAC: Executive is read-only.
+		if middleware.IsReadOnlyRole(userRole) {
+			http.Error(w, "forbidden: read-only role", http.StatusForbidden)
+			return
+		}
 
 		id := r.PathValue("id")
 		var investigation models.Investigation

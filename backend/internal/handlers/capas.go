@@ -165,10 +165,17 @@ type createCAPARequest struct {
 // CreateCAPA handles POST /api/capas.
 // Auto-sets DueDate by priority, sets AssignedByUserID from auth context,
 // updates incident status to "CAPA Assigned", and audit-logs.
+// Executive role is blocked (read-only).
 func CreateCAPA(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+
+		// RBAC: Executive is read-only.
+		if middleware.IsReadOnlyRole(userRole) {
+			http.Error(w, "forbidden: read-only role", http.StatusForbidden)
+			return
+		}
 
 		var req createCAPARequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -255,9 +262,25 @@ func CreateCAPA(db *gorm.DB) http.HandlerFunc {
 // ListCAPAs handles GET /api/capas with query filters.
 // Supports: ?status=, ?assigned_to=, ?investigation_id=, ?incident_id=,
 // ?overdue=true, ?priority=
+// PM and Division Manager see scoped data via incident join.
 func ListCAPAs(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		userID := middleware.GetUserID(r)
+		userRole := middleware.GetUserRole(r)
+		_ = userID
+		_ = userRole
+
 		query := db.Model(&models.CAPA{})
+
+		// RBAC: PM scoped — only CAPAs for incidents on their projects.
+		if userRole == "pm" {
+			query = query.Where("incident_id IN (SELECT id FROM incidents WHERE project_job_site = ?)", userID)
+		}
+
+		// RBAC: Division Manager scoped — only CAPAs for incidents in their division.
+		if userRole == "division_manager" {
+			query = query.Where("incident_id IN (SELECT id FROM incidents WHERE division = ?)", userID)
+		}
 
 		// Optional filters.
 		if status := r.URL.Query().Get("status"); status != "" {
@@ -357,10 +380,17 @@ type updateCAPARequest struct {
 // UpdateCAPA handles PUT /api/capas/{id}.
 // When status changes to "In Progress", also updates parent incident status
 // to "CAPA In Progress".
+// Executive role is blocked (read-only).
 func UpdateCAPA(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+
+		// RBAC: Executive is read-only.
+		if middleware.IsReadOnlyRole(userRole) {
+			http.Error(w, "forbidden: read-only role", http.StatusForbidden)
+			return
+		}
 
 		id := r.PathValue("id")
 		var existing models.CAPA

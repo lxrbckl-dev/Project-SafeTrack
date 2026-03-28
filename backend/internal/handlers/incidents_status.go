@@ -44,10 +44,17 @@ type statusTransitionRequest struct {
 
 // TransitionIncidentStatus handles POST /api/incidents/{id}/status.
 // Validates that the requested status transition is allowed.
+// Executive role is blocked (read-only).
 func TransitionIncidentStatus(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+
+		// RBAC: Executive is read-only.
+		if middleware.IsReadOnlyRole(userRole) {
+			http.Error(w, "forbidden: read-only role", http.StatusForbidden)
+			return
+		}
 
 		id := r.PathValue("id")
 		var incident models.Incident
@@ -89,10 +96,17 @@ func TransitionIncidentStatus(db *gorm.DB) http.HandlerFunc {
 
 // CloseIncident handles POST /api/incidents/{id}/close.
 // Validates all CAPAs for this incident are Verified Effective before closing.
+// Executive role is blocked (read-only).
 func CloseIncident(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+
+		// RBAC: Executive is read-only.
+		if middleware.IsReadOnlyRole(userRole) {
+			http.Error(w, "forbidden: read-only role", http.StatusForbidden)
+			return
+		}
 
 		id := r.PathValue("id")
 		var incident models.Incident
@@ -149,10 +163,17 @@ func CloseIncident(db *gorm.DB) http.HandlerFunc {
 }
 
 // ReopenIncident handles POST /api/incidents/{id}/reopen.
+// Executive role is blocked (read-only).
 func ReopenIncident(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+
+		// RBAC: Executive is read-only.
+		if middleware.IsReadOnlyRole(userRole) {
+			http.Error(w, "forbidden: read-only role", http.StatusForbidden)
+			return
+		}
 
 		id := r.PathValue("id")
 		var incident models.Incident
