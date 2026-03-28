@@ -116,6 +116,9 @@ func main() {
 	// Agent API key management routes (create, list, revoke — authenticated)
 	handlers.RegisterAgentRoutes(api, db)
 
+	// Agent capabilities endpoint (GET /api/agent/capabilities)
+	handlers.RegisterAgentCapabilityRoutes(api)
+
 	mux.Handle("/api/", middleware.FirebaseAuth(api))
 
 	handler := middleware.CORS(middleware.Logger(mux))
