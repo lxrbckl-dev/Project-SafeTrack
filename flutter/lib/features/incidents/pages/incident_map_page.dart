@@ -382,7 +382,7 @@ class _IncidentMapPageState extends State<IncidentMapPage> {
     return Wrap(
       spacing: 12,
       children: [
-        _legendDot(HerzogColors.errorRed, 'Critical/Fatality'),
+        _legendDot(HerzogColors.errorRed, 'Fatality/Lost Time'),
         _legendDot(HerzogColors.warningAmber, 'Medical Treatment'),
         _legendDot(HerzogColors.infoTeal, 'First Aid'),
         _legendDot(HerzogColors.successGreen, 'Near Miss'),
@@ -800,7 +800,7 @@ class _MapFilterDropdown extends StatelessWidget {
     return SizedBox(
       width: 160,
       child: DropdownButtonFormField<String>(
-        initialValue: value,
+        value: value,
         isExpanded: true,
         decoration: InputDecoration(
           labelText: label,
