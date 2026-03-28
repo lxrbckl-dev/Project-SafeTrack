@@ -8,6 +8,7 @@ import 'app/herzog_theme.dart';
 import 'core/services/notification_service.dart';
 import 'features/auth/data/auth_service.dart';
 import 'features/chat/data/chat_repository.dart';
+import 'features/chat/data/form_fill_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,6 +39,9 @@ class MyApp extends StatelessWidget {
         ),
         // ChatRepository is stateless — a single instance is shared app-wide.
         Provider<ChatRepository>(create: (_) => ChatRepository()),
+        // FormFillService holds pending AI-dispatched form fill data.
+        // Form pages consume pending data on init to auto-populate controllers.
+        ChangeNotifierProvider(create: (_) => FormFillService()),
       ],
       child: Builder(
         builder: (context) => MaterialApp.router(

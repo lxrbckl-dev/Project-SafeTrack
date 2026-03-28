@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../../app/herzog_theme.dart';
 import '../../auth/data/auth_service.dart';
+import '../../chat/data/form_fill_service.dart';
 import '../../investigations/data/investigation_repository.dart';
 import '../data/capa_repository.dart';
 
@@ -65,10 +66,52 @@ class _CAPAFormPageState extends State<CAPAFormPage> {
     if (widget.investigationId != null) {
       _loadInvestigation();
     }
+    // TASK-019: Check for AI-dispatched form fill data and listen for future
+    // dispatches (handles the case where the form is already mounted).
+    final formFillService = context.read<FormFillService>();
+    formFillService.addListener(_applyPendingFields);
+    _applyPendingFields();
+  }
+
+  /// Applies any pending form fill data from [FormFillService] (AI agent
+  /// dispatch). Called on init and reactively whenever the service notifies.
+  void _applyPendingFields() {
+    final formFillService = context.read<FormFillService>();
+    final fields = formFillService.consumePendingFields();
+    if (fields == null || fields.isEmpty) return;
+
+    setState(() {
+      for (final entry in fields.entries) {
+        switch (entry.key) {
+          case 'type':
+            if (_types.contains(entry.value)) {
+              _type = entry.value;
+            }
+          case 'category':
+            if (_categories.contains(entry.value)) {
+              _category = entry.value;
+            }
+          case 'description':
+            _descriptionController.text = entry.value;
+          case 'assignedTo':
+            _assignedToController.text = entry.value;
+          case 'priority':
+            if (_priorities.contains(entry.value)) {
+              _priority = entry.value;
+            }
+          case 'verificationMethod':
+            _verificationMethodController.text = entry.value;
+          // Silently skip unknown fields per spec.
+        }
+      }
+    });
   }
 
   @override
   void dispose() {
+    final formFillService = context.read<FormFillService>();
+    formFillService.removeListener(_applyPendingFields);
+    formFillService.clear();
     _descriptionController.dispose();
     _assignedToController.dispose();
     _verificationMethodController.dispose();

@@ -4,18 +4,26 @@ import 'package:provider/provider.dart';
 
 import '../../../app/herzog_theme.dart';
 import '../../../features/auth/data/auth_service.dart';
+import '../data/action_dispatcher.dart';
 import '../data/chat_repository.dart';
 
 // ---------------------------------------------------------------------------
 // Data model
 // ---------------------------------------------------------------------------
 
-/// A single chat message (user or AI).
+/// A single chat message (user or AI), optionally carrying structured actions.
 class _ChatMessage {
   final String text;
   final bool isUser;
+  final List<ChatAction> actions;
 
-  const _ChatMessage({required this.text, required this.isUser});
+  const _ChatMessage({
+    required this.text,
+    required this.isUser,
+    this.actions = const [],
+  });
+
+  bool get hasActions => actions.isNotEmpty;
 }
 
 // ---------------------------------------------------------------------------
@@ -27,11 +35,16 @@ class _ChatMessage {
 /// Renders as a gold FAB in the bottom-right corner of the shell. When tapped,
 /// expands to an overlay chat panel powered by Qwen 2.5 7B via [POST /api/chat].
 ///
+/// TASK-019 enhancement: AI responses can include structured actions (navigate,
+/// fill, navigate_and_fill). Action buttons are shown below the message bubble.
+/// Actions are permission-gated via [ChatActionDispatcher].
+///
 /// ADA compliance:
 /// - FAB has semantic label "Open AI assistant" / "Close AI assistant"
 /// - Chat panel is keyboard navigable; focus is managed on open/close
 /// - Send button has semantic label "Send message"
 /// - Messages have Semantics wrappers with speaker labels
+/// - Action buttons have semantic labels describing the action
 /// - Loading indicator has semantic label "Waiting for AI response"
 ///
 /// Degrades gracefully when Ollama is unavailable — shows an error message
@@ -96,7 +109,21 @@ class _ChatFabState extends State<ChatFab> with SingleTickerProviderStateMixin {
     setState(() {
       _isLoading = false;
       if (result.isSuccess) {
-        _messages.add(_ChatMessage(text: result.response!, isUser: false));
+        _messages.add(
+          _ChatMessage(
+            text: result.response!,
+            isUser: false,
+            actions: result.actions,
+          ),
+        );
+
+        // Auto-dispatch "fill" actions immediately (no button needed —
+        // the form on the current page picks up the pending data).
+        for (final action in result.actions) {
+          if (action.action == 'fill') {
+            ChatActionDispatcher.execute(context, action);
+          }
+        }
       } else {
         _messages.add(
           _ChatMessage(text: 'Error: ${result.error}', isUser: false),
@@ -105,6 +132,15 @@ class _ChatFabState extends State<ChatFab> with SingleTickerProviderStateMixin {
     });
     _scrollToBottom();
     _inputFocus.requestFocus();
+  }
+
+  void _executeAction(ChatAction action) {
+    final resultMsg = ChatActionDispatcher.execute(context, action);
+
+    setState(() {
+      _messages.add(_ChatMessage(text: resultMsg, isUser: false));
+    });
+    _scrollToBottom();
   }
 
   void _scrollToBottom() {
@@ -134,6 +170,7 @@ class _ChatFabState extends State<ChatFab> with SingleTickerProviderStateMixin {
             inputController: _inputController,
             inputFocus: _inputFocus,
             onSend: _sendMessage,
+            onActionTap: _executeAction,
           ),
 
         const SizedBox(height: 8),
@@ -173,6 +210,7 @@ class _ChatPanel extends StatelessWidget {
   final TextEditingController inputController;
   final FocusNode inputFocus;
   final VoidCallback onSend;
+  final ValueChanged<ChatAction> onActionTap;
 
   const _ChatPanel({
     required this.messages,
@@ -181,6 +219,7 @@ class _ChatPanel extends StatelessWidget {
     required this.inputController,
     required this.inputFocus,
     required this.onSend,
+    required this.onActionTap,
   });
 
   @override
@@ -213,6 +252,7 @@ class _ChatPanel extends StatelessWidget {
                     messages: messages,
                     isLoading: isLoading,
                     scrollController: scrollController,
+                    onActionTap: onActionTap,
                   ),
                 ),
               ),
@@ -282,11 +322,13 @@ class _MessageList extends StatelessWidget {
   final List<_ChatMessage> messages;
   final bool isLoading;
   final ScrollController scrollController;
+  final ValueChanged<ChatAction> onActionTap;
 
   const _MessageList({
     required this.messages,
     required this.isLoading,
     required this.scrollController,
+    required this.onActionTap,
   });
 
   @override
@@ -320,7 +362,7 @@ class _MessageList extends StatelessWidget {
         }
 
         final msg = messages[index];
-        return _MessageBubble(message: msg);
+        return _MessageBubble(message: msg, onActionTap: onActionTap);
       },
     );
   }
@@ -331,10 +373,14 @@ class _MessageList extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 /// A single chat bubble — right-aligned for user, left-aligned for AI.
+///
+/// When the AI message has actions, action buttons are displayed below the
+/// text bubble.
 class _MessageBubble extends StatelessWidget {
   final _ChatMessage message;
+  final ValueChanged<ChatAction> onActionTap;
 
-  const _MessageBubble({required this.message});
+  const _MessageBubble({required this.message, required this.onActionTap});
 
   @override
   Widget build(BuildContext context) {
@@ -344,55 +390,140 @@ class _MessageBubble extends StatelessWidget {
       label: '${isUser ? "You" : "AI assistant"}: ${message.text}',
       child: Padding(
         padding: const EdgeInsets.only(bottom: 8),
-        child: Row(
-          mainAxisAlignment: isUser
-              ? MainAxisAlignment.end
-              : MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.end,
+        child: Column(
+          crossAxisAlignment: isUser
+              ? CrossAxisAlignment.end
+              : CrossAxisAlignment.start,
           children: [
-            if (!isUser) ...[
-              const CircleAvatar(
-                radius: 12,
-                backgroundColor: HerzogColors.navyBlue,
-                child: Icon(
-                  Icons.auto_awesome,
-                  size: 12,
-                  color: HerzogColors.gold,
-                  semanticLabel: 'AI',
+            Row(
+              mainAxisAlignment: isUser
+                  ? MainAxisAlignment.end
+                  : MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                if (!isUser) ...[
+                  const CircleAvatar(
+                    radius: 12,
+                    backgroundColor: HerzogColors.navyBlue,
+                    child: Icon(
+                      Icons.auto_awesome,
+                      size: 12,
+                      color: HerzogColors.gold,
+                      semanticLabel: 'AI',
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                ],
+                Flexible(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isUser
+                          ? HerzogColors.navyBlue
+                          : HerzogColors.offWhite,
+                      borderRadius: BorderRadius.only(
+                        topLeft: const Radius.circular(12),
+                        topRight: const Radius.circular(12),
+                        bottomLeft: Radius.circular(isUser ? 12 : 2),
+                        bottomRight: Radius.circular(isUser ? 2 : 12),
+                      ),
+                      border: isUser
+                          ? null
+                          : Border.all(color: HerzogColors.borderGray),
+                    ),
+                    child: SelectableText(
+                      message.text,
+                      style: HerzogText.body(
+                        fontSize: 13,
+                        color: isUser
+                            ? HerzogColors.white
+                            : HerzogColors.darkGray,
+                      ),
+                    ),
+                  ),
+                ),
+                if (isUser) const SizedBox(width: 6),
+              ],
+            ),
+            // Action buttons — shown only for AI messages with actions
+            if (!isUser && message.hasActions)
+              _ActionButtons(
+                actions: message.actions,
+                onActionTap: onActionTap,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Action buttons
+// ---------------------------------------------------------------------------
+
+/// Renders action buttons below an AI message bubble.
+///
+/// Only shows buttons for "navigate" and "navigate_and_fill" actions.
+/// "fill" actions are auto-dispatched and do not need a button.
+class _ActionButtons extends StatelessWidget {
+  final List<ChatAction> actions;
+  final ValueChanged<ChatAction> onActionTap;
+
+  const _ActionButtons({required this.actions, required this.onActionTap});
+
+  @override
+  Widget build(BuildContext context) {
+    // Filter to actions that need user confirmation (navigate, navigate_and_fill).
+    final buttonActions = actions
+        .where((a) => a.action == 'navigate' || a.action == 'navigate_and_fill')
+        .toList();
+
+    if (buttonActions.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 30, top: 4),
+      child: Wrap(
+        spacing: 6,
+        runSpacing: 4,
+        children: buttonActions.map((action) {
+          return Semantics(
+            label: action.buttonLabel,
+            button: true,
+            child: OutlinedButton.icon(
+              onPressed: () => onActionTap(action),
+              icon: Icon(
+                action.action == 'navigate_and_fill'
+                    ? Icons.edit_note
+                    : Icons.arrow_forward,
+                size: 14,
+              ),
+              label: Text(
+                action.buttonLabel,
+                style: HerzogText.body(
+                  fontSize: 11,
+                  color: HerzogColors.navyBlue,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(width: 6),
-            ],
-            Flexible(
-              child: Container(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: HerzogColors.navyBlue,
+                side: const BorderSide(color: HerzogColors.navyBlue),
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
+                  horizontal: 10,
+                  vertical: 4,
                 ),
-                decoration: BoxDecoration(
-                  color: isUser ? HerzogColors.navyBlue : HerzogColors.offWhite,
-                  borderRadius: BorderRadius.only(
-                    topLeft: const Radius.circular(12),
-                    topRight: const Radius.circular(12),
-                    bottomLeft: Radius.circular(isUser ? 12 : 2),
-                    bottomRight: Radius.circular(isUser ? 2 : 12),
-                  ),
-                  border: isUser
-                      ? null
-                      : Border.all(color: HerzogColors.borderGray),
-                ),
-                child: SelectableText(
-                  message.text,
-                  style: HerzogText.body(
-                    fontSize: 13,
-                    color: isUser ? HerzogColors.white : HerzogColors.darkGray,
-                  ),
+                minimumSize: const Size(0, 28),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
                 ),
               ),
             ),
-            if (isUser) const SizedBox(width: 6),
-          ],
-        ),
+          );
+        }).toList(),
       ),
     );
   }

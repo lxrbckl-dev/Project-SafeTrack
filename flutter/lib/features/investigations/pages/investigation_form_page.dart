@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../../app/herzog_theme.dart';
 import '../../auth/data/auth_service.dart';
+import '../../chat/data/form_fill_service.dart';
 import '../../incidents/data/incident_repository.dart';
 import '../data/investigation_repository.dart';
 
@@ -47,10 +48,38 @@ class _InvestigationFormPageState extends State<InvestigationFormPage> {
     if (_incidentId != null) {
       _loadIncident();
     }
+    // TASK-019: Check for AI-dispatched form fill data and listen for future
+    // dispatches (handles the case where the form is already mounted).
+    final formFillService = context.read<FormFillService>();
+    formFillService.addListener(_applyPendingFields);
+    _applyPendingFields();
+  }
+
+  /// Applies any pending form fill data from [FormFillService] (AI agent
+  /// dispatch). Called on init and reactively whenever the service notifies.
+  void _applyPendingFields() {
+    final formFillService = context.read<FormFillService>();
+    final fields = formFillService.consumePendingFields();
+    if (fields == null || fields.isEmpty) return;
+
+    setState(() {
+      for (final entry in fields.entries) {
+        switch (entry.key) {
+          case 'leadInvestigator':
+            _leadCtrl.text = entry.value;
+          case 'teamMembers':
+            _teamCtrl.text = entry.value;
+          // Silently skip unknown fields per spec.
+        }
+      }
+    });
   }
 
   @override
   void dispose() {
+    final formFillService = context.read<FormFillService>();
+    formFillService.removeListener(_applyPendingFields);
+    formFillService.clear();
     _leadCtrl.dispose();
     _teamCtrl.dispose();
     super.dispose();
