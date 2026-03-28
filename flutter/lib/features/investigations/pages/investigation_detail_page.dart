@@ -81,8 +81,14 @@ class _InvestigationDetailPageState extends State<InvestigationDetailPage>
 
   bool get _editable {
     final status = _investigation?.status ?? '';
-    // Executive is read-only — never editable.
-    if (_auth.currentRole == Role.executive) return false;
+    final role = _auth.currentRole;
+    // Executive, PM, and Division Manager are view-only — cannot edit investigation details.
+    // The backend would also reject their writes (403), but hiding in UI is better UX.
+    if (role == Role.executive ||
+        role == Role.pm ||
+        role == Role.divisionManager) {
+      return false;
+    }
     return status != 'Approved';
   }
 
