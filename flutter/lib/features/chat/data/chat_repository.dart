@@ -5,6 +5,14 @@ import 'package:http/http.dart' as http;
 import '../../../core/services/api_config.dart';
 import 'action_dispatcher.dart';
 
+/// The exact text the backend returns when Ollama is unavailable.
+///
+/// Kept in sync with the Go constant `ollamaOfflineMessage` in
+/// `backend/internal/handlers/chat.go`.  The chat widget uses this to detect
+/// offline/system messages and render them with distinct offline styling.
+const String kOllamaOfflineMessage =
+    'The AI assistant is currently offline. Please try again later.';
+
 /// Result of a chat API call.
 ///
 /// Holds the AI [response] text, any parsed [actions], or an [error] message.
