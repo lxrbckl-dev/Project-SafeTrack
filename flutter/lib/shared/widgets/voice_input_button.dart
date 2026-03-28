@@ -101,9 +101,6 @@ class _VoiceInputButtonState extends State<VoiceInputButton>
         _pulseController.reset();
       }
     } else {
-      // Capture the current text so we can append to it.
-      final existingText = widget.controller.text;
-
       setState(() => _isListening = true);
       _pulseController.forward();
 
@@ -112,6 +109,9 @@ class _VoiceInputButtonState extends State<VoiceInputButton>
           if (mounted && result.finalResult) {
             final recognized = result.recognizedWords.trim();
             if (recognized.isNotEmpty) {
+              // Read CURRENT text at result time so typing while mic is open
+              // is not overwritten.
+              final existingText = widget.controller.text;
               final separator =
                   existingText.isNotEmpty && !existingText.endsWith(' ')
                   ? ' '
