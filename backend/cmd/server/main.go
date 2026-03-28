@@ -64,6 +64,9 @@ func main() {
 	// Incident link routes (manual recurrence linking, clusters)
 	handlers.RegisterIncidentLinkRoutes(api, db)
 
+	// Notification routes (escalation notifications, bell badge)
+	handlers.RegisterNotificationRoutes(api, db)
+
 	mux.Handle("/api/", middleware.FirebaseAuth(api))
 
 	handler := middleware.CORS(middleware.Logger(mux))

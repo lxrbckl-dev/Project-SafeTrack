@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../app/herzog_theme.dart';
 import '../../auth/data/auth_service.dart';
 import '../../auth/data/role.dart';
+import '../../notifications/widgets/notification_bell.dart';
 
 /// Desktop breakpoint: sidebar layout at or above this width.
 const double _kSidebarBreakpoint = 900.0;
@@ -134,6 +135,16 @@ class _DesktopShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Top AppBar carries the notification bell on desktop.
+      appBar: AppBar(
+        title: const Text(''),
+        backgroundColor: HerzogColors.richBlack,
+        elevation: 0,
+        actions: const [NotificationBell(), SizedBox(width: 8)],
+        shape: const Border(
+          bottom: BorderSide(color: HerzogColors.gold, width: 3),
+        ),
+      ),
       body: Row(
         children: [
           _Sidebar(navItems: navItems, currentLocation: currentLocation),
@@ -416,6 +427,16 @@ class _MobileShell extends StatelessWidget {
     final selectedIndex = _selectedIndex(currentLocation);
 
     return Scaffold(
+      // Top AppBar carries the notification bell on mobile.
+      appBar: AppBar(
+        title: const Text(''),
+        backgroundColor: HerzogColors.richBlack,
+        elevation: 0,
+        actions: const [NotificationBell(), SizedBox(width: 8)],
+        shape: const Border(
+          bottom: BorderSide(color: HerzogColors.gold, width: 3),
+        ),
+      ),
       body: child,
       bottomNavigationBar: Semantics(
         label: 'Main navigation',
