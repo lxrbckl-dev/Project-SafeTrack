@@ -17,17 +17,43 @@ import '../../auth/data/role.dart';
 ///
 /// Shell widgets import this class to wrap their target elements with the
 /// correct key so TutorialCoachMark can locate them on screen.
+///
+/// Desktop-only keys ([sidebar], [newIncident], [shortcutHint]) are attached
+/// inside `_Sidebar`, which is only rendered at ≥900 px. Mobile-equivalent
+/// keys ([bottomNav], [bottomNavNewIncident]) are attached to the
+/// corresponding `BottomNavigationBar` widgets in `_MobileShell`. Only one
+/// layout is active at a time, so there is never a duplicate-key conflict.
 class OnboardingKeys {
   OnboardingKeys._();
 
-  /// Key for the sidebar / bottom-nav area.
+  // ── Desktop (sidebar) keys ────────────────────────────────────────────────
+
+  /// Key for the sidebar / nav area (desktop only).
   static final GlobalKey sidebar = GlobalKey(debugLabel: 'onboarding_sidebar');
 
-  /// Key for the "New Incident" FAB or button (only present for
-  /// roles that can create incidents).
+  /// Key for the "New Incident" / Incidents item in the sidebar (desktop only).
   static final GlobalKey newIncident = GlobalKey(
     debugLabel: 'onboarding_new_incident',
   );
+
+  /// Key for the keyboard-shortcut hint in the sidebar footer (desktop only).
+  static final GlobalKey shortcutHint = GlobalKey(
+    debugLabel: 'onboarding_shortcuts',
+  );
+
+  // ── Mobile (bottom nav) keys ──────────────────────────────────────────────
+
+  /// Key for the bottom navigation bar (mobile only).
+  static final GlobalKey bottomNav = GlobalKey(
+    debugLabel: 'onboarding_bottom_nav',
+  );
+
+  /// Key for the Incidents item inside the bottom navigation bar (mobile only).
+  static final GlobalKey bottomNavNewIncident = GlobalKey(
+    debugLabel: 'onboarding_bottom_nav_incidents',
+  );
+
+  // ── Shared keys (present in both layouts) ─────────────────────────────────
 
   /// Key for the notification bell in the AppBar.
   static final GlobalKey notificationBell = GlobalKey(
@@ -36,11 +62,6 @@ class OnboardingKeys {
 
   /// Key for the AI chat FAB.
   static final GlobalKey chatFab = GlobalKey(debugLabel: 'onboarding_chat');
-
-  /// Key for the keyboard-shortcut hint in the sidebar footer.
-  static final GlobalKey shortcutHint = GlobalKey(
-    debugLabel: 'onboarding_shortcuts',
-  );
 }
 
 // ---------------------------------------------------------------------------
@@ -106,8 +127,13 @@ class _OnboardingTourState extends State<OnboardingTour> {
   }
 
   /// Builds the list of [TargetFocus] steps, adapting content to the current
-  /// user role.
-  List<TargetFocus> _buildTargets(Role? role) {
+  /// user role and screen layout.
+  ///
+  /// [isDesktop] should be `true` when the sidebar layout is active (screen
+  /// width ≥ 900 px). On mobile, steps targeting sidebar-only widgets are
+  /// replaced by their bottom-nav equivalents so that no `GlobalKey` with a
+  /// null `currentContext` is ever passed to TutorialCoachMark.
+  List<TargetFocus> _buildTargets(Role? role, {required bool isDesktop}) {
     final isFieldReporter = role == Role.fieldReporter;
 
     // Step 2 wording depends on role.
@@ -118,140 +144,248 @@ class _OnboardingTourState extends State<OnboardingTour> {
         ? 'Report a new incident from here. Your submission goes straight to your Safety Coordinator.'
         : 'Review, approve, and investigate incidents reported by your team.';
 
-    return [
-      // -----------------------------------------------------------------------
-      // Step 1: Sidebar / nav
-      // -----------------------------------------------------------------------
-      TargetFocus(
-        identify: 'sidebar',
-        keyTarget: OnboardingKeys.sidebar,
-        enableOverlayTab: true,
-        shape: ShapeLightFocus.RRect,
-        radius: 8,
-        borderSide: const BorderSide(color: HerzogColors.gold, width: 2),
-        contents: [
-          TargetContent(
-            align: ContentAlign.right,
-            padding: const EdgeInsets.all(16),
-            child: _TourCard(
-              step: '1 of 5',
-              title: 'Navigation',
-              body:
-                  'Navigate between Dashboard, Incidents, Investigations, and CAPAs using this sidebar.',
+    if (isDesktop) {
+      // ── Desktop tour: 5 steps targeting sidebar widgets ───────────────────
+      return [
+        // -------------------------------------------------------------------
+        // Step 1: Sidebar / nav
+        // -------------------------------------------------------------------
+        TargetFocus(
+          identify: 'sidebar',
+          keyTarget: OnboardingKeys.sidebar,
+          enableOverlayTab: true,
+          shape: ShapeLightFocus.RRect,
+          radius: 8,
+          borderSide: const BorderSide(color: HerzogColors.gold, width: 2),
+          contents: [
+            TargetContent(
+              align: ContentAlign.right,
+              padding: const EdgeInsets.all(16),
+              child: _TourCard(
+                step: '1 of 5',
+                title: 'Navigation',
+                body:
+                    'Navigate between Dashboard, Incidents, Investigations, and CAPAs using this sidebar.',
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
 
-      // -----------------------------------------------------------------------
-      // Step 2: New Incident (role-adaptive)
-      // -----------------------------------------------------------------------
-      TargetFocus(
-        identify: 'new_incident',
-        keyTarget: OnboardingKeys.newIncident,
-        enableOverlayTab: true,
-        shape: ShapeLightFocus.RRect,
-        radius: 8,
-        borderSide: const BorderSide(color: HerzogColors.gold, width: 2),
-        contents: [
-          TargetContent(
-            align: ContentAlign.bottom,
-            padding: const EdgeInsets.all(16),
-            child: _TourCard(
-              step: '2 of 5',
-              title: incidentStepTitle,
-              body: incidentStepBody,
+        // -------------------------------------------------------------------
+        // Step 2: New Incident (role-adaptive)
+        // -------------------------------------------------------------------
+        TargetFocus(
+          identify: 'new_incident',
+          keyTarget: OnboardingKeys.newIncident,
+          enableOverlayTab: true,
+          shape: ShapeLightFocus.RRect,
+          radius: 8,
+          borderSide: const BorderSide(color: HerzogColors.gold, width: 2),
+          contents: [
+            TargetContent(
+              align: ContentAlign.bottom,
+              padding: const EdgeInsets.all(16),
+              child: _TourCard(
+                step: '2 of 5',
+                title: incidentStepTitle,
+                body: incidentStepBody,
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
 
-      // -----------------------------------------------------------------------
-      // Step 3: Notification bell
-      // -----------------------------------------------------------------------
-      TargetFocus(
-        identify: 'notification_bell',
-        keyTarget: OnboardingKeys.notificationBell,
-        enableOverlayTab: true,
-        shape: ShapeLightFocus.Circle,
-        borderSide: const BorderSide(color: HerzogColors.gold, width: 2),
-        contents: [
-          TargetContent(
-            align: ContentAlign.bottom,
-            padding: const EdgeInsets.all(16),
-            child: _TourCard(
-              step: '3 of 5',
-              title: 'Escalation Alerts',
-              body:
-                  'Escalation alerts and notifications appear here. '
-                  'Tap the bell to see all recent alerts.',
+        // -------------------------------------------------------------------
+        // Step 3: Notification bell
+        // -------------------------------------------------------------------
+        TargetFocus(
+          identify: 'notification_bell',
+          keyTarget: OnboardingKeys.notificationBell,
+          enableOverlayTab: true,
+          shape: ShapeLightFocus.Circle,
+          borderSide: const BorderSide(color: HerzogColors.gold, width: 2),
+          contents: [
+            TargetContent(
+              align: ContentAlign.bottom,
+              padding: const EdgeInsets.all(16),
+              child: _TourCard(
+                step: '3 of 5',
+                title: 'Escalation Alerts',
+                body:
+                    'Escalation alerts and notifications appear here. '
+                    'Tap the bell to see all recent alerts.',
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
 
-      // -----------------------------------------------------------------------
-      // Step 4: AI chat FAB
-      // -----------------------------------------------------------------------
-      TargetFocus(
-        identify: 'chat_fab',
-        keyTarget: OnboardingKeys.chatFab,
-        enableOverlayTab: true,
-        shape: ShapeLightFocus.Circle,
-        borderSide: const BorderSide(color: HerzogColors.gold, width: 2),
-        contents: [
-          TargetContent(
-            align: ContentAlign.top,
-            padding: const EdgeInsets.all(16),
-            child: _TourCard(
-              step: '4 of 5',
-              title: 'AI Assistant',
-              body:
-                  'Ask the AI assistant questions about SafeTrack. '
-                  'Press Alt+K to open the chat from anywhere.',
+        // -------------------------------------------------------------------
+        // Step 4: AI chat FAB
+        // -------------------------------------------------------------------
+        TargetFocus(
+          identify: 'chat_fab',
+          keyTarget: OnboardingKeys.chatFab,
+          enableOverlayTab: true,
+          shape: ShapeLightFocus.Circle,
+          borderSide: const BorderSide(color: HerzogColors.gold, width: 2),
+          contents: [
+            TargetContent(
+              align: ContentAlign.top,
+              padding: const EdgeInsets.all(16),
+              child: _TourCard(
+                step: '4 of 5',
+                title: 'AI Assistant',
+                body:
+                    'Ask the AI assistant questions about SafeTrack. '
+                    'Press Alt+K to open the chat from anywhere.',
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
 
-      // -----------------------------------------------------------------------
-      // Step 5: Keyboard shortcuts hint
-      // -----------------------------------------------------------------------
-      TargetFocus(
-        identify: 'shortcut_hint',
-        keyTarget: OnboardingKeys.shortcutHint,
-        enableOverlayTab: true,
-        shape: ShapeLightFocus.RRect,
-        radius: 6,
-        borderSide: const BorderSide(color: HerzogColors.gold, width: 2),
-        contents: [
-          TargetContent(
-            align: ContentAlign.top,
-            padding: const EdgeInsets.all(16),
-            child: _TourCard(
-              step: '5 of 5',
-              title: 'Keyboard Shortcuts',
-              body:
-                  'Press ? to see all keyboard shortcuts. '
-                  'SafeTrack is fully keyboard accessible.',
+        // -------------------------------------------------------------------
+        // Step 5: Keyboard shortcuts hint (sidebar footer)
+        // -------------------------------------------------------------------
+        TargetFocus(
+          identify: 'shortcut_hint',
+          keyTarget: OnboardingKeys.shortcutHint,
+          enableOverlayTab: true,
+          shape: ShapeLightFocus.RRect,
+          radius: 6,
+          borderSide: const BorderSide(color: HerzogColors.gold, width: 2),
+          contents: [
+            TargetContent(
+              align: ContentAlign.top,
+              padding: const EdgeInsets.all(16),
+              child: _TourCard(
+                step: '5 of 5',
+                title: 'Keyboard Shortcuts',
+                body:
+                    'Press ? to see all keyboard shortcuts. '
+                    'SafeTrack is fully keyboard accessible.',
+              ),
             ),
-          ),
-        ],
-      ),
-    ];
+          ],
+        ),
+      ];
+    } else {
+      // ── Mobile tour: 4 steps — sidebar-only widgets omitted, bottom nav
+      //    equivalents used for navigation and incidents steps. ──────────────
+      return [
+        // -------------------------------------------------------------------
+        // Step 1: Bottom nav bar (replaces sidebar on mobile)
+        // -------------------------------------------------------------------
+        TargetFocus(
+          identify: 'bottom_nav',
+          keyTarget: OnboardingKeys.bottomNav,
+          enableOverlayTab: true,
+          shape: ShapeLightFocus.RRect,
+          radius: 8,
+          borderSide: const BorderSide(color: HerzogColors.gold, width: 2),
+          contents: [
+            TargetContent(
+              align: ContentAlign.top,
+              padding: const EdgeInsets.all(16),
+              child: _TourCard(
+                step: '1 of 4',
+                title: 'Navigation',
+                body:
+                    'Navigate between Dashboard, Incidents, Investigations, and CAPAs using the bottom bar.',
+              ),
+            ),
+          ],
+        ),
+
+        // -------------------------------------------------------------------
+        // Step 2: Incidents item in bottom nav (role-adaptive)
+        // -------------------------------------------------------------------
+        TargetFocus(
+          identify: 'bottom_nav_incidents',
+          keyTarget: OnboardingKeys.bottomNavNewIncident,
+          enableOverlayTab: true,
+          shape: ShapeLightFocus.RRect,
+          radius: 8,
+          borderSide: const BorderSide(color: HerzogColors.gold, width: 2),
+          contents: [
+            TargetContent(
+              align: ContentAlign.top,
+              padding: const EdgeInsets.all(16),
+              child: _TourCard(
+                step: '2 of 4',
+                title: incidentStepTitle,
+                body: incidentStepBody,
+              ),
+            ),
+          ],
+        ),
+
+        // -------------------------------------------------------------------
+        // Step 3: Notification bell
+        // -------------------------------------------------------------------
+        TargetFocus(
+          identify: 'notification_bell',
+          keyTarget: OnboardingKeys.notificationBell,
+          enableOverlayTab: true,
+          shape: ShapeLightFocus.Circle,
+          borderSide: const BorderSide(color: HerzogColors.gold, width: 2),
+          contents: [
+            TargetContent(
+              align: ContentAlign.bottom,
+              padding: const EdgeInsets.all(16),
+              child: _TourCard(
+                step: '3 of 4',
+                title: 'Escalation Alerts',
+                body:
+                    'Escalation alerts and notifications appear here. '
+                    'Tap the bell to see all recent alerts.',
+              ),
+            ),
+          ],
+        ),
+
+        // -------------------------------------------------------------------
+        // Step 4: AI chat FAB
+        // -------------------------------------------------------------------
+        TargetFocus(
+          identify: 'chat_fab',
+          keyTarget: OnboardingKeys.chatFab,
+          enableOverlayTab: true,
+          shape: ShapeLightFocus.Circle,
+          borderSide: const BorderSide(color: HerzogColors.gold, width: 2),
+          contents: [
+            TargetContent(
+              align: ContentAlign.top,
+              padding: const EdgeInsets.all(16),
+              child: _TourCard(
+                step: '4 of 4',
+                title: 'AI Assistant',
+                body:
+                    'Ask the AI assistant questions about SafeTrack. '
+                    'Press Alt+K to open the chat from anywhere.',
+              ),
+            ),
+          ],
+        ),
+      ];
+    }
   }
 
   /// Starts the coach-mark tour. Safe to call multiple times — only one
   /// instance is active at a time.
+  ///
+  /// Reads the current screen width via [MediaQuery] to decide whether to show
+  /// the desktop (sidebar) or mobile (bottom-nav) variant of the tour. This
+  /// prevents [NotFoundTargetException] when sidebar GlobalKeys are null on
+  /// narrow screens.
   void startTour() {
     if (!mounted) return;
     final role = context.read<AuthService>().currentRole;
     final onboardingService = context.read<OnboardingService>();
+    final isDesktop = MediaQuery.of(context).size.width >= 900;
 
     _tutorial?.removeOverlayEntry();
 
     _tutorial = TutorialCoachMark(
-      targets: _buildTargets(role),
+      targets: _buildTargets(role, isDesktop: isDesktop),
       colorShadow: HerzogColors.richBlack,
       opacityShadow: 0.85,
       textSkip: 'Skip Tour',

@@ -927,7 +927,10 @@ class _MobileShell extends StatelessWidget {
       floatingActionButton: ChatFab(key: OnboardingKeys.chatFab),
       bottomNavigationBar: Semantics(
         label: 'Main navigation',
+        // OnboardingKeys.bottomNav targets the entire bottom nav bar (step 1
+        // of the mobile tour).
         child: BottomNavigationBar(
+          key: OnboardingKeys.bottomNav,
           backgroundColor: HerzogColors.richBlack,
           selectedItemColor: HerzogColors.gold,
           unselectedItemColor: HerzogColors.smoke,
@@ -945,9 +948,18 @@ class _MobileShell extends StatelessWidget {
           items: navItems
               .map(
                 (item) => BottomNavigationBarItem(
+                  // OnboardingKeys.bottomNavNewIncident targets the Incidents
+                  // item (step 2 of the mobile tour). Only one item gets the
+                  // key; null keys are ignored by Flutter.
                   icon: Semantics(
                     label: item.label,
-                    child: Icon(item.icon, size: 22),
+                    child: Icon(
+                      item.icon,
+                      key: item.route == '/incidents'
+                          ? OnboardingKeys.bottomNavNewIncident
+                          : null,
+                      size: 22,
+                    ),
                   ),
                   label: item.label,
                   tooltip: item.label,
