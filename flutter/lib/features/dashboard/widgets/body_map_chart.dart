@@ -115,18 +115,21 @@ class _BodyMapChartState extends State<BodyMapChart> {
 
   /// Maps body part names to approximate positions on the body outline.
   /// Positions are expressed as fractions (0.0 - 1.0) of the available space.
+  ///
+  /// Lower-arm parts (Wrist, Hand, Finger) are spread further from the body
+  /// center horizontally to prevent tap-target overlap.
   static const Map<String, Offset> _bodyPartPositions = {
     'Head': Offset(0.50, 0.06),
     'Neck': Offset(0.50, 0.14),
     'Shoulder': Offset(0.35, 0.20),
     'Chest': Offset(0.50, 0.25),
     'Back': Offset(0.62, 0.30),
-    'Upper Arm': Offset(0.25, 0.28),
-    'Elbow': Offset(0.22, 0.35),
-    'Forearm': Offset(0.20, 0.42),
-    'Wrist': Offset(0.18, 0.48),
-    'Hand': Offset(0.16, 0.54),
-    'Finger': Offset(0.14, 0.58),
+    'Upper Arm': Offset(0.24, 0.28),
+    'Elbow': Offset(0.20, 0.36),
+    'Forearm': Offset(0.17, 0.43),
+    'Wrist': Offset(0.13, 0.50),
+    'Hand': Offset(0.09, 0.57),
+    'Finger': Offset(0.05, 0.63),
     'Abdomen': Offset(0.50, 0.38),
     'Hip': Offset(0.40, 0.46),
     'Upper Leg': Offset(0.42, 0.56),
@@ -159,7 +162,8 @@ class _BodyMapChartState extends State<BodyMapChart> {
       final y = pos.dy * constraints.maxHeight;
       final intensity = maxCount > 0 ? entry.count / maxCount : 0.0;
       final color = _intensityColor(intensity);
-      final radius = 10.0 + (intensity * 10.0);
+      // Cap radius at 14 to prevent adjacent bubbles from overlapping.
+      final radius = math.min(10.0 + (intensity * 10.0), 14.0);
       final isSelected = _selectedPart == entry.bodyPart;
 
       widgets.add(

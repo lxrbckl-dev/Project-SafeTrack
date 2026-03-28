@@ -72,8 +72,14 @@ class _SafetyDashboardPageState extends State<SafetyDashboardPage> {
     final heatmapFuture = repo.getTimeHeatmap();
     final radarFuture = repo.getDivisionRadar();
 
-    // Body map requires Safety Coordinator+ (the API enforces this)
-    final canViewMedical = auth.isAtLeast(Role.safetyCoordinator);
+    // Body map requires exactly Safety Coordinator, Safety Manager, or Admin.
+    // PM/DivMgr/Executive are higher in the hierarchy but the backend only
+    // permits these three roles (aggregate counts, not individual records).
+    final role = auth.currentRole;
+    final canViewMedical =
+        role == Role.safetyCoordinator ||
+        role == Role.safetyManager ||
+        role == Role.admin;
     final bodyMapFuture = canViewMedical ? repo.getBodyMap() : null;
 
     try {

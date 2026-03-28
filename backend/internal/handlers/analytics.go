@@ -186,12 +186,13 @@ func weekdayToName(w time.Weekday) string {
 // GetDivisionRadar returns multi-metric comparison data across divisions:
 // incident count, TRIR, investigation timeliness, and CAPA closure rate.
 // Only non-draft incidents from the last 12 months are considered.
+// Uses bulk GROUP BY queries to avoid N+1 query patterns.
 func GetDivisionRadar(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		twelveMonthsAgo := time.Now().AddDate(-1, 0, 0)
 		yearStart := time.Date(time.Now().Year(), 1, 1, 0, 0, 0, 0, time.UTC)
 
-		// Get all divisions that have incidents
+		// --- Query 1: incident counts per division (last 12 months) ---
 		type divRow struct {
 			Division string
 			Count    int
@@ -204,68 +205,120 @@ func GetDivisionRadar(db *gorm.DB) http.HandlerFunc {
 			Order("count DESC").
 			Scan(&divRows)
 
-		result := make([]DivisionRadarEntry, 0, len(divRows))
+		if len(divRows) == 0 {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode([]DivisionRadarEntry{})
+			return
+		}
 
+		// Build ordered division list and index for fast lookup
+		divisions := make([]string, len(divRows))
+		for i, dr := range divRows {
+			divisions[i] = dr.Division
+		}
+
+		// --- Query 2: recordable incident count per division YTD ---
+		type divCount struct {
+			Division string
+			Count    int64
+		}
+		var recordableCounts []divCount
+		db.Model(&models.Incident{}).
+			Select("division, COUNT(*) as count").
+			Where("division IN ? AND is_osha_recordable = ? AND is_draft = ? AND date >= ?",
+				divisions, true, false, yearStart).
+			Group("division").
+			Scan(&recordableCounts)
+
+		recordableMap := make(map[string]int64, len(recordableCounts))
+		for _, rc := range recordableCounts {
+			recordableMap[rc.Division] = rc.Count
+		}
+
+		// --- Query 3: hours worked per division YTD ---
+		type divHours struct {
+			Division   string
+			TotalHours float64
+		}
+		var hourRows []divHours
+		db.Model(&models.HoursWorked{}).
+			Select("division, COALESCE(SUM(total_hours), 0) as total_hours").
+			Where("division IN ? AND reporting_period_start >= ?", divisions, yearStart).
+			Group("division").
+			Scan(&hourRows)
+
+		hoursMap := make(map[string]float64, len(hourRows))
+		for _, hr := range hourRows {
+			hoursMap[hr.Division] = hr.TotalHours
+		}
+
+		// --- Query 4: investigation timeliness per division (via JOIN) ---
+		// Join incidents → investigations so we can GROUP BY division in one pass.
+		type invRow struct {
+			Division string
+			Total    int64
+			OnTime   int64
+		}
+		var invRows []invRow
+		db.Model(&models.Investigation{}).
+			Select("incidents.division as division, COUNT(*) as total, "+
+				"SUM(CASE WHEN investigations.actual_completion_date IS NOT NULL "+
+				"AND investigations.actual_completion_date <= investigations.target_completion_date "+
+				"THEN 1 ELSE 0 END) as on_time").
+			Joins("JOIN incidents ON incidents.id = investigations.incident_id").
+			Where("incidents.division IN ? AND incidents.is_draft = ? AND incidents.date >= ? AND investigations.status = ?",
+				divisions, false, twelveMonthsAgo, "Approved").
+			Group("incidents.division").
+			Scan(&invRows)
+
+		invMap := make(map[string]invRow, len(invRows))
+		for _, iv := range invRows {
+			invMap[iv.Division] = iv
+		}
+
+		// --- Query 5: CAPA closure rate per division (via JOIN) ---
+		type capaRow struct {
+			Division string
+			Total    int64
+			Closed   int64
+		}
+		var capaRows []capaRow
+		closedStatuses := []string{"Verified Effective", "Verified Ineffective", "Completed", "Verification Pending"}
+		db.Model(&models.CAPA{}).
+			Select("incidents.division as division, COUNT(*) as total, "+
+				"SUM(CASE WHEN capas.status IN ? THEN 1 ELSE 0 END) as closed", closedStatuses).
+			Joins("JOIN incidents ON incidents.id = capas.incident_id").
+			Where("incidents.division IN ? AND incidents.is_draft = ? AND incidents.date >= ?",
+				divisions, false, twelveMonthsAgo).
+			Group("incidents.division").
+			Scan(&capaRows)
+
+		capaMap := make(map[string]capaRow, len(capaRows))
+		for _, cr := range capaRows {
+			capaMap[cr.Division] = cr
+		}
+
+		// --- Assemble result from pre-fetched maps ---
+		result := make([]DivisionRadarEntry, 0, len(divRows))
 		for _, dr := range divRows {
 			entry := DivisionRadarEntry{
 				Division:  dr.Division,
 				Incidents: dr.Count,
 			}
 
-			// --- TRIR per division (YTD) ---
-			var divRecordable int64
-			db.Model(&models.Incident{}).
-				Where("division = ? AND is_osha_recordable = ? AND is_draft = ? AND date >= ?",
-					dr.Division, true, false, yearStart).
-				Count(&divRecordable)
-
-			var divHours float64
-			db.Model(&models.HoursWorked{}).
-				Where("division = ? AND reporting_period_start >= ?", dr.Division, yearStart).
-				Select("COALESCE(SUM(total_hours), 0)").
-				Scan(&divHours)
-
-			if divHours > 0 {
-				entry.TRIR = math.Round((float64(divRecordable)*200000/divHours)*100) / 100
+			// TRIR
+			if h := hoursMap[dr.Division]; h > 0 {
+				entry.TRIR = math.Round((float64(recordableMap[dr.Division])*200000/h)*100) / 100
 			}
 
-			// --- Investigation timeliness per division ---
-			// Get incident IDs for this division
-			var incidentIDs []uint
-			db.Model(&models.Incident{}).
-				Select("id").
-				Where("division = ? AND is_draft = ? AND date >= ?", dr.Division, false, twelveMonthsAgo).
-				Pluck("id", &incidentIDs)
+			// Investigation timeliness
+			if iv, ok := invMap[dr.Division]; ok && iv.Total > 0 {
+				entry.InvestigationTimeliness = math.Round((float64(iv.OnTime)/float64(iv.Total))*10000) / 100
+			}
 
-			if len(incidentIDs) > 0 {
-				var totalInv int64
-				var onTimeInv int64
-				db.Model(&models.Investigation{}).
-					Where("incident_id IN ? AND status = ?", incidentIDs, "Approved").
-					Count(&totalInv)
-				db.Model(&models.Investigation{}).
-					Where("incident_id IN ? AND status = ? AND actual_completion_date IS NOT NULL AND actual_completion_date <= target_completion_date",
-						incidentIDs, "Approved").
-					Count(&onTimeInv)
-
-				if totalInv > 0 {
-					entry.InvestigationTimeliness = math.Round((float64(onTimeInv)/float64(totalInv))*10000) / 100
-				}
-
-				// --- CAPA closure rate per division ---
-				var totalCAPAs int64
-				var closedCAPAs int64
-				db.Model(&models.CAPA{}).
-					Where("incident_id IN ?", incidentIDs).
-					Count(&totalCAPAs)
-				db.Model(&models.CAPA{}).
-					Where("incident_id IN ? AND status IN ?", incidentIDs,
-						[]string{"Verified Effective", "Verified Ineffective", "Completed", "Verification Pending"}).
-					Count(&closedCAPAs)
-
-				if totalCAPAs > 0 {
-					entry.CAPAClosureRate = math.Round((float64(closedCAPAs)/float64(totalCAPAs))*10000) / 100
-				}
+			// CAPA closure rate
+			if ca, ok := capaMap[dr.Division]; ok && ca.Total > 0 {
+				entry.CAPAClosureRate = math.Round((float64(ca.Closed)/float64(ca.Total))*10000) / 100
 			}
 
 			result = append(result, entry)
