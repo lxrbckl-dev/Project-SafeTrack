@@ -146,6 +146,52 @@ func CreateInvestigation(db *gorm.DB) http.HandlerFunc {
 		var existingCount int64
 		db.Model(&models.Investigation{}).Where("incident_id = ?", req.IncidentID).Count(&existingCount)
 		if existingCount > 0 {
+			// If the incident was reopened, reset the existing investigation
+			// instead of blocking with a 409 duplicate error.
+			if incident.Status == "Reopened" {
+				var existing models.Investigation
+				if err := db.Where("incident_id = ?", req.IncidentID).First(&existing).Error; err != nil {
+					http.Error(w, "database error", http.StatusInternalServerError)
+					return
+				}
+
+				beforeJSON := toJSON(existing)
+				now := time.Now()
+				existing.Status = "Assigned"
+				existing.LeadInvestigatorID = req.LeadInvestigatorID
+				if req.TeamMembers != "" {
+					existing.TeamMembers = req.TeamMembers
+				}
+				existing.TargetCompletionDate = targetCompletionDate(incident.Severity, now)
+				existing.ReviewedBy = ""
+				existing.ReviewComments = ""
+				existing.ReviewDate = nil
+				existing.ActualCompletionDate = nil
+				existing.IsOverdue = false
+				existing.OverdueEscalationLevel = 0
+
+				if err := db.Save(&existing).Error; err != nil {
+					http.Error(w, "database error", http.StatusInternalServerError)
+					return
+				}
+
+				// Update incident status to "Under Investigation".
+				incidentBefore := toJSON(incident)
+				incident.Status = "Under Investigation"
+				if err := db.Save(&incident).Error; err != nil {
+					http.Error(w, "database error updating incident status", http.StatusInternalServerError)
+					return
+				}
+				LogAction(db, userID, userRole, "status_change", "incident", incident.ID, incidentBefore, toJSON(incident), "Investigation reopened")
+
+				LogAction(db, userID, userRole, "reopen", "investigation", existing.ID, beforeJSON, toJSON(existing), fmt.Sprintf("Investigation reopened for incident %d", req.IncidentID))
+
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusOK)
+				json.NewEncoder(w).Encode(existing)
+				return
+			}
+
 			http.Error(w, "investigation already exists for this incident", http.StatusConflict)
 			return
 		}
