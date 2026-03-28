@@ -9,6 +9,7 @@ import '../../../shared/widgets/app_date_picker.dart';
 import '../../../shared/widgets/app_dropdown.dart';
 import '../../../shared/widgets/app_loading_button.dart';
 import '../../../shared/widgets/app_text_field.dart';
+import '../../../shared/widgets/voice_input_button.dart';
 import '../../auth/data/auth_service.dart';
 import '../../chat/data/form_fill_service.dart';
 import '../data/incident_repository.dart';
@@ -532,23 +533,30 @@ class _IncidentFormPageState extends State<IncidentFormPage> {
                 // Description Section
                 _sectionHeader('DESCRIPTION'),
                 const SizedBox(height: 12),
-                AppTextField(
-                  label: 'Description',
-                  controller: _descriptionController,
-                  hint: 'Describe the incident...',
-                  maxLines: 4,
-                  required: true,
-                  validator: (v) =>
-                      v == null || v.isEmpty ? 'Description is required' : null,
-                  onChanged: (_) => setState(() {}),
+                _fieldWithVoice(
+                  AppTextField(
+                    label: 'Description',
+                    controller: _descriptionController,
+                    hint: 'Describe the incident...',
+                    maxLines: 4,
+                    required: true,
+                    validator: (v) => v == null || v.isEmpty
+                        ? 'Description is required'
+                        : null,
+                    onChanged: (_) => setState(() {}),
+                  ),
+                  _descriptionController,
                 ),
                 const SizedBox(height: 12),
-                AppTextField(
-                  label: 'Immediate Actions Taken',
-                  controller: _immediateActionsController,
-                  hint: 'Describe any immediate actions...',
-                  maxLines: 3,
-                  onChanged: (_) => setState(() {}),
+                _fieldWithVoice(
+                  AppTextField(
+                    label: 'Immediate Actions Taken',
+                    controller: _immediateActionsController,
+                    hint: 'Describe any immediate actions...',
+                    maxLines: 3,
+                    onChanged: (_) => setState(() {}),
+                  ),
+                  _immediateActionsController,
                 ),
 
                 const SizedBox(height: 24),
@@ -636,6 +644,18 @@ class _IncidentFormPageState extends State<IncidentFormPage> {
           ),
         ),
       ),
+    );
+  }
+
+  /// Wraps [field] in a [Row] with a [VoiceInputButton] aligned to the top
+  /// right, allowing voice dictation into the associated [controller].
+  Widget _fieldWithVoice(Widget field, TextEditingController controller) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(child: field),
+        VoiceInputButton(controller: controller),
+      ],
     );
   }
 

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../app/herzog_theme.dart';
+import '../../../shared/widgets/voice_input_button.dart';
 import '../../auth/data/auth_service.dart';
 import '../../chat/data/form_fill_service.dart';
 import '../../investigations/data/investigation_repository.dart';
@@ -368,14 +369,23 @@ class _CAPAFormPageState extends State<CAPAFormPage> {
                 // Description
                 Text('Description', style: HerzogText.label(fontSize: 11)),
                 const SizedBox(height: 4),
-                TextFormField(
-                  controller: _descriptionController,
-                  decoration: const InputDecoration(
-                    hintText: 'Describe the corrective/preventive action...',
-                  ),
-                  maxLines: 4,
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Required' : null,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _descriptionController,
+                        decoration: const InputDecoration(
+                          hintText:
+                              'Describe the corrective/preventive action...',
+                        ),
+                        maxLines: 4,
+                        validator: (v) =>
+                            (v == null || v.trim().isEmpty) ? 'Required' : null,
+                      ),
+                    ),
+                    VoiceInputButton(controller: _descriptionController),
+                  ],
                 ),
                 const SizedBox(height: 16),
 
