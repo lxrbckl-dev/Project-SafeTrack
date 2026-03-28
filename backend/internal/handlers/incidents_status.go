@@ -115,6 +115,12 @@ func CloseIncident(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
+		// Status validation: only incidents in "CAPA In Progress" can be closed.
+		if incident.Status != "CAPA In Progress" {
+			http.Error(w, "incident must be in 'CAPA In Progress' status to close", http.StatusBadRequest)
+			return
+		}
+
 		// Validate that ALL CAPAs for this incident are "Verified Effective".
 		var totalCAPAs int64
 		db.Model(&models.CAPA{}).Where("incident_id = ?", incident.ID).Count(&totalCAPAs)
