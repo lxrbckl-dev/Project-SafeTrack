@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../app/herzog_theme.dart';
+import '../../../shared/widgets/voice_input_button.dart';
 import '../../auth/data/auth_service.dart';
 import '../../chat/data/form_fill_service.dart';
 import '../../incidents/data/incident_repository.dart';
@@ -285,32 +286,48 @@ class _InvestigationFormPageState extends State<InvestigationFormPage> {
                 ],
 
                 // Lead investigator
-                Semantics(
-                  label: 'Lead investigator',
-                  textField: true,
-                  child: TextField(
-                    controller: _leadCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Lead Investigator *',
-                      hintText: 'Enter investigator ID or name...',
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Semantics(
+                        label: 'Lead investigator',
+                        textField: true,
+                        child: TextField(
+                          controller: _leadCtrl,
+                          decoration: const InputDecoration(
+                            labelText: 'Lead Investigator *',
+                            hintText: 'Enter investigator ID or name...',
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
+                    VoiceInputButton(controller: _leadCtrl),
+                  ],
                 ),
                 const SizedBox(height: 16),
 
                 // Team members
-                Semantics(
-                  label: 'Team members',
-                  textField: true,
-                  child: TextField(
-                    controller: _teamCtrl,
-                    maxLines: 2,
-                    decoration: const InputDecoration(
-                      labelText: 'Team Members',
-                      hintText:
-                          'Enter team member IDs or names, comma separated...',
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Semantics(
+                        label: 'Team members',
+                        textField: true,
+                        child: TextField(
+                          controller: _teamCtrl,
+                          maxLines: 2,
+                          decoration: const InputDecoration(
+                            labelText: 'Team Members',
+                            hintText:
+                                'Enter team member IDs or names, comma separated...',
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
+                    VoiceInputButton(controller: _teamCtrl),
+                  ],
                 ),
                 const SizedBox(height: 16),
 
