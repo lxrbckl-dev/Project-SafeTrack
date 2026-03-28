@@ -199,14 +199,51 @@ class _ActivityTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      item.message,
-                      style: HerzogText.body(
-                        fontSize: 13,
-                        color: isDark
-                            ? HerzogDarkColors.textPrimary
-                            : HerzogColors.richBlack,
-                      ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            item.message,
+                            style: HerzogText.body(
+                              fontSize: 13,
+                              color: isDark
+                                  ? HerzogDarkColors.textPrimary
+                                  : HerzogColors.richBlack,
+                            ),
+                          ),
+                        ),
+                        if (item.isAgent) ...[
+                          const SizedBox(width: 6),
+                          Semantics(
+                            label: 'via agent',
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 5,
+                                vertical: 1,
+                              ),
+                              decoration: BoxDecoration(
+                                color: HerzogColors.chartPurple.withValues(
+                                  alpha: 0.12,
+                                ),
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(
+                                  color: HerzogColors.chartPurple.withValues(
+                                    alpha: 0.4,
+                                  ),
+                                ),
+                              ),
+                              child: Text(
+                                'agent',
+                                style: HerzogText.label(
+                                  fontSize: 10,
+                                  color: HerzogColors.chartPurple,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 2),
                     Text(

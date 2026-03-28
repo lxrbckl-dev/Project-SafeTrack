@@ -18,6 +18,7 @@ class AuditLogEntry {
   final String before;
   final String after;
   final String notes;
+  final bool isAgent;
 
   const AuditLogEntry({
     required this.id,
@@ -30,6 +31,7 @@ class AuditLogEntry {
     this.before = '',
     this.after = '',
     this.notes = '',
+    this.isAgent = false,
   });
 
   factory AuditLogEntry.fromJson(Map<String, dynamic> json) {
@@ -46,6 +48,7 @@ class AuditLogEntry {
       before: json['before'] as String? ?? '',
       after: json['after'] as String? ?? '',
       notes: json['notes'] as String? ?? '',
+      isAgent: json['isAgent'] as bool? ?? false,
     );
   }
 
