@@ -18,6 +18,7 @@ import '../features/capas/pages/capa_detail_page.dart';
 import '../features/capas/pages/capa_form_page.dart';
 import '../features/admin/pages/admin_settings_page.dart';
 import '../features/admin/pages/factor_types_page.dart';
+import '../features/admin/pages/osha_export_page.dart';
 import '../features/audit_log/pages/audit_log_page.dart';
 import '../features/notifications/pages/notification_preferences_page.dart';
 
@@ -233,6 +234,11 @@ GoRouter appRouter(AuthService authService) {
                 path: 'factor-types',
                 name: 'factorTypes',
                 builder: (context, state) => const FactorTypesPage(),
+              ),
+              GoRoute(
+                path: 'osha-export',
+                name: 'oshaExport',
+                builder: (context, state) => const OshaExportPage(),
               ),
             ],
           ),

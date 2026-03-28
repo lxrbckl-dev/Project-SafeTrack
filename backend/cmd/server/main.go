@@ -80,6 +80,9 @@ func main() {
 	// Advanced analytics routes (body map, time heatmap, division radar)
 	handlers.RegisterAnalyticsRoutes(api, db)
 
+	// OSHA log export routes (Form 300, 300A, 301) — Safety Manager + Admin only
+	handlers.RegisterOSHARoutes(api, db)
+
 	mux.Handle("/api/", middleware.FirebaseAuth(api))
 
 	handler := middleware.CORS(middleware.Logger(mux))
