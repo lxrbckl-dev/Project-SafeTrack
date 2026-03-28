@@ -57,8 +57,15 @@ class MyApp extends StatelessWidget {
             return service;
           },
           update: (_, db, auth, previous) {
-            final service = previous ?? SyncService(db: db);
+            if (previous != null) {
+              previous.authToken = auth.token;
+              return previous;
+            }
+            // previous is null: build a fresh instance and start its
+            // connectivity listener (mirrors the create callback).
+            final service = SyncService(db: db);
             service.authToken = auth.token;
+            service.start();
             return service;
           },
         ),

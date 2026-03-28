@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../database/app_database.dart';
 import 'api_config.dart';
+import 'sync_status.dart';
 
 /// Handles syncing local Drift data to Go API when online.
 ///
@@ -50,6 +51,10 @@ class SyncService extends ChangeNotifier {
 
   /// Start listening for connectivity changes and pending count updates.
   void start() {
+    // Reset any rows stuck in 'syncing' from a previous app session that
+    // was killed mid-sync, so they will be retried in this session.
+    db.resetStuckSyncingRows();
+
     // Listen for connectivity changes
     _subscription = Connectivity().onConnectivityChanged.listen((results) {
       final online =
@@ -128,7 +133,7 @@ class SyncService extends ChangeNotifier {
       photoPathsJson: Value(jsonEncode(photoPaths)),
       isDraft: Value(incidentJson['isDraft'] as bool? ?? true),
       reporterId: Value(incidentJson['reporterId'] as String? ?? ''),
-      syncStatus: const Value('pending'),
+      syncStatus: const Value(SyncStatus.pending),
     );
 
     final id = await db.insertOfflineIncident(entry);
@@ -162,7 +167,7 @@ class SyncService extends ChangeNotifier {
       for (final incident in pending) {
         try {
           // Mark as syncing
-          await db.updateSyncStatus(incident.id, 'syncing');
+          await db.updateSyncStatus(incident.id, SyncStatus.syncing);
 
           // Build the API payload
           final payload = _buildApiPayload(incident);
@@ -185,24 +190,28 @@ class SyncService extends ChangeNotifier {
             }
 
             // Mark as synced and remove from local DB
-            await db.updateSyncStatus(incident.id, 'synced');
+            await db.updateSyncStatus(incident.id, SyncStatus.synced);
             await db.deleteOfflineIncident(incident.id);
             synced++;
           } else if (response.statusCode == 409) {
             // Conflict: server wins (last-write-wins). Discard local copy.
-            await db.updateSyncStatus(incident.id, 'synced');
+            await db.updateSyncStatus(incident.id, SyncStatus.synced);
             await db.deleteOfflineIncident(incident.id);
             synced++;
           } else {
             await db.updateSyncStatus(
               incident.id,
-              'error',
+              SyncStatus.error,
               error: 'HTTP ${response.statusCode}: ${response.body}',
             );
             failed++;
           }
         } catch (e) {
-          await db.updateSyncStatus(incident.id, 'error', error: e.toString());
+          await db.updateSyncStatus(
+            incident.id,
+            SyncStatus.error,
+            error: e.toString(),
+          );
           failed++;
         }
       }

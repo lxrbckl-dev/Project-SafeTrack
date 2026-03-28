@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../services/sync_status.dart';
 import 'offline_incidents.dart';
 
 part 'app_database.g.dart';
@@ -52,14 +53,29 @@ class AppDatabase extends _$AppDatabase {
       into(offlineIncidents).insert(entry);
 
   /// Get all offline incidents that need syncing (pending or error).
-  Future<List<OfflineIncident>> getPendingIncidents() => (select(
-    offlineIncidents,
-  )..where((t) => t.syncStatus.isIn(const ['pending', 'error']))).get();
+  Future<List<OfflineIncident>> getPendingIncidents() =>
+      (select(offlineIncidents)..where(
+            (t) =>
+                t.syncStatus.isIn(const [SyncStatus.pending, SyncStatus.error]),
+          ))
+          .get();
 
   /// Get all offline incidents for display (any status except synced).
   Future<List<OfflineIncident>> getUnsyncedIncidents() => (select(
     offlineIncidents,
-  )..where((t) => t.syncStatus.isNotValue('synced'))).get();
+  )..where((t) => t.syncStatus.isNotValue(SyncStatus.synced))).get();
+
+  /// Reset any rows that are stuck in 'syncing' (app was killed mid-sync)
+  /// back to 'pending' so they will be retried on next sync.
+  Future<int> resetStuckSyncingRows() =>
+      (update(
+        offlineIncidents,
+      )..where((t) => t.syncStatus.equals(SyncStatus.syncing))).write(
+        OfflineIncidentsCompanion(
+          syncStatus: const Value(SyncStatus.pending),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
 
   /// Get all offline incidents regardless of status.
   Future<List<OfflineIncident>> getAllOfflineIncidents() =>
@@ -82,7 +98,12 @@ class AppDatabase extends _$AppDatabase {
   /// Watch pending incident count for reactive UI updates.
   Stream<int> watchPendingCount() {
     final query = selectOnly(offlineIncidents)
-      ..where(offlineIncidents.syncStatus.isIn(const ['pending', 'error']))
+      ..where(
+        offlineIncidents.syncStatus.isIn(const [
+          SyncStatus.pending,
+          SyncStatus.error,
+        ]),
+      )
       ..addColumns([offlineIncidents.id.count()]);
     return query.watchSingle().map(
       (row) => row.read(offlineIncidents.id.count()) ?? 0,
