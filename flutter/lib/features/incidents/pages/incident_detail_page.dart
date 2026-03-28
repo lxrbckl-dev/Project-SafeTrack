@@ -7,7 +7,9 @@ import '../../../app/herzog_theme.dart';
 import '../../auth/data/auth_service.dart';
 import '../../auth/data/role.dart';
 import '../../investigations/data/investigation_repository.dart';
+import '../data/incident_link_repository.dart';
 import '../data/incident_repository.dart';
+import '../widgets/link_incident_dialog.dart';
 import '../widgets/status_badge.dart';
 
 /// Read-only detail view of an incident with tabs for future integration.
@@ -17,8 +19,7 @@ import '../widgets/status_badge.dart';
 /// - Photos grid
 /// - Status badge at top
 /// - Medical fields gated by role (Safety Coordinator+)
-/// - Tabs: Info, OSHA, Investigation (placeholder), CAPAs (placeholder),
-///   Recurrence (placeholder)
+/// - Tabs: Info, OSHA, Investigation, CAPAs (placeholder), Recurrence
 /// - Action buttons based on role and status
 class IncidentDetailPage extends StatefulWidget {
   final int incidentId;
@@ -33,11 +34,14 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
     with SingleTickerProviderStateMixin {
   late final IncidentRepository _repo;
   late final InvestigationRepository _invRepo;
+  late final IncidentLinkRepository _linkRepo;
   late final AuthService _auth;
   late final TabController _tabController;
 
   Incident? _incident;
   Investigation? _linkedInvestigation;
+  List<IncidentLink> _links = [];
+  bool _linksLoading = false;
   bool _loading = true;
   String? _error;
 
@@ -47,6 +51,7 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
     _auth = context.read<AuthService>();
     _repo = IncidentRepository(_auth);
     _invRepo = InvestigationRepository(_auth);
+    _linkRepo = IncidentLinkRepository(_auth);
     _tabController = TabController(length: 5, vsync: this);
     _loadIncident();
   }
@@ -82,6 +87,8 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
           _linkedInvestigation = linkedInv;
           _loading = false;
         });
+        // Load recurrence links in the background after main data is ready.
+        _loadLinks();
       }
     } catch (e) {
       if (mounted) {
@@ -90,6 +97,18 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
           _loading = false;
         });
       }
+    }
+  }
+
+  Future<void> _loadLinks() async {
+    setState(() => _linksLoading = true);
+    try {
+      final links = await _linkRepo.getLinksForIncident(widget.incidentId);
+      if (mounted) setState(() => _links = links);
+    } catch (_) {
+      // Non-fatal — recurrence tab shows empty state.
+    } finally {
+      if (mounted) setState(() => _linksLoading = false);
     }
   }
 
@@ -127,10 +146,7 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
                 _buildOshaTab(),
                 _buildInvestigationTab(),
                 _buildPlaceholderTab('CAPAs', 'CAPA management (TASK-009)'),
-                _buildPlaceholderTab(
-                  'Recurrence',
-                  'Recurrence linking (TASK-011)',
-                ),
+                _buildRecurrenceTab(),
               ],
             ),
     );
@@ -575,6 +591,216 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
         ],
       ),
     );
+  }
+
+  Widget _buildRecurrenceTab() {
+    final isSafetyCoordinator = _auth.isAtLeast(Role.safetyCoordinator);
+
+    if (_linksLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 800),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(child: _sectionTitle('LINKED INCIDENTS')),
+                if (isSafetyCoordinator)
+                  ElevatedButton.icon(
+                    onPressed: () => _showLinkDialog(),
+                    icon: const Icon(Icons.link, size: 16),
+                    label: const Text('Link Incident'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: HerzogColors.navyBlue,
+                      foregroundColor: HerzogColors.white,
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            // View clusters button
+            OutlinedButton.icon(
+              onPressed: () => context.go('/incidents/clusters'),
+              icon: const Icon(Icons.account_tree_outlined, size: 16),
+              label: const Text('View All Clusters'),
+            ),
+            const SizedBox(height: 16),
+
+            if (_links.isEmpty)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.link_off,
+                        size: 48,
+                        color: HerzogColors.smoke.withValues(alpha: 0.5),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'No linked incidents',
+                        style: HerzogText.heading(fontSize: 18),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        isSafetyCoordinator
+                            ? 'Use "Link Incident" to connect related incidents.'
+                            : 'A Safety Coordinator can link related incidents.',
+                        style: HerzogText.body(color: HerzogColors.midGray),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _links.length,
+                separatorBuilder: (context, index) => const SizedBox(height: 8),
+                itemBuilder: (context, index) {
+                  final link = _links[index];
+                  return _buildLinkCard(link, isSafetyCoordinator);
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLinkCard(IncidentLink link, bool canDelete) {
+    final other = link.linkedIncident;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                // Similarity type chip
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: HerzogColors.navyBlue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: HerzogColors.navyBlue.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Text(
+                    link.similarityType,
+                    style: HerzogText.label(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: HerzogColors.navyBlue,
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                // Navigate to linked incident
+                TextButton.icon(
+                  onPressed: () => context.go('/incidents/${other.id}'),
+                  icon: const Icon(Icons.open_in_new, size: 14),
+                  label: Text(
+                    '#${other.id}',
+                    style: HerzogText.body(
+                      fontSize: 13,
+                      color: HerzogColors.navyBlue,
+                    ),
+                  ),
+                ),
+                // Delete button (Safety Coordinator+ only)
+                if (canDelete)
+                  Semantics(
+                    label: 'Remove link to incident ${other.id}',
+                    child: IconButton(
+                      icon: const Icon(
+                        Icons.link_off,
+                        size: 18,
+                        color: HerzogColors.errorRed,
+                      ),
+                      tooltip: 'Remove link',
+                      onPressed: () => _confirmDeleteLink(link),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            _detailRow('Type', other.type),
+            _detailRow('Location', other.location),
+            _detailRow('Division', other.division),
+            _detailRow('Status', other.status),
+            _detailRow('Severity', other.severity),
+            if (link.notes.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              _detailRow('Notes', link.notes),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showLinkDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (_) => LinkIncidentDialog(
+        sourceIncidentId: widget.incidentId,
+        onLinked: _loadLinks,
+      ),
+    );
+  }
+
+  Future<void> _confirmDeleteLink(IncidentLink link) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Remove Link'),
+        content: Text(
+          'Remove the link to incident #${link.linkedIncident.id}?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: HerzogColors.errorRed,
+              foregroundColor: HerzogColors.white,
+            ),
+            child: const Text('Remove'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      try {
+        await _linkRepo.deleteLink(link.id);
+        _loadLinks();
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Failed to remove link: $e')));
+        }
+      }
+    }
   }
 
   Widget _buildPlaceholderTab(String title, String description) {
