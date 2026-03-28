@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
 
 import '../../../app/herzog_theme.dart';
+import '../../audit_log/data/audit_log_repository.dart';
 import '../../auth/data/auth_service.dart';
 import '../../auth/data/role.dart';
 import '../../capas/data/capa_repository.dart';
 import '../../investigations/data/investigation_repository.dart';
 import '../data/incident_link_repository.dart';
 import '../data/incident_repository.dart';
+import '../services/incident_pdf_service.dart';
 import '../widgets/link_incident_dialog.dart';
 import '../widgets/status_badge.dart';
 
@@ -54,6 +57,7 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
   bool _loading = true;
   bool _closing = false;
   bool _reopening = false;
+  bool _generatingPdf = false;
   String? _error;
   String? _suggestionsError;
 
@@ -220,6 +224,68 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
           ),
         );
       }
+    }
+  }
+
+  Future<void> _exportPdf() async {
+    final incident = _incident;
+    if (incident == null) return;
+    setState(() => _generatingPdf = true);
+    try {
+      // Fetch related data in parallel.
+      final role = _auth.currentRole ?? Role.fieldReporter;
+      final auditRepo = AuditLogRepository(_auth);
+
+      final investigationFuture = (_linkedInvestigation?.id != null)
+          ? _invRepo
+                .getInvestigation(_linkedInvestigation!.id!)
+                .catchError((_) => _linkedInvestigation!)
+          : Future<Investigation?>.value(_linkedInvestigation);
+
+      final auditFuture = auditRepo
+          .getAuditLogs(
+            AuditLogFilter(
+              entityType: 'incident',
+              entityId: incident.id?.toString(),
+              perPage: 20,
+            ),
+          )
+          .then((page) => page.data)
+          .catchError(
+            // Audit log may be restricted or unavailable — continue without it.
+            (_) => <AuditLogEntry>[],
+          );
+
+      final results = await Future.wait([investigationFuture, auditFuture]);
+      final investigation = results[0] as Investigation?;
+      final auditEntries = results[1] as List<AuditLogEntry>;
+
+      final pdf = await IncidentPdfService.generateReport(
+        incident: incident,
+        investigation: investigation,
+        capas: _capas,
+        auditEntries: auditEntries,
+        userRole: role,
+      );
+
+      if (!mounted) return;
+
+      // Open the print/save dialog (works on web as download, mobile as share).
+      await Printing.layoutPdf(
+        onLayout: (_) => pdf.save(),
+        name: 'Incident_Report_${incident.id}.pdf',
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to generate PDF: $e'),
+            backgroundColor: HerzogColors.errorRed,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _generatingPdf = false);
     }
   }
 
@@ -615,6 +681,23 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
                     ],
                   ),
               ],
+            ),
+            const SizedBox(height: 12),
+            // Export PDF — available to all roles
+            Semantics(
+              label: 'Export incident report as PDF',
+              button: true,
+              child: OutlinedButton.icon(
+                onPressed: _generatingPdf ? null : _exportPdf,
+                icon: _generatingPdf
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.picture_as_pdf, size: 16),
+                label: Text(_generatingPdf ? 'Generating...' : 'Export PDF'),
+              ),
             ),
           ],
         ),
