@@ -113,6 +113,7 @@ class MyApp extends StatelessWidget {
                   ? ThemeMode.dark
                   : ThemeMode.light,
               routerConfig: appRouter(context.read<AuthService>()),
+              debugShowCheckedModeBanner: false,
             ),
           );
         },
