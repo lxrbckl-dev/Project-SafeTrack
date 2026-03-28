@@ -206,27 +206,30 @@ class _LoginPageState extends State<LoginPage> {
                           child: Semantics(
                             button: true,
                             label: 'Forgot password, opens email',
-                            child: GestureDetector(
-                              onTap: () => launchUrl(
-                                Uri.parse(
-                                  'mailto:aarbuckle@herzog.com'
-                                  '?subject=SafeTrack%20Forgot%20My%20Password'
-                                  '&body=Hello%2C%20I%20need%20help%20resetting'
-                                  '%20my%20SafeTrack%20password.%0A%0AName%3A%20'
-                                  '%0AEmail%3A%20%0ARole%3A%20%0A%0AThank%20you.',
+                            child: MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: GestureDetector(
+                                onTap: () => launchUrl(
+                                  Uri.parse(
+                                    'mailto:aarbuckle@herzog.com'
+                                    '?subject=SafeTrack%20Forgot%20My%20Password'
+                                    '&body=Hello%2C%20I%20need%20help%20resetting'
+                                    '%20my%20SafeTrack%20password.%0A%0AName%3A%20'
+                                    '%0AEmail%3A%20%0ARole%3A%20%0A%0AThank%20you.',
+                                  ),
+                                  mode: LaunchMode.externalApplication,
                                 ),
-                                mode: LaunchMode.externalApplication,
-                              ),
-                              child: Text(
-                                'Forgot Password?',
-                                style:
-                                    HerzogText.body(
-                                      fontSize: 14,
-                                      color: HerzogColors.gold,
-                                    ).copyWith(
-                                      decoration: TextDecoration.underline,
-                                      decorationColor: HerzogColors.gold,
-                                    ),
+                                child: Text(
+                                  'Forgot Password?',
+                                  style:
+                                      HerzogText.body(
+                                        fontSize: 14,
+                                        color: HerzogColors.gold,
+                                      ).copyWith(
+                                        decoration: TextDecoration.underline,
+                                        decorationColor: HerzogColors.gold,
+                                      ),
+                                ),
                               ),
                             ),
                           ),
