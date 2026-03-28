@@ -34,13 +34,8 @@ type TimelineEvent struct {
 // view its timeline.
 func GetIncidentTimeline(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Extract incident ID from URL path: /api/incidents/{id}/timeline
-		path := r.URL.Path
-		// Path is expected to end with "/<id>/timeline"
-		path = strings.TrimSuffix(path, "/timeline")
-		parts := strings.Split(path, "/")
-		rawID := parts[len(parts)-1]
-		incidentID, err := strconv.ParseUint(rawID, 10, 64)
+		// Extract incident ID from the named path parameter.
+		incidentID, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
 		if err != nil || incidentID == 0 {
 			http.Error(w, "invalid incident id", http.StatusBadRequest)
 			return
@@ -53,10 +48,13 @@ func GetIncidentTimeline(db *gorm.DB) http.HandlerFunc {
 			if name, ok := userCache[userID]; ok {
 				return name
 			}
-			var u models.User
-			if err := db.Where("id = ?", userID).First(&u).Error; err == nil {
-				userCache[userID] = u.DisplayName
-				return u.DisplayName
+			uid, parseErr := strconv.ParseUint(userID, 10, 64)
+			if parseErr == nil {
+				var user models.User
+				if err := db.First(&user, uid).Error; err == nil {
+					userCache[userID] = user.DisplayName
+					return user.DisplayName
+				}
 			}
 			// Fall back to the user ID itself if not found.
 			userCache[userID] = userID
@@ -134,7 +132,7 @@ func buildDescription(log models.AuditLog) string {
 		return fmt.Sprintf("%s status changed", entity)
 	case "approve":
 		return fmt.Sprintf("%s approved", entity)
-	case "reject":
+	case "return":
 		if log.Notes != "" {
 			return fmt.Sprintf("%s returned: %s", entity, log.Notes)
 		}

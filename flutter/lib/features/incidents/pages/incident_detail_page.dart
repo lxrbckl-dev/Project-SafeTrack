@@ -25,7 +25,7 @@ import '../widgets/status_badge.dart';
 /// - Photos grid
 /// - Status badge at top
 /// - Medical fields gated by role (Safety Coordinator+)
-/// - Tabs: Info, OSHA, Investigation, CAPAs, Recurrence
+/// - Tabs: Info, OSHA, Investigation, CAPAs, Recurrence, Timeline
 /// - Action buttons: Edit, Start Investigation, OSHA Determination, Close, Reopen
 /// - Close validates all CAPAs verified effective (backend enforces)
 /// - Reopen available from Closed status (Safety Manager+)
