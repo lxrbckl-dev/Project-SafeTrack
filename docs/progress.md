@@ -115,6 +115,8 @@ Each agent is trained with embedded skills in their definition files (`.claude/a
 | Phase 8: Domain innovation | Complete | TASK-039 through TASK-041 — all merged |
 | Phase 9: Demo polish | Complete | TASK-042 through TASK-043 — all merged |
 | Bug sweep | Complete | 6 bugs found, 4 fixed (#88-91), 2 low-severity deferred. Clean re-pass |
+| Integration stress test | Complete | 17/17 cross-feature tests passed. Zero bugs |
+| Resilience stress test | Complete | 14 tests: 1 High + 3 Medium fixed (#94-97), 3 Low deferred. Clean re-pass |
 
 ## Completed — Rubric Features (QA Verified)
 
