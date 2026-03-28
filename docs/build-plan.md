@@ -383,7 +383,7 @@
 
 **Flutter:**
 - `Shortcuts`/`Actions` widget in app shell
-- Shortcuts: page navigation (D=Dashboard, I=Incidents, V=Investigations, C=CAPAs), chatbot toggle (Ctrl+K or /), Escape to close panels
+- Shortcuts: page navigation (Alt+D=Dashboard, Alt+I=Incidents, Alt+V=Investigations, Alt+C=CAPAs), chatbot toggle (Ctrl+K or /), Escape to close panels
 
 **QA:** All shortcuts work. No conflicts with browser defaults. Visible shortcut hints somewhere in UI.
 
