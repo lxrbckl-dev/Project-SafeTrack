@@ -8,14 +8,15 @@ import '../../auth/data/auth_service.dart';
 import '../../auth/data/role.dart';
 import '../data/investigation_repository.dart';
 import '../widgets/contributing_factors_panel.dart';
+import '../widgets/fishbone_diagram.dart';
 import '../widgets/five_why_chain.dart';
 import '../widgets/investigation_review_panel.dart';
 import '../widgets/witness_statement_card.dart';
 
 /// Detail page for a single investigation with tabbed interface.
 ///
-/// Tabs: Overview, 5-Why Analysis, Contributing Factors, Witness Statements,
-/// Review.
+/// Tabs: Overview, 5-Why Analysis, Contributing Factors, Fishbone,
+/// Witness Statements, Review.
 class InvestigationDetailPage extends StatefulWidget {
   final int investigationId;
 
@@ -42,7 +43,7 @@ class _InvestigationDetailPageState extends State<InvestigationDetailPage>
     super.initState();
     _auth = context.read<AuthService>();
     _repo = InvestigationRepository(_auth);
-    _tabController = TabController(length: 5, vsync: this);
+    _tabController = TabController(length: 6, vsync: this);
     _loadData();
   }
 
@@ -115,6 +116,7 @@ class _InvestigationDetailPageState extends State<InvestigationDetailPage>
             Tab(text: 'OVERVIEW'),
             Tab(text: '5-WHY'),
             Tab(text: 'FACTORS'),
+            Tab(text: 'FISHBONE'),
             Tab(text: 'WITNESSES'),
             Tab(text: 'REVIEW'),
           ],
@@ -132,6 +134,7 @@ class _InvestigationDetailPageState extends State<InvestigationDetailPage>
                 _buildOverviewTab(),
                 _buildFiveWhyTab(),
                 _buildFactorsTab(),
+                _buildFishboneTab(),
                 _buildWitnessesTab(),
                 _buildReviewTab(),
               ],
@@ -467,6 +470,18 @@ class _InvestigationDetailPageState extends State<InvestigationDetailPage>
         await _repo.deleteFactor(inv.id!, factorId);
         await _loadData();
       },
+    );
+  }
+
+  // --- Fishbone Tab ---
+  Widget _buildFishboneTab() {
+    final inv = _investigation!;
+    if (inv.contributingFactors.isEmpty) {
+      return const FishboneEmptyState();
+    }
+    return FishboneDiagram(
+      factors: inv.contributingFactors,
+      problemLabel: 'INCIDENT #${inv.incidentId}',
     );
   }
 
