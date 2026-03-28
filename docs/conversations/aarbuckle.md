@@ -405,3 +405,34 @@ Already installed: Flutter 3.41.4, Xcode 26.3, Playwright 1.58.2
 - No more manual `ollama pull` step required; survives volume wipes
 - Verified full teardown/startup cycle: `down -v` → `up -d` → seed → all services healthy
 - Updated README to reflect AI chat is now automatic (~30s delay on first start)
+
+### Keyboard Shortcut Updates
+- Changed navigation shortcuts from single-letter (D/I/V/C) to Alt+D/I/V/C — prevents accidental triggers while typing
+- Changed chat toggle from Ctrl+K to Alt+K for consistency with Alt+ convention
+- Updated overlay, sidebar badges, README, wiki, and build-plan references
+- Sub-agents handled both changes: PR #44 (Alt nav) and PR #46 (Alt+K chat), both QA verified
+
+### Documentation Sweep
+- Searched entire codebase for stale keyboard shortcut references
+- Updated build-plan.md with Alt+ shortcuts
+- Regenerated wiki.md — was severely outdated (still had POC routes), now covers all 17 routes, features, roles, shortcuts
+- Confirmed conversation logs are historical records — left old references as-is
+
+### Phase 6 Roadmap
+- Added Phase 6 to build-plan.md with 7 future tasks from rubric's deferred items
+- TASK-020: User authentication (login page + seeded accounts)
+- TASK-023: Offline incident reporting (Drift + connectivity_plus POC already exists)
+- TASK-024: Fishbone/Ishikawa diagram
+- TASK-025: Automated recurrence detection
+- TASK-026: Advanced analytics (body heat map, time heatmap, radar chart)
+- TASK-027: OSHA 300/300A/301 log generation
+- TASK-028: Email/push notifications
+- Discussed Training system CAPA integration — skipped because it requires external system that doesn't exist
+
+### User Authentication Implementation
+- Sub-agents built TASK-020 (login system): PR #48, peer reviewed + QA (22 checks) + merged
+- Go: User model with bcrypt, POST /api/login, 12 seeded test users (shared password `demo1234`)
+- Flutter: LoginPage with email/password form, tap-to-autofill test accounts card
+- All seed data updated to reference real user IDs
+- Dev login page and endpoint removed
+- QA flagged: some Playwright specs still reference POST /api/dev-login (follow-up needed)

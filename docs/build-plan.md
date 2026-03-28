@@ -403,6 +403,149 @@
 
 ---
 
+## Phase 6: Future Roadmap
+
+> These tasks implement the rubric's "Future Phase (Deferred)" items. All prerequisite data models and infrastructure are already in place from Phases 0-5.
+
+### TASK-020: User Authentication System (Login Page + Seeded Accounts)
+- **Difficulty:** Complex
+- **Assignee:** SWE-1
+- **Dependencies:** All feature tasks merged
+
+**Go:**
+- `models/user.go` — `User{ID, Email, PasswordHash, DisplayName, Role, Division, Project, CreatedAt, UpdatedAt}`. Register in `AllModels()`
+- `handlers/login.go` — `POST /api/login` accepts `{email, password}`, validates with bcrypt, returns JWT with same claim structure (sub, role, displayName, division, project, exp, iat)
+- Add `/api/login` to public routes in `middleware/auth.go`
+- Seed 7 test users in `database/seed.go` (all password `demo1234`, bcrypt-hashed):
+  - `reporter@safetrack.demo` — Maria Santos, field_reporter
+  - `coordinator@safetrack.demo` — James Chen, safety_coordinator
+  - `manager@safetrack.demo` — Sarah Williams, safety_manager
+  - `pm@safetrack.demo` — Michael Torres, pm, Project Alpha
+  - `director@safetrack.demo` — Lisa Anderson, division_manager, Construction
+  - `executive@safetrack.demo` — Robert Kim, executive
+  - `admin@safetrack.demo` — Alex Thompson, admin
+- Update all existing seed data (incidents, investigations, CAPAs, notifications) to reference new user IDs
+- Remove `POST /api/dev-login` endpoint
+
+**Flutter:**
+- `features/auth/pages/login_page.dart` — email + password fields, show/hide toggle, login button, error snackbar
+- Display "Test Accounts" card on login page listing all 7 emails with roles and shared password
+- Update `AuthService` — replace `devLogin(role)` with `login(email, password)` calling `POST /api/login`
+- Delete `dev_login_page.dart`
+- Update `app_router.dart` — point `/login` to new `LoginPage`
+- Update README with test credentials
+
+**QA:** All 7 accounts log in successfully. Wrong credentials show error. RBAC works per role. Seed data attributed to correct users. Notifications scoped to logged-in user. Responsive at 375px. ADA compliant.
+
+---
+
+### TASK-023: Offline Incident Reporting
+- **Difficulty:** Complex
+- **Assignee:** SWE-2
+- **Dependencies:** TASK-020 merged
+
+**Flutter:**
+- Wire existing `AppDatabase` (Drift) into `main.dart` MultiProvider
+- Register existing `SyncService` as a Provider with `connectivity_plus` listener
+- Save incident form data to Drift when offline, auto-sync to Go API when connectivity restored
+- Offline indicator banner in app shell (connectivity_plus stream)
+- Photo queuing for deferred upload
+- Conflict resolution: server wins (last-write-wins)
+
+**QA:** Create incident while offline (disable network). Reconnect — incident syncs to API. Offline banner appears/disappears. Photos upload after reconnect. No data loss.
+
+---
+
+### TASK-024: Fishbone / Ishikawa Diagram
+- **Difficulty:** Complex
+- **Assignee:** SWE-1
+- **Dependencies:** TASK-007 merged (investigation UI with contributing factors)
+
+**Flutter:**
+- `features/investigations/widgets/fishbone_diagram.dart` — interactive fishbone with 6 category spines (People, Equipment, Environmental, Procedural, Management/Organizational, Other)
+- Rendered from existing `ContributingFactor` data on investigation detail page
+- Pan/zoom via `InteractiveViewer`, ADA compliant (semantic labels per factor)
+- New tab on `InvestigationDetailPage`
+
+**QA:** Diagram renders with correct factors on correct spines. Primary factor visually distinguished. Pan/zoom works. Screen reader labels present.
+
+---
+
+### TASK-025: Automated Recurrence Detection
+- **Difficulty:** Complex
+- **Assignee:** SWE-2
+- **Dependencies:** TASK-011 merged (manual recurrence linking)
+
+**Go:**
+- `handlers/recurrence.go` — `POST /api/incidents/{id}/check-recurrence` scans historical incidents across 4 match criteria (same location, same type, same root cause via contributing factors, same equipment)
+- Configurable lookback window via admin setting (default 12 months)
+- Returns ranked list of potential matches with similarity scores
+
+**Flutter:**
+- "Suggested Matches" section on incident detail Recurrence tab
+- Safety Coordinator confirms (creates link) or dismisses suggestions
+- Dismissed suggestions not shown again
+
+**QA:** New incident triggers suggestions. Correct matches surfaced. Confirm creates link. Dismiss persists. Lookback window configurable.
+
+---
+
+### TASK-026: Advanced Analytics Views
+- **Difficulty:** Complex
+- **Assignee:** SWE-1
+- **Dependencies:** TASK-010 merged (safety dashboard)
+
+**Go:**
+- `GET /api/dashboard/body-map` — injury counts by body part
+- `GET /api/dashboard/time-heatmap` — incidents by hour-of-day × day-of-week
+- `GET /api/dashboard/division-radar` — multi-metric comparison across divisions
+
+**Flutter:**
+- Body part injury heat map (SVG body diagram with color-coded regions)
+- Hour × day heatmap grid (fl_chart or custom painter)
+- Division comparison radar chart (fl_chart)
+- New tabs or sections on `SafetyDashboardPage`
+
+**QA:** All three visualizations render with seed data. Accurate counts. Responsive. ADA compliant.
+
+---
+
+### TASK-027: OSHA 300/300A/301 Log Generation
+- **Difficulty:** Routine
+- **Assignee:** SWE-2
+- **Dependencies:** TASK-004 merged (incident models with OSHA fields)
+
+**Go:**
+- `handlers/osha_logs.go` — `GET /api/osha/300`, `GET /api/osha/300a`, `GET /api/osha/301/{incidentId}`
+- Generate formatted logs per OSHA requirements from existing incident + injured person data
+- CSV export format. Safety Manager + Admin RBAC
+
+**Flutter:**
+- `features/admin/pages/osha_export_page.dart` — year selector, download buttons for 300/300A, per-incident 301
+- Route: `/admin/osha-export`
+
+**QA:** Logs generate with correct data. Only Safety Manager + Admin can access. CSV downloads. Covers all OSHA-recordable incidents.
+
+---
+
+### TASK-028: Email/Push Notifications
+- **Difficulty:** Complex
+- **Assignee:** SWE-1
+- **Dependencies:** TASK-013 merged (in-app notifications), TASK-020 merged (user accounts with emails)
+
+**Go:**
+- `services/email.go` — email delivery service (SMTP or SendGrid)
+- Extend `POST /api/notifications/check-escalations` to send email for new escalation notifications
+- `PUT /api/users/{id}/notification-preferences` — in-app only, email, or both
+
+**Flutter:**
+- Notification preferences toggle in user profile or settings
+- Email templates for: overdue investigation, overdue CAPA, railroad deadline, review request
+
+**QA:** Escalation triggers email to correct user. Preferences respected. In-app notifications still work. Email contains correct entity links.
+
+---
+
 ## Parallelism Map
 
 ```
@@ -430,13 +573,13 @@ T10     TASK-019: AI Agent             (polish)                       Tests 017-
 
 | Metric | Value |
 |---|---|
-| Total tasks | 19 |
+| Total tasks | 26 (19 complete + 7 planned) |
 | Trivial | 0 |
-| Routine | 9 (001, 002, 003, 011, 013, 015, 016, 017, 018) |
-| Complex | 9 (004, 005, 006, 007, 008, 009, 010, 012, 019) |
+| Routine | 10 (001, 002, 003, 011, 013, 015, 016, 017, 018, 027) |
+| Complex | 15 (004, 005, 006, 007, 008, 009, 010, 012, 019, 020, 023, 024, 025, 026, 028) |
 | Critical | 1 (014) |
-| SWE-1 tasks | 10 (001, 003, 005, 007, 009, 011, 013, 015, 017, 019) |
-| SWE-2 tasks | 9 (002, 004, 006, 008, 010, 012, 014, 016, 018) |
+| Phases 0-5 (complete) | 19 tasks — all merged and QA verified |
+| Phase 6 (planned) | 7 tasks — TASK-020, 023, 024, 025, 026, 027, 028 |
 
 ## Shared File Coordination
 
