@@ -40,6 +40,8 @@ func main() {
 
 	// Seed default settings on startup (no-op if rows already exist)
 	handlers.SeedDefaultSettings(db)
+	// Ensure settings added after initial seed exist on pre-existing databases
+	handlers.SeedMissingSettings(db)
 
 	// Populate demo data when SEED_DATA=true (idempotent — skipped if DB non-empty)
 	if os.Getenv("SEED_DATA") == "true" {
@@ -71,6 +73,9 @@ func main() {
 
 	// Notification routes (escalation notifications, bell badge)
 	handlers.RegisterNotificationRoutes(api, db)
+
+	// Recurrence detection routes (automated similarity scanning, dismiss suggestions)
+	handlers.RegisterRecurrenceRoutes(api, db)
 
 	mux.Handle("/api/", middleware.FirebaseAuth(api))
 

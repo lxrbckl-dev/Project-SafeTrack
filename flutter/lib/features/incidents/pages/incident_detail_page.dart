@@ -46,12 +46,16 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
   Investigation? _linkedInvestigation;
   List<IncidentLink> _links = [];
   List<CAPA> _capas = [];
+  List<RecurrenceMatch> _suggestions = [];
   bool _linksLoading = false;
   bool _capasLoading = false;
+  bool _suggestionsLoading = false;
+  bool _suggestionsChecked = false;
   bool _loading = true;
   bool _closing = false;
   bool _reopening = false;
   String? _error;
+  String? _suggestionsError;
 
   @override
   void initState() {
@@ -131,6 +135,91 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
       // Non-fatal — CAPAs tab shows empty state.
     } finally {
       if (mounted) setState(() => _capasLoading = false);
+    }
+  }
+
+  Future<void> _checkRecurrence() async {
+    setState(() {
+      _suggestionsLoading = true;
+      _suggestionsError = null;
+    });
+    try {
+      final suggestions = await _linkRepo.checkRecurrence(widget.incidentId);
+      if (mounted) {
+        setState(() {
+          _suggestions = suggestions;
+          _suggestionsChecked = true;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _suggestionsError = e.toString();
+          _suggestionsChecked = true;
+        });
+      }
+    } finally {
+      if (mounted) setState(() => _suggestionsLoading = false);
+    }
+  }
+
+  Future<void> _confirmSuggestion(RecurrenceMatch match) async {
+    try {
+      // Use the primary match criterion for the link's similarity type.
+      final similarityType = match.matchCriteria.isNotEmpty
+          ? match.matchCriteria.first
+          : 'Same Type';
+      await _linkRepo.createLink(
+        incidentId1: widget.incidentId,
+        incidentId2: match.incidentId,
+        similarityType: similarityType,
+        notes: 'Auto-detected: ${match.similarityType}',
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Linked to incident #${match.incidentId}'),
+            backgroundColor: HerzogColors.successGreen,
+          ),
+        );
+        // Remove from suggestions list and refresh links.
+        setState(() {
+          _suggestions.removeWhere((s) => s.incidentId == match.incidentId);
+        });
+        _loadLinks();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to link incident: $e'),
+            backgroundColor: HerzogColors.errorRed,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _dismissSuggestion(RecurrenceMatch match) async {
+    try {
+      await _linkRepo.dismissSuggestion(
+        incidentId: widget.incidentId,
+        suggestedIncidentId: match.incidentId,
+      );
+      if (mounted) {
+        setState(() {
+          _suggestions.removeWhere((s) => s.incidentId == match.incidentId);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to dismiss suggestion: $e'),
+            backgroundColor: HerzogColors.errorRed,
+          ),
+        );
+      }
     }
   }
 
@@ -1014,6 +1103,12 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // -- Suggested Matches section (Safety Coordinator+ only) --
+            if (isSafetyCoordinator) ...[
+              _buildSuggestedMatchesSection(),
+              const Divider(height: 32),
+            ],
+
             Row(
               children: [
                 Expanded(child: _sectionTitle('LINKED INCIDENTS')),
@@ -1083,6 +1178,263 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
         ),
       ),
     );
+  }
+
+  /// Builds the "Suggested Matches" section with check button and cards.
+  Widget _buildSuggestedMatchesSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(child: _sectionTitle('SUGGESTED MATCHES')),
+            ElevatedButton.icon(
+              onPressed: _suggestionsLoading ? null : _checkRecurrence,
+              icon: _suggestionsLoading
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: HerzogColors.white,
+                      ),
+                    )
+                  : const Icon(Icons.search, size: 16),
+              label: Text(
+                _suggestionsLoading
+                    ? 'Checking...'
+                    : 'Check for Similar Incidents',
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: HerzogColors.infoTeal,
+                foregroundColor: HerzogColors.white,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+
+        if (_suggestionsError != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              _suggestionsError!,
+              style: HerzogText.body(color: HerzogColors.errorRed),
+            ),
+          ),
+
+        if (!_suggestionsChecked && !_suggestionsLoading)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.manage_search,
+                    size: 48,
+                    color: HerzogColors.smoke.withValues(alpha: 0.5),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Click "Check for Similar Incidents" to scan for potential recurrences.',
+                    style: HerzogText.body(color: HerzogColors.midGray),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          )
+        else if (_suggestionsChecked && _suggestions.isEmpty)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.check_circle_outline,
+                    size: 48,
+                    color: HerzogColors.successGreen.withValues(alpha: 0.6),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'No similar incidents found',
+                    style: HerzogText.heading(fontSize: 16),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'No potential recurrences were detected in the lookback period.',
+                    style: HerzogText.body(color: HerzogColors.midGray),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          )
+        else if (_suggestions.isNotEmpty)
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _suggestions.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 8),
+            itemBuilder: (context, index) {
+              return _buildSuggestionCard(_suggestions[index]);
+            },
+          ),
+      ],
+    );
+  }
+
+  /// Builds a single suggestion card with match info, confirm, and dismiss.
+  Widget _buildSuggestionCard(RecurrenceMatch match) {
+    final dateStr = DateFormat.yMMMd().format(match.date);
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(
+          color: _scoreColor(match.score).withValues(alpha: 0.4),
+          width: 1.5,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header row: score badge + incident ID
+            Row(
+              children: [
+                // Score badge
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _scoreColor(match.score),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    'Score: ${match.score}/4',
+                    style: HerzogText.label(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: HerzogColors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '#${match.incidentId}',
+                  style: HerzogText.heading(
+                    fontSize: 16,
+                    color: HerzogColors.navyBlue,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  dateStr,
+                  style: HerzogText.body(
+                    fontSize: 12,
+                    color: HerzogColors.midGray,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            // Match criteria badges
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: match.matchCriteria.map((criterion) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: HerzogColors.navyBlue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: HerzogColors.navyBlue.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Text(
+                    criterion,
+                    style: HerzogText.label(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: HerzogColors.navyBlue,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 8),
+
+            // Details
+            _detailRow('Type', match.type),
+            _detailRow('Location', match.location),
+            if (match.description.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  match.description,
+                  style: HerzogText.body(
+                    fontSize: 12,
+                    color: HerzogColors.darkGray,
+                  ),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            const SizedBox(height: 12),
+
+            // Action buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Semantics(
+                  label: 'Dismiss suggestion for incident ${match.incidentId}',
+                  child: OutlinedButton.icon(
+                    onPressed: () => _dismissSuggestion(match),
+                    icon: const Icon(Icons.close, size: 16),
+                    label: const Text('Dismiss'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: HerzogColors.midGray,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Semantics(
+                  label: 'Confirm link to incident ${match.incidentId}',
+                  child: ElevatedButton.icon(
+                    onPressed: () => _confirmSuggestion(match),
+                    icon: const Icon(Icons.link, size: 16),
+                    label: const Text('Confirm'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: HerzogColors.successGreen,
+                      foregroundColor: HerzogColors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Returns a color for the recurrence score indicator.
+  Color _scoreColor(int score) {
+    if (score >= 4) return HerzogColors.errorRed;
+    if (score >= 3) return HerzogColors.warningAmber;
+    if (score >= 2) return HerzogColors.infoTeal;
+    return HerzogColors.midGray;
   }
 
   Widget _buildLinkCard(IncidentLink link, bool canDelete) {

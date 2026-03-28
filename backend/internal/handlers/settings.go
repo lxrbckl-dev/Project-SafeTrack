@@ -56,6 +56,28 @@ func SeedDefaultSettings(db *gorm.DB) {
 	db.Create(&defaults)
 }
 
+// SeedMissingSettings ensures any settings added after the initial seed are
+// present on pre-existing databases. Safe to call on every startup — it is a
+// no-op when all rows already exist.
+func SeedMissingSettings(db *gorm.DB) {
+	seedSettingIfMissing(db, models.Setting{
+		Category:  "recurrence",
+		Key:       "recurrence_lookback_months",
+		Value:     "12",
+		UpdatedBy: "system",
+	})
+}
+
+// seedSettingIfMissing inserts a setting only when no row with the same key
+// exists. Safe to call repeatedly.
+func seedSettingIfMissing(db *gorm.DB, s models.Setting) {
+	var count int64
+	db.Model(&models.Setting{}).Where("key = ?", s.Key).Count(&count)
+	if count == 0 {
+		db.Create(&s)
+	}
+}
+
 // ListSettings handles GET /api/settings.
 // Restricted to Admin and Safety Manager.
 // Optionally filter by ?category=<category>.
