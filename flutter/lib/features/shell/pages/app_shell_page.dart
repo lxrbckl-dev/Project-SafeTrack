@@ -10,6 +10,7 @@ import '../../auth/data/role.dart';
 import '../../chat/widgets/chat_widget.dart';
 import '../../notifications/widgets/notification_bell.dart';
 import '../widgets/keyboard_shortcut_overlay.dart';
+import '../widgets/onboarding_tour.dart';
 
 /// Desktop breakpoint: sidebar layout at or above this width.
 const double _kSidebarBreakpoint = 900.0;
@@ -209,22 +210,24 @@ class AppShellPage extends StatelessWidget {
     final navItems = _visibleNavItems(role);
     final currentLocation = GoRouterState.of(context).uri.toString();
 
-    return _AppShortcutsWrapper(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final isDesktop = constraints.maxWidth >= _kSidebarBreakpoint;
-          return isDesktop
-              ? _DesktopShell(
-                  navItems: navItems,
-                  currentLocation: currentLocation,
-                  child: child,
-                )
-              : _MobileShell(
-                  navItems: navItems,
-                  currentLocation: currentLocation,
-                  child: child,
-                );
-        },
+    return OnboardingTour(
+      child: _AppShortcutsWrapper(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isDesktop = constraints.maxWidth >= _kSidebarBreakpoint;
+            return isDesktop
+                ? _DesktopShell(
+                    navItems: navItems,
+                    currentLocation: currentLocation,
+                    child: child,
+                  )
+                : _MobileShell(
+                    navItems: navItems,
+                    currentLocation: currentLocation,
+                    child: child,
+                  );
+          },
+        ),
       ),
     );
   }
@@ -383,7 +386,8 @@ class _DesktopShell extends StatelessWidget {
               onPressed: () => context.go('/search'),
             ),
           ),
-          const NotificationBell(),
+          // OnboardingKeys.notificationBell wraps the bell for the tour target.
+          NotificationBell(key: OnboardingKeys.notificationBell),
           const SizedBox(width: 8),
         ],
         shape: const Border(
@@ -404,7 +408,7 @@ class _DesktopShell extends StatelessWidget {
         ],
       ),
       // AI chat FAB — visible on all authenticated pages (TASK-017)
-      floatingActionButton: const ChatFab(),
+      floatingActionButton: ChatFab(key: OnboardingKeys.chatFab),
     );
   }
 }
@@ -426,6 +430,7 @@ class _Sidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
+      key: OnboardingKeys.sidebar,
       width: _kSidebarWidth,
       child: Material(
         color: HerzogColors.richBlack,
@@ -455,7 +460,16 @@ class _Sidebar extends StatelessWidget {
                       currentLocation,
                       item.route,
                     );
-                    return _SidebarNavItem(item: item, isActive: isActive);
+                    // Attach the onboarding tour key to the Incidents nav item
+                    // so the tour can highlight "Report an incident from here".
+                    final itemKey = item.route == '/incidents'
+                        ? OnboardingKeys.newIncident
+                        : null;
+                    return _SidebarNavItem(
+                      key: itemKey,
+                      item: item,
+                      isActive: isActive,
+                    );
                   },
                 ),
               ),
@@ -463,6 +477,9 @@ class _Sidebar extends StatelessWidget {
 
             // Dark-mode toggle (TASK-036)
             const _DarkModeToggle(),
+
+            // Restart tour button (TASK-042)
+            const _RestartTourButton(),
 
             // Shortcut discoverability hint (WCAG 2.1.4)
             _ShortcutHint(),
@@ -533,6 +550,53 @@ class _DarkModeToggle extends StatelessWidget {
   }
 }
 
+/// "Restart Tour" button in the sidebar footer.
+///
+/// Calls [OnboardingTour.restartTour] which resets the persistence flag and
+/// re-triggers the coach-mark sequence.
+///
+/// ADA: Semantic button label (WCAG 1.3.1).
+class _RestartTourButton extends StatelessWidget {
+  const _RestartTourButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: 'Restart onboarding tour',
+      button: true,
+      child: Tooltip(
+        message: 'Restart the onboarding tour',
+        child: InkWell(
+          onTap: () => OnboardingTour.restartTour(context),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: const BoxDecoration(
+              border: Border(top: BorderSide(color: HerzogColors.darkGray)),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.tour_outlined,
+                  size: 14,
+                  color: HerzogColors.midGray,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Restart Tour',
+                  style: HerzogText.label(
+                    fontSize: 11,
+                    color: HerzogColors.midGray,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Small hint at the sidebar bottom that makes keyboard shortcuts discoverable.
 ///
 /// Tapping it opens the full shortcuts overlay.
@@ -548,6 +612,7 @@ class _ShortcutHint extends StatelessWidget {
         child: InkWell(
           onTap: () => KeyboardShortcutOverlay.show(context),
           child: Container(
+            key: OnboardingKeys.shortcutHint,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: const BoxDecoration(
               border: Border(top: BorderSide(color: HerzogColors.darkGray)),
@@ -657,7 +722,11 @@ class _SidebarNavItem extends StatelessWidget {
   final _NavItem item;
   final bool isActive;
 
-  const _SidebarNavItem({required this.item, required this.isActive});
+  const _SidebarNavItem({
+    super.key,
+    required this.item,
+    required this.isActive,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -838,7 +907,10 @@ class _MobileShell extends StatelessWidget {
               onPressed: () => context.go('/search'),
             ),
           ),
-          const NotificationBell(),
+          // OnboardingKeys.notificationBell only needs to be attached once.
+          // On mobile, we reuse the same GlobalKey as desktop — only one
+          // layout is active at a time, so there is no duplicate-key conflict.
+          NotificationBell(key: OnboardingKeys.notificationBell),
           const SizedBox(width: 8),
         ],
         shape: const Border(
@@ -852,7 +924,7 @@ class _MobileShell extends StatelessWidget {
         ],
       ),
       // AI chat FAB — visible on all authenticated pages (TASK-017)
-      floatingActionButton: const ChatFab(),
+      floatingActionButton: ChatFab(key: OnboardingKeys.chatFab),
       bottomNavigationBar: Semantics(
         label: 'Main navigation',
         child: BottomNavigationBar(
