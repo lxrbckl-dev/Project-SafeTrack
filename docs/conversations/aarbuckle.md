@@ -502,3 +502,33 @@ Already installed: Flutter 3.41.4, Xcode 26.3, Playwright 1.58.2
 - Added bug sweep protocol: after Phase 8-9, QA runs Playwright + exploratory pass across all 7 roles, iterate until clean
 - Identified conversation log issue: git reset --hard wipes uncommitted logs. Fix: commit logs before each reset
 - Total project: 38 tasks across 9 phases (35 complete + 5 building next)
+
+---
+
+## 2026-03-28 — Morning
+
+### Phase 8 + 9 Execution (Overnight Build)
+- TPM executed Phase 8 and 9 overnight while Alex slept
+- Phase 8: TASK-039 Incident Map (flutter_map + OpenStreetMap), TASK-040 Voice-to-Text (speech_to_text), TASK-041 Dashboard PDF Summary
+- Phase 9: TASK-042 Onboarding Tour (tutorial_coach_mark), TASK-043 Real-Time WebSocket (gorilla/websocket + web_socket_channel)
+- WebSocket PR #87 had 2 security blockers caught in review: notification data leak + race condition on map mutation
+- All 5 tasks merged, 93 PRs total on main
+
+### Bug Sweep Results
+- QA ran static analysis (go build, go vet, dart analyze) — all clean
+- 6 bugs found in exploratory testing:
+  1. HIGH: Login page bypasses role-based landing redirect
+  2. HIGH: Reopen flow blocked by uniqueIndex on InvestigationID
+  3. MEDIUM: POST /api/investigations missing RequireRole middleware wrapper
+  4. MEDIUM: CloseIncident doesn't validate current status
+  5. LOW: CAPA InvestigationID uses 0 magic number (deferred)
+  6. LOW: Context keys use raw strings (deferred)
+- 4 bugs fixed (issues #88-91), peer reviewed, QA'd, merged
+- Re-sweep: clean pass — go build, go vet, dart analyze all clean
+
+### Final Project Stats
+- 40 feature tasks + 4 bug fixes = 93 PRs merged to main
+- 9 phases complete (0-9), zero broken builds
+- All features: incident reporting, investigations, CAPAs, dashboard, offline, fishbone, recurrence detection, analytics, OSHA export, email notifications, training CAPA, PDF export, global search, timeline, dark mode, landing pages, activity feed, map view, voice-to-text, dashboard PDF, onboarding tour, WebSocket real-time updates
+- Wiki regenerated with all Phase 6-9 features for AI assistant RAG context
+- Progress docs updated to reflect complete build

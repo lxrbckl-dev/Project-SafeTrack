@@ -109,11 +109,12 @@ Each agent is trained with embedded skills in their definition files (`.claude/a
 | Feature | Status | What's Left |
 |---|---|---|
 | TestFlight distribution | Waiting on Apple Developer approval | Upload first build once approved |
-| Agent Teams validation | Validated — multi-agent team operational | 19 tasks + 4 post-launch tasks completed via agent team |
-| Phase 6: Rubric deferred items | Building (Rounds 1-4) | TASK-026 through TASK-032 |
-| Phase 7: Judge differentiators | Queued | TASK-033 through TASK-038 |
-| Phase 8: Domain innovation | Planned | TASK-039 through TASK-041 |
-| Phase 9: Demo polish | Planned | TASK-042 through TASK-043 |
+| Agent Teams validation | Complete | 40 feature tasks + 4 bug fixes across 9 phases via multi-agent team |
+| Phase 6: Rubric deferred items | Complete | TASK-026 through TASK-032 — all merged |
+| Phase 7: Judge differentiators | Complete | TASK-033 through TASK-038 — all merged |
+| Phase 8: Domain innovation | Complete | TASK-039 through TASK-041 — all merged |
+| Phase 9: Demo polish | Complete | TASK-042 through TASK-043 — all merged |
+| Bug sweep | Complete | 6 bugs found, 4 fixed (#88-91), 2 low-severity deferred. Clean re-pass |
 
 ## Completed — Rubric Features (QA Verified)
 
