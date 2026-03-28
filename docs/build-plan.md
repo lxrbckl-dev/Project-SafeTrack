@@ -1045,6 +1045,10 @@
 - **MEDIUM: JSON chat parser fragility** — bare-JSON brace parser in `chat.go` fails on escaped backslashes before quotes (e.g., `"foo\\\\""`). Use `json.Valid()` before custom parsing
 - **LOW: JWT expiry boundary** — no leeway on token validation. Add 30s leeway to `jwt.ParseWithClaims` to handle clock skew between agent and server
 - **LOW: Timezone in OSHA calculations** — all timestamps stored as UTC but OSHA reporting expects local time. Document that TRIR/incident date calculations use UTC — future phase should add timezone-aware date handling
+- **MEDIUM: Request body limits on ALL endpoints** — only photo upload has 10MB `MaxBytesReader`. All other POST/PUT endpoints (incidents, investigations, CAPAs) accept unbounded body size. Add `MaxBytesReader(1MB)` to all non-upload handlers to prevent OOM from agent or malicious payloads
+- **MEDIUM: Graceful shutdown** — Go server uses `http.ListenAndServe()` without graceful shutdown. SIGTERM kills active MCP tool calls and WebSocket connections mid-request. Use `http.Server{}.Shutdown(ctx)` with 30s drain period
+- **LOW: DB operations ignore request context** — handlers call `db.Create()` without `r.Context()`. Long-running agent queries can't be cancelled if client disconnects. Use `db.WithContext(r.Context())` in handlers
+- **LOW: Security headers** — API responses don't set `X-Content-Type-Options: nosniff` or `Cache-Control: no-store`. Add security headers middleware, especially for MCP responses containing sensitive data
 - **MEDIUM: Photo upload via MCP** — current photo endpoint requires multipart/form-data. MCP agents use JSON. Either add a base64 JSON photo upload endpoint (`POST /api/incidents/{id}/photos/json`) or document that photo upload is not available via MCP
 - **MEDIUM: DB connection pool** — MaxOpenConns=25. Parallel agent tool calls can exhaust the pool. Add context timeouts (30s read, 10s write) so stale connections are released
 - **MEDIUM: WebSocket hub goroutine leak** — when send buffer is full, a goroutine is spawned to unregister. Rapid agent disconnects can cause unbounded goroutine growth. Add goroutine cap or sync unregister
