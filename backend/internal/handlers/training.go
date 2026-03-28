@@ -285,44 +285,63 @@ func CompleteTraining(db *gorm.DB) http.HandlerFunc {
 			VerifiedByUserID:      userID,
 		}
 
-		if err := db.Create(&completion).Error; err != nil {
-			http.Error(w, "database error creating completion record", http.StatusInternalServerError)
+		// Capture CAPA state before the transaction for audit logging.
+		var capa models.CAPA
+		var capaBeforeJSON string
+		var capaVerificationDue time.Time
+		capaUpdated := false
+
+		// Wrap all 3 writes in a single transaction so a partial failure
+		// cannot leave the database in an inconsistent state.
+		err = db.Transaction(func(tx *gorm.DB) error {
+			if err := tx.Create(&completion).Error; err != nil {
+				return err
+			}
+
+			// Update training status to Completed.
+			training.Status = "Completed"
+			if err := tx.Save(&training).Error; err != nil {
+				return err
+			}
+
+			// Auto-complete the linked CAPA with training evidence.
+			if err := tx.First(&capa, training.CAPAID).Error; err == nil {
+				if capa.Status == "Open" || capa.Status == "In Progress" {
+					capaBeforeJSON = toJSON(capa)
+
+					now := time.Now()
+					capaVerificationDue = now.AddDate(0, 0, capaVerificationDueDays(capa.Priority))
+
+					capa.Status = "Verification Pending"
+					capa.CompletionNotes = fmt.Sprintf("Training '%s' completed by %s", training.CourseName, userID)
+					capa.CompletionEvidence = fmt.Sprintf("Training completion record #%d: %s", completion.ID, req.Evidence)
+					capa.CompletionDate = &now
+					capa.VerificationDueDate = &capaVerificationDue
+
+					if err := tx.Save(&capa).Error; err != nil {
+						return err
+					}
+					capaUpdated = true
+				}
+			}
+
+			return nil
+		})
+		if err != nil {
+			http.Error(w, "database error", http.StatusInternalServerError)
 			return
 		}
 
-		// Update training status to Completed.
-		training.Status = "Completed"
-		if err := db.Save(&training).Error; err != nil {
-			http.Error(w, "database error updating training status", http.StatusInternalServerError)
-			return
-		}
-
+		// Audit log calls are non-critical and run after the transaction succeeds.
 		LogAction(db, userID, userRole, "status_change", "training_requirement", training.ID,
 			beforeJSON, toJSON(training),
 			fmt.Sprintf("Training completed by %s, duration %.1fh", userID, req.DurationHours))
 
-		// Auto-complete the linked CAPA with training evidence.
-		var capa models.CAPA
-		if err := db.First(&capa, training.CAPAID).Error; err == nil {
-			if capa.Status == "Open" || capa.Status == "In Progress" {
-				capaBeforeJSON := toJSON(capa)
-
-				now := time.Now()
-				verificationDue := now.AddDate(0, 0, capaVerificationDueDays(capa.Priority))
-
-				capa.Status = "Verification Pending"
-				capa.CompletionNotes = fmt.Sprintf("Training '%s' completed by %s", training.CourseName, userID)
-				capa.CompletionEvidence = fmt.Sprintf("Training completion record #%d: %s", completion.ID, req.Evidence)
-				capa.CompletionDate = &now
-				capa.VerificationDueDate = &verificationDue
-
-				if err := db.Save(&capa).Error; err == nil {
-					LogAction(db, userID, userRole, "status_change", "capa", capa.ID,
-						capaBeforeJSON, toJSON(capa),
-						fmt.Sprintf("CAPA auto-completed via training completion #%d, verification due %s",
-							completion.ID, verificationDue.Format("2006-01-02")))
-				}
-			}
+		if capaUpdated {
+			LogAction(db, userID, userRole, "status_change", "capa", capa.ID,
+				capaBeforeJSON, toJSON(capa),
+				fmt.Sprintf("CAPA auto-completed via training completion #%d, verification due %s",
+					completion.ID, capaVerificationDue.Format("2006-01-02")))
 		}
 
 		resp := trainingDetailResponse{
