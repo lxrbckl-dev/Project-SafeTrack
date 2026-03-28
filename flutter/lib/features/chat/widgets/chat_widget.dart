@@ -555,6 +555,17 @@ class _MarkdownLinkTextState extends State<_MarkdownLinkText> {
   final List<TapGestureRecognizer> _recognizers = [];
 
   @override
+  void didUpdateWidget(_MarkdownLinkText oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.text != widget.text) {
+      for (final r in _recognizers) {
+        r.dispose();
+      }
+      _recognizers.clear();
+    }
+  }
+
+  @override
   void dispose() {
     for (final r in _recognizers) {
       r.dispose();
@@ -571,12 +582,6 @@ class _MarkdownLinkTextState extends State<_MarkdownLinkText> {
 
   @override
   Widget build(BuildContext context) {
-    // Dispose old recognizers and rebuild.
-    for (final r in _recognizers) {
-      r.dispose();
-    }
-    _recognizers.clear();
-
     final segments = _parseMarkdownLinks(widget.text);
     final spans = <InlineSpan>[];
 
