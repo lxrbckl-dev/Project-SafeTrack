@@ -41,6 +41,11 @@ func main() {
 	// Seed default settings on startup (no-op if rows already exist)
 	handlers.SeedDefaultSettings(db)
 
+	// Populate demo data when SEED_DATA=true (idempotent — skipped if DB non-empty)
+	if os.Getenv("SEED_DATA") == "true" {
+		database.SeedData(db)
+	}
+
 	// Authenticated routes
 	api := http.NewServeMux()
 	api.HandleFunc("POST /api/sync", handlers.Sync(db))
