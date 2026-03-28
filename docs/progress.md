@@ -111,13 +111,21 @@ Each agent is trained with embedded skills in their definition files (`.claude/a
 | TestFlight distribution | Waiting on Apple Developer approval | Upload first build once approved |
 | Agent Teams validation | Alex testing in CLI | Confirm team spawns and coordinates |
 
+## Completed — Rubric Features (QA Verified)
+
+| Feature | TASK | QA | Details |
+|---|---|---|---|
+| Incident reporting UI | TASK-005 | PASSED | Full form with 7 types, GPS auto-fill, photos, draft save, completion %, OSHA decision tree, railroad notification tracking, injured person details |
+| Investigation models + API | TASK-006 | PASSED | Go backend: Investigation, FiveWhy, ContributingFactor, WitnessStatement models + 13 REST endpoints |
+| Investigation UI | TASK-007 | PASSED | InvestigationListPage (filters, overdue highlighting L1/L2/L3), InvestigationDetailPage (5 tabs), FiveWhyChain (interactive inline editing, keyboard nav, min-3 warning, arrows, Semantics), ContributingFactorsPanel (API-driven types, primary toggle), WitnessStatementCard (inline edit + add), InvestigationReviewPanel (Safety Manager only, required comments), InvestigationFormPage (auto target date by severity) |
+| CAPA models + API | TASK-008 | PASSED | Go backend: CAPA model (20+ lifecycle fields), 6 REST endpoints (CRUD + complete + verify), dashboard KPIs, auto due dates by priority (Critical=7d/High=14d/Med=30d/Low=60d), verificationDueDate by priority (Critical=30d/High=60d/Med+Low=90d), 403 self-verify block, nextSteps on ineffective, CloseIncident CAPA gate, incident status transitions, full audit logging |
+| CAPA management UI | TASK-009 | PASSED | Flutter UI: CAPADashboardPage (4 KPI cards, filterable table, overdue row highlighting), CAPADetailPage (lifecycle stepper, 4 info sections, CRITICAL Verify button absent from tree for assignee, Complete button for assignee on Open/InProgress, IneffectiveActionDialog with Create New CAPA + Reopen Investigation), CAPAFormPage (type/category/description/assignee/priority/verificationMethod, auto due dates by priority), CAPALifecycleStepper (5-stage), router (/capas /capas/:id /capas/new), InvestigationDetailPage Create CAPA wired for Safety Manager on Approved investigations. ADA Semantics throughout. |
+
 ## Not Started — Rubric Features (SRD-10)
 
 | Feature | Notes |
 |---|---|
-| Incident reporting | Full form with 7 types, GPS auto-fill, photos, draft save, completion %, OSHA decision tree, railroad notification tracking, injured person details |
-| Investigation management | Assign investigator, auto-deadlines by severity, 5-Why interactive chain, contributing factor classification (configurable via admin UI), witness statements, review/approval workflow |
-| CAPA management | Create from investigations, priority-based due dates, lifecycle with effectiveness verification, verifier != assignee (verify button hidden from assignee), dashboard with KPIs |
+| ~~CAPA management UI~~ | ~~Flutter UI — CAPA list, detail, form, workflow actions (complete/verify), dashboard KPIs~~ — DONE (TASK-009, QA PASSED) |
 | Safety dashboard | TRIR/DART/Near Miss KPIs, trend charts, incidents by division, severity donut, leading indicators, recent incidents table, TRIR benchmark configurable via admin settings |
 | Manual recurrence linking | Link incidents by similarity type, cluster view |
 | Admin settings page | Configurable factor types, TRIR industry benchmark, system settings |
