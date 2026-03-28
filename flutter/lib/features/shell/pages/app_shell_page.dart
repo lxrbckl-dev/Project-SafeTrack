@@ -527,32 +527,29 @@ class _DarkModeToggle extends StatelessWidget {
       label: 'Toggle dark mode',
       button: true,
       toggled: isDark,
-      child: Tooltip(
-        message: isDark ? 'Switch to light mode' : 'Switch to dark mode',
-        child: InkWell(
-          onTap: themeService.toggle,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: const BoxDecoration(
-              border: Border(top: BorderSide(color: HerzogColors.darkGray)),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  isDark ? Icons.light_mode : Icons.dark_mode,
-                  size: 14,
+      child: InkWell(
+        onTap: themeService.toggle,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: const BoxDecoration(
+            border: Border(top: BorderSide(color: HerzogColors.darkGray)),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                isDark ? Icons.light_mode : Icons.dark_mode,
+                size: 14,
+                color: isDark ? HerzogColors.gold : HerzogColors.smoke,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                isDark ? 'LIGHT MODE' : 'DARK MODE',
+                style: HerzogText.label(
+                  fontSize: 11,
                   color: isDark ? HerzogColors.gold : HerzogColors.smoke,
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  isDark ? 'Light mode' : 'Dark mode',
-                  style: HerzogText.label(
-                    fontSize: 11,
-                    color: isDark ? HerzogColors.gold : HerzogColors.smoke,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -574,32 +571,29 @@ class _RestartTourButton extends StatelessWidget {
     return Semantics(
       label: 'Restart onboarding tour',
       button: true,
-      child: Tooltip(
-        message: 'Restart the onboarding tour',
-        child: InkWell(
-          onTap: () => OnboardingTour.restartTour(context),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: const BoxDecoration(
-              border: Border(top: BorderSide(color: HerzogColors.darkGray)),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.tour_outlined,
-                  size: 14,
+      child: InkWell(
+        onTap: () => OnboardingTour.restartTour(context),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: const BoxDecoration(
+            border: Border(top: BorderSide(color: HerzogColors.darkGray)),
+          ),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.tour_outlined,
+                size: 14,
+                color: HerzogColors.midGray,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'RESTART TOUR',
+                style: HerzogText.label(
+                  fontSize: 11,
                   color: HerzogColors.midGray,
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  'Restart Tour',
-                  style: HerzogText.label(
-                    fontSize: 11,
-                    color: HerzogColors.midGray,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -617,33 +611,26 @@ class _ShortcutHint extends StatelessWidget {
     return Semantics(
       label: 'Press ? to view keyboard shortcuts',
       button: true,
-      child: Tooltip(
-        message: 'Keyboard shortcuts',
-        child: InkWell(
-          onTap: () => KeyboardShortcutOverlay.show(context),
-          child: Container(
-            key: OnboardingKeys.shortcutHint,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: const BoxDecoration(
-              border: Border(top: BorderSide(color: HerzogColors.darkGray)),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.keyboard,
-                  size: 14,
+      child: InkWell(
+        onTap: () => KeyboardShortcutOverlay.show(context),
+        child: Container(
+          key: OnboardingKeys.shortcutHint,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: const BoxDecoration(
+            border: Border(top: BorderSide(color: HerzogColors.darkGray)),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.keyboard, size: 14, color: HerzogColors.midGray),
+              const SizedBox(width: 8),
+              Text(
+                '? FOR SHORTCUTS',
+                style: HerzogText.label(
+                  fontSize: 11,
                   color: HerzogColors.midGray,
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  '? for shortcuts',
-                  style: HerzogText.label(
-                    fontSize: 11,
-                    color: HerzogColors.midGray,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
