@@ -50,7 +50,7 @@ class _LoginPageState extends State<LoginPage> {
         _emailController.text.trim(),
         _passwordController.text,
       );
-      if (mounted) context.go('/dashboard');
+      if (mounted) context.go('/login');
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
