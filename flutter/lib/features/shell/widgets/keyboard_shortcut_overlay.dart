@@ -62,7 +62,7 @@ class KeyboardShortcutOverlay extends StatelessWidget {
                   title: 'PANELS',
                   shortcuts: [
                     _ShortcutRow(
-                      key: 'Ctrl+K  /  /',
+                      key: 'Alt+K  /  /',
                       description: 'Toggle AI Chat',
                     ),
                     _ShortcutRow(key: 'Esc', description: 'Close open panel'),

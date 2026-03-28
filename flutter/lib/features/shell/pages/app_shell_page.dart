@@ -165,7 +165,7 @@ bool _isTextFieldFocused() {
 /// - **Alt+I** → /incidents
 /// - **Alt+V** → /investigations
 /// - **Alt+C** → /capas
-/// - **Ctrl+K** or **/** → Toggle AI Chat (no-op if chat widget not present)
+/// - **Alt+K** or **/** → Toggle AI Chat (no-op if chat widget not present)
 /// - **Escape** → Close any open panel
 /// - **?** (Shift+/) → Show keyboard shortcuts overlay
 ///
@@ -223,7 +223,7 @@ class AppShellPage extends StatelessWidget {
 ///
 /// Alt+letter shortcuts do not produce text input and require no text-field
 /// guard. The `/` shortcut is still guarded via [_isTextFieldFocused] because
-/// it is a bare character key. Ctrl+K and Escape work regardless of focus
+/// it is a bare character key. Alt+K and Escape work regardless of focus
 /// state and do not conflict with browser defaults (Ctrl+C, Ctrl+V, etc.).
 class _AppShortcutsWrapper extends StatelessWidget {
   final Widget child;
@@ -244,8 +244,8 @@ class _AppShortcutsWrapper extends StatelessWidget {
         SingleActivator(LogicalKeyboardKey.keyC, alt: true):
             _NavigateCAPAsIntent(),
 
-        // Chat toggle: Ctrl+K (all platforms) — does not conflict with browser
-        SingleActivator(LogicalKeyboardKey.keyK, control: true):
+        // Chat toggle: Alt+K (all platforms) — does not conflict with browser
+        SingleActivator(LogicalKeyboardKey.keyK, alt: true):
             _ToggleChatIntent(),
 
         // Chat toggle: forward-slash (/) — single key, guarded against text fields
@@ -293,7 +293,7 @@ class _AppShortcutsWrapper extends StatelessWidget {
             onInvoke: (_) {
               // The `/` key binding fires this intent; guard against text-field
               // focus so that typing `/` in a form field is not intercepted.
-              // Ctrl+K is a modifier combo and does not need this guard.
+              // Alt+K is a modifier combo and does not need this guard.
               if (_isTextFieldFocused()) return null;
               // Chat widget from TASK-017 may not be present.
               // No-op gracefully if chat is absent; chat widget self-registers
