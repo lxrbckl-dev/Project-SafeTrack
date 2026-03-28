@@ -7,5 +7,8 @@ func AllModels() []interface{} {
 		&Note{},
 		&AuditLog{},
 		&Setting{},
+		&Incident{},
+		&InjuredPerson{},
+		&IncidentPhoto{},
 	}
 }

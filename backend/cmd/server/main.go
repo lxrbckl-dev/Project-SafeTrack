@@ -49,6 +49,9 @@ func main() {
 	api.HandleFunc("POST /api/chat", handlers.Chat())
 	handlers.RegisterSettingsRoutes(api, db)
 
+	// Incident domain routes (CRUD, OSHA, railroad, photos, status)
+	handlers.RegisterIncidentRoutes(api, db)
+
 	mux.Handle("/api/", middleware.FirebaseAuth(api))
 
 	handler := middleware.CORS(middleware.Logger(mux))
