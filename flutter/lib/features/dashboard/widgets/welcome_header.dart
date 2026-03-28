@@ -320,6 +320,7 @@ class _QuickActionCard extends StatelessWidget {
     return Semantics(
       button: true,
       label: semanticsLabel,
+      excludeSemantics: true,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(8),
