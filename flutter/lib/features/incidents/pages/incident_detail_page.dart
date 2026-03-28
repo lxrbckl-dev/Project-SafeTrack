@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../app/herzog_theme.dart';
 import '../../auth/data/auth_service.dart';
 import '../../auth/data/role.dart';
+import '../../investigations/data/investigation_repository.dart';
 import '../data/incident_repository.dart';
 import '../widgets/status_badge.dart';
 
@@ -31,10 +32,12 @@ class IncidentDetailPage extends StatefulWidget {
 class _IncidentDetailPageState extends State<IncidentDetailPage>
     with SingleTickerProviderStateMixin {
   late final IncidentRepository _repo;
+  late final InvestigationRepository _invRepo;
   late final AuthService _auth;
   late final TabController _tabController;
 
   Incident? _incident;
+  Investigation? _linkedInvestigation;
   bool _loading = true;
   String? _error;
 
@@ -43,6 +46,7 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
     super.initState();
     _auth = context.read<AuthService>();
     _repo = IncidentRepository(_auth);
+    _invRepo = InvestigationRepository(_auth);
     _tabController = TabController(length: 5, vsync: this);
     _loadIncident();
   }
@@ -60,9 +64,22 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
     });
     try {
       final incident = await _repo.getIncident(widget.incidentId);
+      // Try to load linked investigation
+      Investigation? linkedInv;
+      try {
+        final invResult = await _invRepo.listInvestigations(
+          incidentId: widget.incidentId,
+        );
+        if (invResult.data.isNotEmpty) {
+          linkedInv = invResult.data.first;
+        }
+      } catch (_) {
+        // Investigation may not exist yet, that's fine
+      }
       if (mounted) {
         setState(() {
           _incident = incident;
+          _linkedInvestigation = linkedInv;
           _loading = false;
         });
       }
@@ -108,10 +125,7 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
               children: [
                 _buildInfoTab(),
                 _buildOshaTab(),
-                _buildPlaceholderTab(
-                  'Investigation',
-                  'Investigation details (TASK-007)',
-                ),
+                _buildInvestigationTab(),
                 _buildPlaceholderTab('CAPAs', 'CAPA management (TASK-009)'),
                 _buildPlaceholderTab(
                   'Recurrence',
@@ -325,18 +339,12 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
                 // Start Investigation: Safety Manager + Reported status
                 if (role != null &&
                     role.isAtLeast(Role.safetyManager) &&
-                    incident.status == 'Reported')
+                    incident.status == 'Reported' &&
+                    _linkedInvestigation == null)
                   ElevatedButton.icon(
-                    onPressed: () {
-                      // Placeholder: navigate to investigation form when built
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Investigation form not yet available (TASK-007)',
-                          ),
-                        ),
-                      );
-                    },
+                    onPressed: () => context.go(
+                      '/investigations/new?incidentId=${incident.id}',
+                    ),
                     icon: const Icon(Icons.search, size: 16),
                     label: const Text('Start Investigation'),
                   ),
@@ -474,6 +482,97 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildInvestigationTab() {
+    final role = _auth.currentRole;
+    final isSafetyManager =
+        role != null && (role == Role.safetyManager || role == Role.admin);
+
+    if (_linkedInvestigation != null) {
+      final inv = _linkedInvestigation!;
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 700),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _sectionTitle('LINKED INVESTIGATION'),
+              _detailRow('Investigation ID', '#${inv.id}'),
+              _detailRow('Status', inv.status),
+              _detailRow('Lead Investigator', inv.leadInvestigatorId),
+              if (inv.targetCompletionDate != null)
+                _detailRow(
+                  'Target Completion',
+                  DateFormat('MM/dd/yyyy').format(inv.targetCompletionDate!),
+                ),
+              if (inv.isOverdue)
+                Container(
+                  margin: const EdgeInsets.only(top: 8),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: inv.overdueEscalationLevel >= 2
+                        ? HerzogColors.errorLight
+                        : HerzogColors.warningLight,
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: Text(
+                    'Investigation is OVERDUE (Escalation Level ${inv.overdueEscalationLevel})',
+                    style: HerzogText.body(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: inv.overdueEscalationLevel >= 2
+                          ? HerzogColors.errorRed
+                          : HerzogColors.warningAmber,
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: () => context.go('/investigations/${inv.id}'),
+                icon: const Icon(Icons.open_in_new, size: 16),
+                label: const Text('View Full Investigation'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // No investigation exists yet
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.search_off,
+            size: 48,
+            color: HerzogColors.smoke.withValues(alpha: 0.5),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'No investigation linked yet',
+            style: HerzogText.heading(fontSize: 18),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'A Safety Manager can start an investigation for this incident.',
+            style: HerzogText.body(color: HerzogColors.midGray),
+          ),
+          if (isSafetyManager && _incident?.status == 'Reported') ...[
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () => context.go(
+                '/investigations/new?incidentId=${widget.incidentId}',
+              ),
+              icon: const Icon(Icons.search, size: 16),
+              label: const Text('Start Investigation'),
+            ),
+          ],
+        ],
       ),
     );
   }
