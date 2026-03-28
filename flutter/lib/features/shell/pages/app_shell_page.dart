@@ -147,8 +147,10 @@ List<_NavItem> _visibleNavItems(Role? role) {
 bool _isTextFieldFocused() {
   final node = FocusManager.instance.primaryFocus;
   if (node == null) return false;
-  // Check if the focused widget accepts keyboard input (i.e. is an EditableText).
-  return node.context?.widget is EditableText;
+  // Check both direct widget and ancestor tree, because TextField/TextFormField
+  // wraps EditableText and the focused node may be a parent in the tree.
+  if (node.context?.widget is EditableText) return true;
+  return node.context?.findAncestorWidgetOfExactType<EditableText>() != null;
 }
 
 /// The main authenticated app shell.
@@ -284,6 +286,10 @@ class _AppShortcutsWrapper extends StatelessWidget {
           ),
           _ToggleChatIntent: CallbackAction<_ToggleChatIntent>(
             onInvoke: (_) {
+              // The `/` key binding fires this intent; guard against text-field
+              // focus so that typing `/` in a form field is not intercepted.
+              // Ctrl+K is a modifier combo and does not need this guard.
+              if (_isTextFieldFocused()) return null;
               // Chat widget from TASK-017 may not be present.
               // No-op gracefully if chat is absent; chat widget self-registers
               // its toggle via a ChangeNotifier when present.
