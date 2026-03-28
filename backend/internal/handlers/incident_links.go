@@ -105,7 +105,7 @@ func GetIncidentLinks(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		// For each link, fetch the "other" incident summary.
+		// Collect all "other" incident IDs for a single batch fetch.
 		type LinkedIncidentSummary struct {
 			ID       uint   `json:"id"`
 			Type     string `json:"type"`
@@ -119,15 +119,34 @@ func GetIncidentLinks(db *gorm.DB) http.HandlerFunc {
 			LinkedIncident LinkedIncidentSummary `json:"linkedIncident"`
 		}
 
+		otherIDs := make([]uint, 0, len(links))
+		for _, l := range links {
+			otherID := l.IncidentID1
+			if otherID == uint(incidentID) {
+				otherID = l.IncidentID2
+			}
+			otherIDs = append(otherIDs, otherID)
+		}
+
+		var others []models.Incident
+		if err := db.Select("id, type, location, status, severity, division").
+			Where("id IN ?", otherIDs).Find(&others).Error; err != nil {
+			http.Error(w, "database error", http.StatusInternalServerError)
+			return
+		}
+
+		otherByID := make(map[uint]models.Incident, len(others))
+		for _, o := range others {
+			otherByID[o.ID] = o
+		}
+
 		result := make([]LinkWithIncident, 0, len(links))
 		for _, l := range links {
 			otherID := l.IncidentID1
 			if otherID == uint(incidentID) {
 				otherID = l.IncidentID2
 			}
-			var other models.Incident
-			if err := db.Select("id, type, location, status, severity, division").
-				First(&other, otherID).Error; err == nil {
+			if other, ok := otherByID[otherID]; ok {
 				result = append(result, LinkWithIncident{
 					IncidentLink: l,
 					LinkedIncident: LinkedIncidentSummary{
