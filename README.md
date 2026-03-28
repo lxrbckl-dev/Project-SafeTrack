@@ -25,7 +25,7 @@ docker-compose up -d
 
 **2. Seed demo data** (first time only):
 ```bash
-cd backend && SEED_DATA=true go run ./cmd/server/
+cd backend && SEED_DATA=true go run ./cmd/server/ && cd ..
 ```
 > The server will exit with "address already in use" — that's expected since Docker is already running it.
 
@@ -33,7 +33,7 @@ cd backend && SEED_DATA=true go run ./cmd/server/
 ```bash
 cd flutter && flutter run -d chrome --web-port=3000 \
   --web-header=Cross-Origin-Opener-Policy=same-origin \
-  --web-header=Cross-Origin-Embedder-Policy=require-corp
+  --web-header=Cross-Origin-Embedder-Policy=require-corp && cd ..
 ```
 
 **4. Open** `http://localhost:3000` — pick a role and explore.
