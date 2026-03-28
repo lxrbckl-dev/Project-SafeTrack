@@ -23,16 +23,6 @@ class _LoginPageState extends State<LoginPage> {
   bool _obscurePassword = true;
   bool _isLoading = false;
 
-  static const _testAccounts = [
-    _TestAccount('reporter@safetrack.demo', 'Field Reporter'),
-    _TestAccount('coordinator@safetrack.demo', 'Safety Coordinator'),
-    _TestAccount('manager@safetrack.demo', 'Safety Manager'),
-    _TestAccount('pm@safetrack.demo', 'Project Manager'),
-    _TestAccount('director@safetrack.demo', 'Division Manager'),
-    _TestAccount('executive@safetrack.demo', 'Executive'),
-    _TestAccount('admin@safetrack.demo', 'Admin'),
-  ];
-
   @override
   void dispose() {
     _emailController.dispose();
@@ -65,11 +55,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  void _autofillEmail(String email) {
-    _emailController.text = email;
-    _passwordController.text = 'demo1234';
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -80,17 +65,15 @@ class _LoginPageState extends State<LoginPage> {
         foregroundColor: HerzogColors.gold,
       ),
       body: SafeArea(
-        child: Center(
+        child: Align(
+          alignment: Alignment.topCenter,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 520),
+            constraints: const BoxConstraints(maxWidth: 480),
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+              padding: const EdgeInsets.fromLTRB(24, 40, 24, 32),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Logo
-                  Image.asset('assets/logo.png', height: 80),
-                  const SizedBox(height: 32),
                   // Page heading
                   Semantics(
                     header: true,
@@ -218,150 +201,8 @@ class _LoginPageState extends State<LoginPage> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 32),
-
-                  // Test Accounts card
-                  _TestAccountsCard(
-                    accounts: _testAccounts,
-                    onTap: _autofillEmail,
-                  ),
                 ],
               ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Test Account data class
-// ---------------------------------------------------------------------------
-
-class _TestAccount {
-  const _TestAccount(this.email, this.roleName);
-  final String email;
-  final String roleName;
-}
-
-// ---------------------------------------------------------------------------
-// Test Accounts card widget
-// ---------------------------------------------------------------------------
-
-class _TestAccountsCard extends StatelessWidget {
-  const _TestAccountsCard({required this.accounts, required this.onTap});
-
-  final List<_TestAccount> accounts;
-  final ValueChanged<String> onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      label:
-          'Test accounts reference card. Password for all accounts: demo1234',
-      child: Container(
-        decoration: BoxDecoration(
-          color: HerzogColors.richBlack,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: HerzogColors.gold, width: 1.5),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Header
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: const BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: HerzogColors.gold, width: 1),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'TEST ACCOUNTS',
-                    style: HerzogText.heading(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: HerzogColors.gold,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'password: demo1234',
-                    style: HerzogText.body(
-                      fontSize: 12,
-                      color: HerzogColors.smoke,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Account rows
-            ...accounts.map(
-              (account) => _TestAccountRow(
-                account: account,
-                onTap: () => onTap(account.email),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Individual test account row
-// ---------------------------------------------------------------------------
-
-class _TestAccountRow extends StatelessWidget {
-  const _TestAccountRow({required this.account, required this.onTap});
-
-  final _TestAccount account;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      label: '${account.roleName}: ${account.email}. Tap to auto-fill.',
-      button: true,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          hoverColor: HerzogColors.gold.withValues(alpha: 0.08),
-          focusColor: HerzogColors.gold.withValues(alpha: 0.12),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: Text(
-                    account.email,
-                    style: HerzogText.body(
-                      fontSize: 13,
-                      color: HerzogColors.white,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    account.roleName,
-                    textAlign: TextAlign.end,
-                    style: HerzogText.body(
-                      fontSize: 12,
-                      color: HerzogColors.smoke,
-                    ),
-                  ),
-                ),
-              ],
             ),
           ),
         ),

@@ -689,26 +689,21 @@ class _SidebarHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Image.asset('assets/icon.png', width: 44, height: 44),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'SAFETRACK',
-                style: HerzogText.heading(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: HerzogColors.gold,
-                ),
-              ),
-              Text(
-                'Safety Management',
-                style: HerzogText.body(fontSize: 11, color: HerzogColors.smoke),
-              ),
-            ],
+          Text(
+            'SAFETRACK',
+            style: HerzogText.heading(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: HerzogColors.gold,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'Safety Management',
+            style: HerzogText.body(fontSize: 11, color: HerzogColors.smoke),
           ),
         ],
       ),
