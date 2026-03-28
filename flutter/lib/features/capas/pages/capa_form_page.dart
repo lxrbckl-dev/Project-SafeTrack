@@ -66,12 +66,16 @@ class _CAPAFormPageState extends State<CAPAFormPage> {
     if (widget.investigationId != null) {
       _loadInvestigation();
     }
-    // TASK-019: Check for AI-dispatched form fill data.
-    _consumeFormFillData();
+    // TASK-019: Check for AI-dispatched form fill data and listen for future
+    // dispatches (handles the case where the form is already mounted).
+    final formFillService = context.read<FormFillService>();
+    formFillService.addListener(_applyPendingFields);
+    _applyPendingFields();
   }
 
-  /// Consumes pending form fill data from [FormFillService] (AI agent dispatch).
-  void _consumeFormFillData() {
+  /// Applies any pending form fill data from [FormFillService] (AI agent
+  /// dispatch). Called on init and reactively whenever the service notifies.
+  void _applyPendingFields() {
     final formFillService = context.read<FormFillService>();
     final fields = formFillService.consumePendingFields();
     if (fields == null || fields.isEmpty) return;
@@ -105,6 +109,9 @@ class _CAPAFormPageState extends State<CAPAFormPage> {
 
   @override
   void dispose() {
+    final formFillService = context.read<FormFillService>();
+    formFillService.removeListener(_applyPendingFields);
+    formFillService.clear();
     _descriptionController.dispose();
     _assignedToController.dispose();
     _verificationMethodController.dispose();

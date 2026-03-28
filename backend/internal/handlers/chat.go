@@ -189,22 +189,29 @@ func parseActions(text string) []ChatAction {
 			break
 		}
 		start += idx
-		// Find the matching closing brace (simple depth counter).
+		// Find the matching closing brace.
+		// Track whether we're inside a JSON string so that braces within
+		// string values are not counted toward the depth.
 		depth := 0
 		end := -1
+		inString := false
 		for i := start; i < len(text); i++ {
-			switch text[i] {
-			case '{':
+			ch := text[i]
+			if ch == '"' && (i == 0 || text[i-1] != '\\') {
+				inString = !inString
+				continue
+			}
+			if inString {
+				continue
+			}
+			if ch == '{' {
 				depth++
-			case '}':
+			} else if ch == '}' {
 				depth--
 				if depth == 0 {
 					end = i + 1
 					break
 				}
-			}
-			if end > 0 {
-				break
 			}
 		}
 		if end <= start {

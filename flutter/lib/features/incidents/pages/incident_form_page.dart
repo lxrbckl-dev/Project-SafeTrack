@@ -123,15 +123,19 @@ class _IncidentFormPageState extends State<IncidentFormPage> {
     if (_isEditMode) {
       _loadExisting();
     }
-    // TASK-019: Check for AI-dispatched form fill data.
-    _consumeFormFillData();
+    // TASK-019: Check for AI-dispatched form fill data and listen for future
+    // dispatches (handles the case where the form is already mounted).
+    final formFillService = context.read<FormFillService>();
+    formFillService.addListener(_applyPendingFields);
+    _applyPendingFields();
   }
 
-  /// Consumes pending form fill data from [FormFillService] (AI agent dispatch).
+  /// Applies any pending form fill data from [FormFillService] (AI agent
+  /// dispatch). Called on init and reactively whenever the service notifies.
   ///
   /// Maps field names from the AI action schema to form controllers/state.
   /// Silently skips unknown fields per spec.
-  void _consumeFormFillData() {
+  void _applyPendingFields() {
     final formFillService = context.read<FormFillService>();
     final fields = formFillService.consumePendingFields();
     if (fields == null || fields.isEmpty) return;
@@ -184,6 +188,9 @@ class _IncidentFormPageState extends State<IncidentFormPage> {
 
   @override
   void dispose() {
+    final formFillService = context.read<FormFillService>();
+    formFillService.removeListener(_applyPendingFields);
+    formFillService.clear();
     _locationController.dispose();
     _divisionController.dispose();
     _projectController.dispose();
