@@ -93,24 +93,10 @@ lsof -ti:3000 | xargs kill -9
 
 ## Troubleshooting
 
-**Port 3000 in use:**
-```bash
-lsof -ti:3000 | xargs kill -9
-```
-
-**PostgreSQL connection refused:** Start Docker Desktop, then:
-```bash
-docker-compose up -d
-```
-
-**Port 5432 conflict (local Postgres):**
-```bash
-lsof -ti:5432 | xargs kill -9
-docker-compose up -d
-```
-
-**Need a fresh database:**
-```bash
-docker-compose down -v && docker-compose up -d
-```
-Then re-seed with Step 2 from [Quick Start](#quick-start).
+| Problem | Fix |
+|---|---|
+| Port 3000 in use | `lsof -ti:3000 \| xargs kill -9` |
+| PostgreSQL connection refused | Start Docker Desktop, then `docker-compose up -d` |
+| Port 5432 conflict (local Postgres) | `lsof -ti:5432 \| xargs kill -9` then `docker-compose up -d` |
+| Need a fresh database | `docker-compose down -v && docker-compose up -d`, then re-seed |
+| AI assistant returns empty responses | `docker exec -it highlander-ollama-1 ollama pull qwen2.5:7b` |
