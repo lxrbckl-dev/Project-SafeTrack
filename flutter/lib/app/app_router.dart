@@ -32,7 +32,8 @@ import '../features/training/pages/training_detail_page.dart';
 ///
 /// Auth redirect rules:
 /// - Unauthenticated → /login
-/// - Authenticated on /login → /dashboard
+/// - Authenticated on /login, Field Reporter → /incidents
+/// - Authenticated on /login, all other roles → /dashboard
 /// - /admin: Admin or Safety Manager → else /dashboard (fix #10)
 /// - /audit-log: Admin or Safety Manager → else /dashboard
 ///
@@ -54,8 +55,13 @@ GoRouter appRouter(AuthService authService) {
         return '/login';
       }
 
-      // Authenticated on /login: send to dashboard
+      // Authenticated on /login: send to role-appropriate landing page.
+      // Field Reporter lands on /incidents (their primary workflow).
+      // All other roles land on /dashboard.
       if (loggedIn && location == '/login') {
+        if (role == Role.fieldReporter) {
+          return '/incidents';
+        }
         return '/dashboard';
       }
 
