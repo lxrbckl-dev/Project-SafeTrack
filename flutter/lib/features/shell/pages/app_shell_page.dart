@@ -499,6 +499,13 @@ class _Sidebar extends StatelessWidget {
 
           // Shortcut discoverability hint (WCAG 2.1.4)
           _ShortcutHint(),
+
+          const SizedBox(height: 8),
+
+          // Logout button (fix #156)
+          const _LogoutButton(),
+
+          const SizedBox(height: 16),
         ],
       ),
     );
@@ -636,6 +643,52 @@ class _ShortcutHint extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Logout button in the sidebar footer.
+///
+/// Calls [AuthService.logout] immediately — no confirmation dialog.
+/// GoRouter's [refreshListenable] guard will redirect the user to /login.
+///
+/// ADA/WCAG compliance:
+/// - Semantic label "Log out of SafeTrack" (WCAG 1.3.1).
+/// - Smoke (#A7A9AC) on black (#000000) — ~7.0:1 contrast (WCAG AAA, 1.4.3).
+/// - Keyboard accessible via InkWell + MouseRegion (WCAG 2.1.1).
+class _LogoutButton extends StatelessWidget {
+  const _LogoutButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: 'Log out of SafeTrack',
+      button: true,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: InkWell(
+          onTap: () => context.read<AuthService>().logout(),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: const BoxDecoration(
+              border: Border(top: BorderSide(color: HerzogColors.darkGray)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.logout, size: 14, color: HerzogColors.smoke),
+                const SizedBox(width: 8),
+                Text(
+                  'LOGOUT',
+                  style: HerzogText.label(
+                    fontSize: 11,
+                    color: HerzogColors.smoke,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
