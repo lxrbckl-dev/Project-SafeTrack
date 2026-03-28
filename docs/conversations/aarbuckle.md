@@ -312,3 +312,67 @@ Already installed: Flutter 3.41.4, Xcode 26.3, Playwright 1.58.2
 - Fixed all 3 — plan and codebase fully in sync
 - Confirmed every stress test fix is reflected in the build plan
 - Backend structure is clean, canonical Go layout, ready for agent expansion
+
+---
+
+## 2026-03-27 — Evening
+
+### Agent Team Launch
+- Launched multi-agent team via Claude CLI with build-plan launch prompt
+- TPM created GitHub Issues for Phase 0 and spawned SWE-1 + SWE-2 in parallel
+- Agents immediately began building TASK-001 (Dev Login) and TASK-002 (App Shell)
+
+### Full Build Execution — 19/19 Tasks Complete
+- **Phase 0 (Foundation):** TASK-001 ✅ TASK-002 ✅ TASK-003 ✅
+- **Phase 1 (Incident Reporting):** TASK-004 ✅ TASK-005 ✅
+- **Phase 2 (Investigation + CAPA):** TASK-006 ✅ TASK-007 ✅ TASK-008 ✅ TASK-009 ✅ TASK-010 ✅
+- **Phase 3 (Dashboard + More):** TASK-011 ✅ TASK-012 ✅ TASK-013 ✅
+- **Phase 4 (Hardening):** TASK-014 ✅ TASK-015 ✅ TASK-016 ✅
+- **Phase 5 (Differentiators):** TASK-017 ✅ TASK-018 ✅ TASK-019 ✅
+
+### What Was Built
+- Incident reporting (7 types, OSHA 29 CFR 1904 decision tree, railroad deadlines, GPS, photos, completion %, medical encryption)
+- Investigation management (interactive 5-Why chain, configurable contributing factors, witness statements, Safety Manager approve/return)
+- CAPA lifecycle (verify button hidden from assignee, ineffective → new CAPA/reopen, KPI dashboard)
+- Safety dashboard (TRIR/DART/Near Miss with fl_chart, configurable benchmark, leading indicators)
+- Manual recurrence linking with union-find cluster view
+- Audit log viewer with expandable JSON diffs
+- Escalation notifications (bell badge, +3/+7/+14 day thresholds)
+- Full RBAC across 7 roles (PM project-scoped, Division Manager division-scoped, Executive read-only)
+- Application-level medical data encryption (AES-256-GCM)
+- Comprehensive seed data for demo (18 incidents, 7 investigations, 14 CAPAs)
+- AI chat widget with Qwen 2.5 7B (graceful Ollama degradation)
+- Keyboard shortcuts (D/I/V/C navigation, Ctrl+K chat, ? overlay)
+- AI agent with JSON action dispatch (page nav + form filling)
+- Herzog branding across 51 files — Oswald headings, Roboto body, gold/navy palette
+- 12+ Playwright test suites (7,157 lines of test code)
+
+### Build Stats
+- 19 tasks, 40 PRs, every PR peer-reviewed + QA tested before merge
+- Difficulty-based model routing: Routine → Sonnet, Complex/Critical → Opus
+- TPM managed merge ordering, rebase conflicts, and shared file coordination throughout
+
+### Bugs Caught by Peer Review & QA
+| Bug | Caught By | How Found |
+|---|---|---|
+| Admin route gate excluded Safety Manager | QA | Tested all 7 roles, filed Issue #10 |
+| Escalation thresholds wrong (8+ → 14+ days) | Peer Review | SWE caught incorrect constants |
+| Unused Go variable (compiler reject) | Peer Review | Code review |
+| TRIR/DART YTD scoping mismatch | Peer Review | Dashboard query not scoped to current year |
+| Missing role guard on GET /api/hours-worked | Peer Review | Endpoint accessible to all roles |
+| LostWorkDaysYTD naming (counted incidents not days) | Peer Review | Metric logic error |
+| N+1 query in recurrence linking | Peer Review | Batch query missing |
+| Missing Playwright spec | Peer Review | Feature PR had no test file |
+| ChatRepository injection missing | Peer Review | Provider not wired |
+| Missing ADA liveRegion on chat | Peer Review | Accessibility gap |
+| Keyboard shortcut / not guarded in text fields | Peer Review | Would trigger while typing |
+| Unreliable text field check for shortcuts | Peer Review | Edge case in focus detection |
+| CAPAs tab was placeholder | Integration Testing | TASK-016 found during E2E |
+| Close/Reopen buttons missing from incident detail | Integration Testing | TASK-016 found |
+| PM/Division Manager saw unauthorized action buttons | Integration Testing | isAtLeast too permissive for orthogonal roles |
+
+### Key Observations
+- Zero manual intervention required during the entire build
+- Agents followed backend-patterns.md (handler splitting, GORM relationships, context auth, audit logging)
+- QA caught real bugs and filed GitHub Issues — TPM triaged them into subsequent tasks
+- The entire SRD-10 rubric spec implemented in one evening session
