@@ -8,6 +8,7 @@ import '../features/dashboard/pages/hours_worked_page.dart';
 import '../features/incidents/pages/incident_list_page.dart';
 import '../features/incidents/pages/incident_form_page.dart';
 import '../features/incidents/pages/incident_detail_page.dart';
+import '../features/incidents/pages/incident_cluster_page.dart';
 import '../features/incidents/pages/osha_determination_page.dart';
 import '../features/investigations/pages/investigation_list_page.dart';
 import '../features/investigations/pages/investigation_detail_page.dart';
@@ -107,6 +108,11 @@ GoRouter appRouter(AuthService authService) {
                 path: 'new',
                 name: 'incidentNew',
                 builder: (context, state) => const IncidentFormPage(),
+              ),
+              GoRoute(
+                path: 'clusters',
+                name: 'incidentClusters',
+                builder: (context, state) => const IncidentClusterPage(),
               ),
               GoRoute(
                 path: ':id',
