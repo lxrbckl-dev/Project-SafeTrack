@@ -143,6 +143,7 @@ class _IncidentFormPageState extends State<IncidentFormPage> {
     final fields = formFillService.consumePendingFields();
     if (fields == null || fields.isEmpty) return;
 
+    _markDirty();
     setState(() {
       for (final entry in fields.entries) {
         switch (entry.key) {
@@ -494,7 +495,34 @@ class _IncidentFormPageState extends State<IncidentFormPage> {
           title: Text(_isEditMode ? 'EDIT INCIDENT' : 'NEW INCIDENT'),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.go('/incidents'),
+            onPressed: () {
+              if (_isDirty) {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Discard changes?'),
+                    content: const Text(
+                      'You have unsaved changes. Are you sure you want to leave?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          context.go('/incidents');
+                        },
+                        child: const Text('Discard'),
+                      ),
+                    ],
+                  ),
+                );
+              } else {
+                context.go('/incidents');
+              }
+            },
             tooltip: 'Back to incidents',
           ),
         ),
