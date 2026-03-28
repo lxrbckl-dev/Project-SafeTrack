@@ -460,32 +460,21 @@ class _KPICards extends StatelessWidget {
       ),
     ];
 
-    if (isWide) {
-      return Row(
-        children: cards
-            .map(
-              (c) => Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: c,
-                ),
-              ),
-            )
-            .toList(),
-      );
-    }
-    // Mobile: 2 columns
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: cards
-          .map(
-            (c) => SizedBox(
-              width: (MediaQuery.of(context).size.width - 48) / 2,
-              child: c,
-            ),
-          )
-          .toList(),
+    // Desktop (≥900px): 4 cards per row; Mobile (<900px): 2 cards per row.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount = isWide ? 4 : 2;
+        final totalSpacing = 8.0 * (crossAxisCount - 1);
+        final cardWidth =
+            (constraints.maxWidth - totalSpacing) / crossAxisCount;
+        return Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: cards
+              .map((c) => SizedBox(width: cardWidth, child: c))
+              .toList(),
+        );
+      },
     );
   }
 }
@@ -507,9 +496,25 @@ class _KPITile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? HerzogDarkColors.surface : HerzogColors.white;
+    final borderColor = isDark
+        ? HerzogDarkColors.border
+        : HerzogColors.borderGray;
+
     return Semantics(
       label: semanticLabel ?? '$label: $value',
-      child: Card(
+      child: Container(
+        decoration: BoxDecoration(
+          color: cardColor,
+          borderRadius: BorderRadius.circular(8),
+          border: Border(
+            left: const BorderSide(color: HerzogColors.gold, width: 4),
+            top: BorderSide(color: borderColor),
+            right: BorderSide(color: borderColor),
+            bottom: BorderSide(color: borderColor),
+          ),
+        ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
           child: Column(
