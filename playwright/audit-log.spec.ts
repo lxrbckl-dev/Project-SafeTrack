@@ -1008,8 +1008,8 @@ test.describe('Audit Log UI — Herzog Branding (TASK-012)', () => {
     expect(bgColor).not.toBeNull();
   });
 
-  test('HIGHLANDER sidebar brand text is visible', async ({ page }) => {
-    const brand = page.getByText('HIGHLANDER');
+  test('SAFETRACK sidebar brand text is visible', async ({ page }) => {
+    const brand = page.getByText('SAFETRACK');
     await expect(brand).toBeVisible({ timeout: 10000 });
   });
 

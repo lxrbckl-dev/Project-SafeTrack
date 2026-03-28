@@ -185,8 +185,8 @@ Already installed: Flutter 3.41.4, Xcode 26.3, Playwright 1.58.2
 - Updated all Go import paths to `github.com/lxRbckl/highlander/backend`
 - Updated database credentials across docker-compose, main.go, setup.md
 - Updated worktree paths in all agent definitions to ../highlander-*
-- Updated CLAUDE.md: title to "Highlander", description to SRD-10, worktree paths, key files
-- Updated web/index.html and manifest.json titles to "Highlander"
+- Updated CLAUDE.md: title to "SafeTrack", description to SRD-10, worktree paths, key files
+- Updated web/index.html and manifest.json titles to "SafeTrack"
 - Verified Go compiles and Flutter resolves after all changes
 
 ### Documentation Cleanup
@@ -376,3 +376,8 @@ Already installed: Flutter 3.41.4, Xcode 26.3, Playwright 1.58.2
 - Agents followed backend-patterns.md (handler splitting, GORM relationships, context auth, audit logging)
 - QA caught real bugs and filed GitHub Issues — TPM triaged them into subsequent tasks
 - The entire SRD-10 rubric spec implemented in one evening session
+
+### Project Rename: Highlander → SafeTrack
+- Renamed project from "Highlander" to "SafeTrack" across all user-facing files
+- Updated: CLAUDE.md, README.md, main.dart, index.html, manifest.json, wiki.md (both copies), role.dart, auth_service.dart, chat_widget.dart
+- Did NOT change: GitHub repo name, Flutter package name (pubspec.yaml), Firebase bundle IDs, domain name

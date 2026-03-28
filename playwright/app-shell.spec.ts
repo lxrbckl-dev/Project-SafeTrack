@@ -37,8 +37,8 @@ test.describe('App Shell — Responsive Layout (TASK-002)', () => {
     const sidebar = page.getByRole('navigation', { name: /Main navigation/i });
     await expect(sidebar).toBeVisible({ timeout: 10000 });
 
-    // HIGHLANDER heading in sidebar (Oswald font, gold color)
-    const brandHeading = page.getByText(/HIGHLANDER/i);
+    // SAFETRACK heading in sidebar (Oswald font, gold color)
+    const brandHeading = page.getByText(/SAFETRACK/i);
     await expect(brandHeading).toBeVisible({ timeout: 10000 });
   });
 
@@ -56,9 +56,9 @@ test.describe('App Shell — Responsive Layout (TASK-002)', () => {
     const bottomNav = page.getByRole('navigation', { name: /Main navigation/i });
     await expect(bottomNav).toBeVisible({ timeout: 10000 });
 
-    // Sidebar HIGHLANDER brand heading should NOT be visible on mobile
+    // Sidebar SAFETRACK brand heading should NOT be visible on mobile
     // (desktop shell not rendered at all — heading only exists in _SidebarHeader)
-    const brandHeading = page.locator('[aria-label*="HIGHLANDER"]');
+    const brandHeading = page.locator('[aria-label*="SAFETRACK"]');
     // The brand heading should not appear in bottom-nav layout
     await expect(brandHeading).toHaveCount(0, { timeout: 5000 });
   });

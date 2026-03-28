@@ -1,8 +1,8 @@
-# Highlander — App Wiki
+# SafeTrack — App Wiki
 
 ## What This App Does
 
-Highlander is a cross-platform Incident Investigation & Corrective Action System (SRD-10) built with Flutter. This wiki will be updated as features are built.
+SafeTrack is a cross-platform Incident Investigation & Corrective Action System (SRD-10) built with Flutter. This wiki will be updated as features are built.
 
 ## Pages & Routes
 

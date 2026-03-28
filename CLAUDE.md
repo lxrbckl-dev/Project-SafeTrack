@@ -1,4 +1,4 @@
-# Highlander
+# SafeTrack
 
 Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutter/Dart app built for a hackathon. Solo developer (Alex) + multi-agent Claude Code team.
 

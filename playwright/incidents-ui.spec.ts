@@ -442,11 +442,11 @@ test('TC-UI-024: Incident list cards have semantic labels', async ({ page }) => 
 // TC-UI-025: ADA/WCAG — Herzog branding in sidebar
 // ---------------------------------------------------------------------------
 
-test('TC-UI-025: Herzog branding HIGHLANDER visible in desktop sidebar', async ({ page }) => {
+test('TC-UI-025: Herzog branding SAFETRACK visible in desktop sidebar', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await loginAs(page, 'field_reporter', '/dashboard');
 
-  await expect(page.getByText('HIGHLANDER')).toBeVisible({ timeout: 10000 });
+  await expect(page.getByText('SAFETRACK')).toBeVisible({ timeout: 10000 });
   await expect(page.getByText('Safety Management')).toBeVisible();
 });
 

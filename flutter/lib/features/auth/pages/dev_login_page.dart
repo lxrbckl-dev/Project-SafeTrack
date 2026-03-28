@@ -48,7 +48,7 @@ class _DevLoginPageState extends State<DevLoginPage> {
     return Scaffold(
       backgroundColor: HerzogColors.offWhite,
       appBar: AppBar(
-        title: const Text('HIGHLANDER'),
+        title: const Text('SAFETRACK'),
         backgroundColor: HerzogColors.richBlack,
         foregroundColor: HerzogColors.gold,
       ),

@@ -33,9 +33,9 @@ test.describe('Dev Login Page — TASK-001', () => {
     expect(errors).toEqual([]);
   });
 
-  test('page title is HIGHLANDER', async ({ page }) => {
+  test('page title is SAFETRACK', async ({ page }) => {
     // AppBar title — exposed via semantics tree
-    const title = page.getByRole('heading', { name: /HIGHLANDER/i });
+    const title = page.getByRole('heading', { name: /SAFETRACK/i });
     await expect(title).toBeVisible({ timeout: 10000 });
   });
 
