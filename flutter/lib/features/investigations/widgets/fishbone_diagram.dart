@@ -130,6 +130,9 @@ class FishboneDiagram extends StatelessWidget {
   }
 }
 
+// Shared constant so painter and overlay always agree on bone length.
+const double _kBoneSpacing = 120.0;
+
 /// Paints the fishbone skeleton: backbone, spines, and decorative elements.
 class _FishbonePainter extends CustomPainter {
   final Map<FishboneCategory, List<_FishboneFactor>> grouped;
@@ -162,7 +165,6 @@ class _FishbonePainter extends CustomPainter {
     const leftMargin = 60.0;
     final rightMargin = size.width - 120.0;
     const spineLength = 160.0;
-    const boneSpacing = 120.0;
 
     // Draw backbone (horizontal line)
     canvas.drawLine(
@@ -213,14 +215,34 @@ class _FishbonePainter extends CustomPainter {
       // Draw main spine
       canvas.drawLine(Offset(baseX, baseY), Offset(endX, endY), spinePaint);
 
+      // Compute perpendicular direction for bones based on spine angle.
+      // The spine vector goes from (baseX, baseY) to (endX, endY).
+      // A perpendicular rotated 90° counter-clockwise is (-dy, dx).
+      // For upper spines (isTop) we want bones pointing upward, so we flip
+      // as needed to ensure the perpendicular component matches orientation.
+      final spineDx = endX - baseX;
+      final spineDy = endY - baseY;
+      final spineLen = math.sqrt(spineDx * spineDx + spineDy * spineDy);
+      // Unit perpendicular (-dy, dx) rotated 90° CCW from spine direction.
+      final perpUx = -spineDy / spineLen;
+      final perpUy = spineDx / spineLen;
+      // Ensure bones point away from the backbone centre (up for top spines,
+      // down for bottom spines).
+      final perpX = isTop
+          ? (perpUy < 0 ? perpUx : -perpUx)
+          : (perpUy > 0 ? perpUx : -perpUx);
+      final perpY = isTop
+          ? (perpUy < 0 ? perpUy : -perpUy)
+          : (perpUy > 0 ? perpUy : -perpUy);
+
       // Draw bones for each factor
       final factorsInCategory = grouped[category] ?? [];
       for (var j = 0; j < factorsInCategory.length; j++) {
         final t = (j + 1) / (factorsInCategory.length + 1);
         final boneBaseX = baseX + (endX - baseX) * t;
         final boneBaseY = baseY + (endY - baseY) * t;
-        final boneEndX = boneBaseX + boneSpacing * 0.6;
-        final boneEndY = boneBaseY;
+        final boneEndX = boneBaseX + perpX * _kBoneSpacing * 0.6;
+        final boneEndY = boneBaseY + perpY * _kBoneSpacing * 0.6;
 
         final factor = factorsInCategory[j];
         final paint = factor.factor.isPrimary
@@ -255,9 +277,13 @@ class _FishbonePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _FishbonePainter oldDelegate) {
-    return oldDelegate.grouped != grouped ||
-        oldDelegate.problemLabel != problemLabel;
+  bool shouldRepaint(covariant _FishbonePainter old) {
+    if (old.problemLabel != problemLabel) return true;
+    if (old.grouped.length != grouped.length) return true;
+    for (final key in grouped.keys) {
+      if (old.grouped[key]?.length != grouped[key]?.length) return true;
+    }
+    return false;
   }
 }
 
@@ -284,7 +310,6 @@ class _FishboneOverlay extends StatelessWidget {
     const leftMargin = 60.0;
     final rightMargin = diagramWidth - 120.0;
     const spineLength = 160.0;
-    const boneSpacing = 120.0;
 
     final spineSpacing = (rightMargin - leftMargin - 80) / 3;
 
@@ -320,8 +345,22 @@ class _FishboneOverlay extends StatelessWidget {
       final spineIndex = isTop ? i : i - 3;
 
       final baseX = leftMargin + 80 + spineIndex * spineSpacing;
+      final baseY = centerY;
       final endX = baseX + spineLength * 0.5;
       final endY = isTop ? centerY - spineLength : centerY + spineLength;
+
+      // Perpendicular direction matching the painter calculation.
+      final spineDx = endX - baseX;
+      final spineDy = endY - baseY;
+      final spineLen = math.sqrt(spineDx * spineDx + spineDy * spineDy);
+      final perpUx = -spineDy / spineLen;
+      final perpUy = spineDx / spineLen;
+      final perpX = isTop
+          ? (perpUy < 0 ? perpUx : -perpUx)
+          : (perpUy > 0 ? perpUx : -perpUx);
+      final perpY = isTop
+          ? (perpUy < 0 ? perpUy : -perpUy)
+          : (perpUy > 0 ? perpUy : -perpUy);
 
       // Category label at spine tip
       children.add(
@@ -364,14 +403,15 @@ class _FishboneOverlay extends StatelessWidget {
       for (var j = 0; j < factorsInCategory.length; j++) {
         final t = (j + 1) / (factorsInCategory.length + 1);
         final boneBaseX = baseX + (endX - baseX) * t;
-        final boneBaseY = centerY + (endY - centerY) * t;
-        final boneEndX = boneBaseX + boneSpacing * 0.6;
+        final boneBaseY = baseY + (endY - baseY) * t;
+        final boneEndX = boneBaseX + perpX * _kBoneSpacing * 0.6;
+        final boneEndY = boneBaseY + perpY * _kBoneSpacing * 0.6;
 
         final factor = factorsInCategory[j].factor;
         final isPrimary = factor.isPrimary;
 
-        // Position label at end of bone
-        final labelTop = isTop ? boneBaseY - 28 : boneBaseY + 6;
+        // Position label at end of bone, offset slightly in perpendicular direction.
+        final labelTop = isTop ? boneEndY - 28 : boneEndY + 6;
 
         children.add(
           Positioned(
