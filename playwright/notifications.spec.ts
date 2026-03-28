@@ -110,11 +110,12 @@ async function createInvestigation(
   targetDaysAgo: number,
 ): Promise<number> {
   const pastDate = new Date(Date.now() - targetDaysAgo * 24 * 60 * 60 * 1000).toISOString();
+  const { userId: coordinatorId } = await getTokenAndUserId(page, 'safety_coordinator');
   const res = await page.request.post(`${API}/api/investigations`, {
     headers: authHeaders(smToken),
     data: {
       incidentId,
-      leadInvestigatorId: 'coordinator@safetrack.demo',
+      leadInvestigatorId: coordinatorId,
       targetCompletionDate: pastDate,
       teamMembers: [],
     },
@@ -157,6 +158,7 @@ async function createCAPAWithStatus(
   const pastDate = new Date(Date.now() - dueDaysAgo * 24 * 60 * 60 * 1000).toISOString();
 
   // Create with Open status first
+  const { userId: coordinatorId } = await getTokenAndUserId(page, 'safety_coordinator');
   const res = await page.request.post(`${API}/api/capas`, {
     headers: authHeaders(smToken),
     data: {
@@ -165,7 +167,7 @@ async function createCAPAWithStatus(
       type: 'Corrective',
       category: 'Training',
       description: `QA CAPA status=${status} — ${Date.now()}`,
-      assignedToUserId: 'coordinator@safetrack.demo',
+      assignedToUserId: coordinatorId,
       priority: 'High',
       dueDate: pastDate,
       verificationMethod: 'Observation',

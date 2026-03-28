@@ -178,8 +178,10 @@ async function createCAPA(
   incidentId: number,
   investigationId: number,
   priority: string = 'Medium',
-  assignedToUserId: string = 'qa-assignee-user',
+  assignedToUserId: string = '',
 ): Promise<Record<string, unknown>> {
+  const resolvedAssignee = assignedToUserId
+    || (await getTokenAndUserId(page, 'field_reporter')).userId;
   const res = await page.request.post(`${API}/api/capas`, {
     headers: authHeaders(token),
     data: {
@@ -188,7 +190,7 @@ async function createCAPA(
       type: 'Corrective',
       category: 'Training',
       description: `QA CAPA [${priority}] — ${Date.now()}`,
-      assignedToUserId,
+      assignedToUserId: resolvedAssignee,
       priority,
       verificationMethod: 'Direct observation and record review',
     },
@@ -555,6 +557,7 @@ test('VerifyCAPA: effective=false → status Verified Ineffective + nextSteps in
 
 test('VerifyCAPA: cannot verify CAPA that is not Verification Pending → 400', async ({ page }) => {
   const smToken = await getToken(page, 'safety_manager');
+  const { userId: frUserId } = await getTokenAndUserId(page, 'field_reporter');
   const { incidentId, investigationId } = await setupForCAPA(page, smToken);
 
   const capa = await createCAPA(
@@ -563,7 +566,7 @@ test('VerifyCAPA: cannot verify CAPA that is not Verification Pending → 400', 
     incidentId,
     investigationId,
     'Low',
-    'qa-assignee-user',
+    frUserId,
   );
   const capaId = capa.id as number;
 

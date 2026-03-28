@@ -61,6 +61,26 @@ async function devLoginToken(
   }
 }
 
+async function devLoginTokenAndUserId(
+  page: import('@playwright/test').Page,
+  role: string,
+): Promise<{ token: string; userId: string } | null> {
+  try {
+    const email = ROLE_EMAILS[role] ?? `${role}@safetrack.demo`;
+    const res = await page.request.post(`${API}/api/login`, {
+      data: { email, password: 'demo1234' },
+    });
+    if (!res.ok()) return null;
+    const body = await res.json();
+    const token = (body.token as string) ?? null;
+    const userId = (body.userId as string) ?? null;
+    if (!token || !userId) return null;
+    return { token, userId };
+  } catch {
+    return null;
+  }
+}
+
 function authHeaders(token: string) {
   return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 }
@@ -632,7 +652,9 @@ test.describe('Audit Log UI — Filters (TASK-012)', () => {
     const userField = page.getByLabel(/Filter by user ID/i);
     await expect(userField).toBeVisible({ timeout: 10000 });
 
-    await userField.fill('admin@safetrack.demo');
+    const adminLogin = await devLoginTokenAndUserId(page, 'admin');
+    const adminUserId = adminLogin ? adminLogin.userId : '1';
+    await userField.fill(adminUserId);
     await userField.press('Enter');
 
     // After filter is applied Clear All should appear (active filters badge)
