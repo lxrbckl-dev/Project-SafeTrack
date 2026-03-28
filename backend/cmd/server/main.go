@@ -32,11 +32,19 @@ func main() {
 	}
 	defer sqlDB.Close()
 
+	// Start WebSocket hub for real-time event broadcasting.
+	hub := handlers.NewHub()
+	go hub.Run()
+	handlers.SetWSHub(hub)
+
 	mux := http.NewServeMux()
 
 	// Public routes
 	mux.HandleFunc("GET /health", handlers.Health)
 	mux.HandleFunc("POST /api/login", handlers.Login(db))
+
+	// WebSocket endpoint — auth via query param, not middleware.
+	mux.HandleFunc("GET /api/ws", handlers.WebSocketHandler(hub))
 
 	// Seed default settings on startup (no-op if rows already exist)
 	handlers.SeedDefaultSettings(db)

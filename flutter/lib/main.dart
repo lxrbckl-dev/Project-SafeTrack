@@ -12,6 +12,7 @@ import 'core/services/notification_service.dart';
 import 'core/services/onboarding_service.dart';
 import 'core/services/sync_service.dart';
 import 'core/services/theme_service.dart';
+import 'core/services/websocket_service.dart';
 import 'features/auth/data/auth_service.dart';
 import 'features/chat/data/chat_repository.dart';
 import 'features/chat/data/form_fill_service.dart';
@@ -42,6 +43,22 @@ class MyApp extends StatelessWidget {
           create: (_) => NotificationService(),
           update: (_, auth, previous) {
             final service = previous ?? NotificationService();
+            service.setToken(auth.token);
+            return service;
+          },
+        ),
+        // WebSocketService — real-time event delivery from the Go backend.
+        // Connects on login, pushes notification and activity events.
+        // Falls back gracefully to polling if WebSocket is unavailable.
+        ChangeNotifierProxyProvider2<
+          AuthService,
+          NotificationService,
+          WebSocketService
+        >(
+          create: (_) => WebSocketService(),
+          update: (_, auth, notifications, previous) {
+            final service = previous ?? WebSocketService();
+            service.setNotificationService(notifications);
             service.setToken(auth.token);
             return service;
           },

@@ -10,9 +10,10 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// devJWTSecret returns the HS256 signing secret for dev-mode JWTs.
+// DevJWTSecret returns the HS256 signing secret for dev-mode JWTs.
 // Override via DEV_JWT_SECRET env var; falls back to a known dev default.
-func devJWTSecret() []byte {
+// Exported so the WebSocket handler can reuse the same verification logic.
+func DevJWTSecret() []byte {
 	if secret := os.Getenv("DEV_JWT_SECRET"); secret != "" {
 		return []byte(secret)
 	}
@@ -42,7 +43,7 @@ func FirebaseAuth(next http.Handler) http.Handler {
 			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
 			}
-			return devJWTSecret(), nil
+			return DevJWTSecret(), nil
 		})
 		if err != nil || !token.Valid {
 			http.Error(w, "unauthorized", http.StatusUnauthorized)

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../app/herzog_theme.dart';
+import '../../../core/services/websocket_service.dart';
 import '../../auth/data/auth_service.dart';
 import '../data/activity_repository.dart';
 
@@ -12,8 +13,9 @@ import '../data/activity_repository.dart';
 /// as human-readable messages with user avatars, action icons, and
 /// relative timestamps.
 ///
-/// Auto-refreshes every 30 seconds using the same polling pattern as
-/// [NotificationService].
+/// When a [WebSocketService] is available in the widget tree, it listens
+/// for real-time activity events and refreshes immediately instead of
+/// waiting for the 30-second polling interval.
 ///
 /// ADA/WCAG:
 /// - Semantic labels on all interactive elements (WCAG 1.3.1)
@@ -37,20 +39,37 @@ class _ActivityFeedState extends State<ActivityFeed> {
   bool _loading = true;
   String? _error;
   Timer? _timer;
+  StreamSubscription<Map<String, dynamic>>? _wsSubscription;
 
   @override
   void initState() {
     super.initState();
     _fetchActivity();
+    // Polling fallback — fires every 30s as before.
     _timer = Timer.periodic(
       const Duration(seconds: 30),
       (_) => _fetchActivity(),
     );
+
+    // Listen for real-time WebSocket activity events.
+    // When an event arrives, refresh the full feed from the API so we get
+    // properly RBAC-scoped, human-readable items.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        final ws = context.read<WebSocketService>();
+        _wsSubscription = ws.activityStream.listen((_) {
+          _fetchActivity();
+        });
+      } catch (_) {
+        // WebSocketService not available — polling continues as fallback.
+      }
+    });
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _wsSubscription?.cancel();
     super.dispose();
   }
 
