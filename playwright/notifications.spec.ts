@@ -3,7 +3,7 @@
  *
  * API-level smoke tests for TASK-013: Escalation Notifications.
  * Tests call the Go backend directly via Playwright's request context,
- * using the dev-login endpoint to obtain JWTs.
+ * using the login endpoint to obtain JWTs.
  *
  * Run against the PR branch backend on port 8001:
  *   PORT=8001 go run ./cmd/server/ &
@@ -36,13 +36,23 @@ const API = process.env.API_BASE_URL ?? 'http://localhost:8001';
 // Helpers
 // ---------------------------------------------------------------------------
 
+const ROLE_EMAILS: Record<string, string> = {
+  field_reporter: 'reporter@safetrack.demo',
+  safety_coordinator: 'coordinator@safetrack.demo',
+  safety_manager: 'manager@safetrack.demo',
+  pm: 'pm@safetrack.demo',
+  division_manager: 'director@safetrack.demo',
+  executive: 'executive@safetrack.demo',
+  admin: 'admin@safetrack.demo',
+};
+
 async function getToken(
   page: import('@playwright/test').Page,
   role: string,
-  displayName?: string,
 ): Promise<string> {
-  const res = await page.request.post(`${API}/api/dev-login`, {
-    data: { role, displayName: displayName ?? `QA ${role}` },
+  const email = ROLE_EMAILS[role] ?? `${role}@safetrack.demo`;
+  const res = await page.request.post(`${API}/api/login`, {
+    data: { email, password: 'demo1234' },
   });
   expect(res.ok()).toBeTruthy();
   const body = await res.json();
@@ -53,8 +63,9 @@ async function getTokenAndUserId(
   page: import('@playwright/test').Page,
   role: string,
 ): Promise<{ token: string; userId: string }> {
-  const res = await page.request.post(`${API}/api/dev-login`, {
-    data: { role },
+  const email = ROLE_EMAILS[role] ?? `${role}@safetrack.demo`;
+  const res = await page.request.post(`${API}/api/login`, {
+    data: { email, password: 'demo1234' },
   });
   expect(res.ok()).toBeTruthy();
   const body = await res.json();
@@ -103,7 +114,7 @@ async function createInvestigation(
     headers: authHeaders(smToken),
     data: {
       incidentId,
-      leadInvestigatorId: 'dev-safety_coordinator',
+      leadInvestigatorId: 'coordinator@safetrack.demo',
       targetCompletionDate: pastDate,
       teamMembers: [],
     },
@@ -154,7 +165,7 @@ async function createCAPAWithStatus(
       type: 'Corrective',
       category: 'Training',
       description: `QA CAPA status=${status} — ${Date.now()}`,
-      assignedToUserId: 'dev-safety_coordinator',
+      assignedToUserId: 'coordinator@safetrack.demo',
       priority: 'High',
       dueDate: pastDate,
       verificationMethod: 'Observation',
@@ -455,7 +466,7 @@ test('Railroad UP Injury overdue creates railroad_notification type notification
   const smToken = await getToken(page, 'safety_manager');
   const reporterToken = await getToken(page, 'field_reporter');
 
-  // The reporter creates the incident (reporterId = dev-field_reporter)
+  // The reporter creates the incident
   const incidentId = await createRailroadIncident(page, reporterToken);
 
   // Trigger escalation sweep as safety_manager
@@ -530,8 +541,8 @@ test('Railroad notification: BNSF deadlines per incident type are encoded', asyn
 // ---------------------------------------------------------------------------
 
 test('GET /api/notifications returns only the authenticated user\'s notifications', async ({ page }) => {
-  const smToken = await getToken(page, 'safety_manager');
-  const adminToken = await getToken(page, 'admin');
+  const { token: smToken, userId: smUserId } = await getTokenAndUserId(page, 'safety_manager');
+  const { token: adminToken, userId: adminUserId } = await getTokenAndUserId(page, 'admin');
 
   // Safety manager fetches their notifications
   const smRes = await page.request.get(`${API}/api/notifications`, {
@@ -548,9 +559,6 @@ test('GET /api/notifications returns only the authenticated user\'s notification
   const adminNotifs: Array<{ userId: string }> = await adminRes.json();
 
   // Verify all returned notifications belong to the requesting user
-  const smUserId = 'dev-safety_manager';
-  const adminUserId = 'dev-admin';
-
   for (const notif of smNotifs) {
     expect(notif.userId).toBe(smUserId);
   }

@@ -3,7 +3,7 @@
  *
  * API-level smoke tests for TASK-011: Manual Recurrence Linking.
  * These tests call the Go backend directly via Playwright's request context,
- * using the dev-login endpoint to obtain a JWT.
+ * using the login endpoint to obtain a JWT.
  *
  * Run against the PR branch backend on port 8001:
  *   PORT=8001 go run ./cmd/server/ &
@@ -18,9 +18,20 @@ const API = process.env.API_BASE_URL ?? 'http://localhost:8001';
 // Helpers
 // ---------------------------------------------------------------------------
 
+const ROLE_EMAILS: Record<string, string> = {
+  field_reporter: 'reporter@safetrack.demo',
+  safety_coordinator: 'coordinator@safetrack.demo',
+  safety_manager: 'manager@safetrack.demo',
+  pm: 'pm@safetrack.demo',
+  division_manager: 'director@safetrack.demo',
+  executive: 'executive@safetrack.demo',
+  admin: 'admin@safetrack.demo',
+};
+
 async function getToken(page: import('@playwright/test').Page, role: string): Promise<string> {
-  const res = await page.request.post(`${API}/api/dev-login`, {
-    data: { role },
+  const email = ROLE_EMAILS[role] ?? `${role}@safetrack.demo`;
+  const res = await page.request.post(`${API}/api/login`, {
+    data: { email, password: 'demo1234' },
   });
   expect(res.ok()).toBeTruthy();
   const body = await res.json();

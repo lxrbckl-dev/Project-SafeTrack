@@ -367,8 +367,8 @@ test.describe('Admin Settings — Backend API (TASK-003)', () => {
   test('GET /api/settings returns 403 for field_reporter role', async ({ request }) => {
     try {
       // Get a field_reporter token
-      const loginRes = await request.post(`${backendUrl}/api/dev-login`, {
-        data: { role: 'field_reporter', displayName: 'QA Test' },
+      const loginRes = await request.post(`${backendUrl}/api/login`, {
+        data: { email: 'reporter@safetrack.demo', password: 'demo1234' },
       });
       expect(loginRes.ok()).toBeTruthy();
       const { token } = await loginRes.json();
@@ -384,8 +384,8 @@ test.describe('Admin Settings — Backend API (TASK-003)', () => {
 
   test('GET /api/settings returns 200 for admin role', async ({ request }) => {
     try {
-      const loginRes = await request.post(`${backendUrl}/api/dev-login`, {
-        data: { role: 'admin', displayName: 'QA Admin' },
+      const loginRes = await request.post(`${backendUrl}/api/login`, {
+        data: { email: 'admin@safetrack.demo', password: 'demo1234' },
       });
       const { token } = await loginRes.json();
 
@@ -403,8 +403,8 @@ test.describe('Admin Settings — Backend API (TASK-003)', () => {
 
   test('GET /api/settings returns 200 for safety_manager role', async ({ request }) => {
     try {
-      const loginRes = await request.post(`${backendUrl}/api/dev-login`, {
-        data: { role: 'safety_manager', displayName: 'QA SM' },
+      const loginRes = await request.post(`${backendUrl}/api/login`, {
+        data: { email: 'manager@safetrack.demo', password: 'demo1234' },
       });
       const { token } = await loginRes.json();
 
@@ -419,8 +419,8 @@ test.describe('Admin Settings — Backend API (TASK-003)', () => {
 
   test('GET /api/settings/{key} returns 200 for any authenticated role (field_reporter)', async ({ request }) => {
     try {
-      const loginRes = await request.post(`${backendUrl}/api/dev-login`, {
-        data: { role: 'field_reporter', displayName: 'QA Field' },
+      const loginRes = await request.post(`${backendUrl}/api/login`, {
+        data: { email: 'reporter@safetrack.demo', password: 'demo1234' },
       });
       const { token } = await loginRes.json();
 
@@ -438,8 +438,8 @@ test.describe('Admin Settings — Backend API (TASK-003)', () => {
 
   test('PUT /api/settings/{key} returns 403 for field_reporter role', async ({ request }) => {
     try {
-      const loginRes = await request.post(`${backendUrl}/api/dev-login`, {
-        data: { role: 'field_reporter', displayName: 'QA Field' },
+      const loginRes = await request.post(`${backendUrl}/api/login`, {
+        data: { email: 'reporter@safetrack.demo', password: 'demo1234' },
       });
       const { token } = await loginRes.json();
 
@@ -458,8 +458,8 @@ test.describe('Admin Settings — Backend API (TASK-003)', () => {
 
   test('PUT /api/settings/{key} returns 200 for admin role and audit-logs the change', async ({ request }) => {
     try {
-      const loginRes = await request.post(`${backendUrl}/api/dev-login`, {
-        data: { role: 'admin', displayName: 'QA Admin' },
+      const loginRes = await request.post(`${backendUrl}/api/login`, {
+        data: { email: 'admin@safetrack.demo', password: 'demo1234' },
       });
       const { token } = await loginRes.json();
 
@@ -491,8 +491,8 @@ test.describe('Admin Settings — Backend API (TASK-003)', () => {
 
   test('seeded defaults: trir_benchmark = "3.0" key exists', async ({ request }) => {
     try {
-      const loginRes = await request.post(`${backendUrl}/api/dev-login`, {
-        data: { role: 'admin', displayName: 'QA Admin' },
+      const loginRes = await request.post(`${backendUrl}/api/login`, {
+        data: { email: 'admin@safetrack.demo', password: 'demo1234' },
       });
       const { token } = await loginRes.json();
 
@@ -510,8 +510,8 @@ test.describe('Admin Settings — Backend API (TASK-003)', () => {
 
   test('seeded defaults: factor_types key contains 5 categories', async ({ request }) => {
     try {
-      const loginRes = await request.post(`${backendUrl}/api/dev-login`, {
-        data: { role: 'admin', displayName: 'QA Admin' },
+      const loginRes = await request.post(`${backendUrl}/api/login`, {
+        data: { email: 'admin@safetrack.demo', password: 'demo1234' },
       });
       const { token } = await loginRes.json();
 
@@ -534,8 +534,8 @@ test.describe('Admin Settings — Backend API (TASK-003)', () => {
 
   test('seeded defaults: escalation_days = [3,7,14]', async ({ request }) => {
     try {
-      const loginRes = await request.post(`${backendUrl}/api/dev-login`, {
-        data: { role: 'admin', displayName: 'QA Admin' },
+      const loginRes = await request.post(`${backendUrl}/api/login`, {
+        data: { email: 'admin@safetrack.demo', password: 'demo1234' },
       });
       const { token } = await loginRes.json();
 

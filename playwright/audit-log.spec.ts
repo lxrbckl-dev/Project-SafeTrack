@@ -632,7 +632,7 @@ test.describe('Audit Log UI — Filters (TASK-012)', () => {
     const userField = page.getByLabel(/Filter by user ID/i);
     await expect(userField).toBeVisible({ timeout: 10000 });
 
-    await userField.fill('dev-admin');
+    await userField.fill('admin@safetrack.demo');
     await userField.press('Enter');
 
     // After filter is applied Clear All should appear (active filters badge)
