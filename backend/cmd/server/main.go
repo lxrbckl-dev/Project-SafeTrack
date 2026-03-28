@@ -45,7 +45,7 @@ func main() {
 	api := http.NewServeMux()
 	api.HandleFunc("POST /api/sync", handlers.Sync(db))
 	api.HandleFunc("GET /api/data", handlers.GetData(db))
-	api.HandleFunc("GET /api/audit-logs", handlers.GetAuditLogs(db)) // TODO (TASK-014): restrict to Admin + Safety Manager
+	api.HandleFunc("GET /api/audit-logs", handlers.GetAuditLogs(db)) // RBAC enforced at handler level: Admin + Safety Manager only
 	api.HandleFunc("POST /api/chat", handlers.Chat())
 	handlers.RegisterSettingsRoutes(api, db)
 
