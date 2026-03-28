@@ -155,7 +155,20 @@ class _IncidentListPageState extends State<IncidentListPage> {
         auth.currentRole != Role.executive;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('INCIDENTS')),
+      appBar: AppBar(
+        title: const Text('INCIDENTS'),
+        actions: [
+          Semantics(
+            label: 'Switch to map view',
+            button: true,
+            child: IconButton(
+              icon: const Icon(Icons.map),
+              tooltip: 'Map view',
+              onPressed: () => context.go('/incidents/map'),
+            ),
+          ),
+        ],
+      ),
       body: Column(
         children: [
           // Welcome header shown to Field Reporter (their primary landing page).
