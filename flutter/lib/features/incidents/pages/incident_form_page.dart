@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../../../app/herzog_theme.dart';
+import '../../../core/services/sync_service.dart';
 import '../../../shared/widgets/app_date_picker.dart';
 import '../../../shared/widgets/app_dropdown.dart';
 import '../../../shared/widgets/app_loading_button.dart';
@@ -294,6 +295,14 @@ class _IncidentFormPageState extends State<IncidentFormPage> {
   Future<void> _saveDraft() async {
     setState(() => _saving = true);
     try {
+      final syncService = context.read<SyncService>();
+
+      // If offline, save to local Drift database
+      if (!syncService.isOnline) {
+        await _saveOffline(isDraft: true);
+        return;
+      }
+
       final data = _buildIncident(isDraft: true);
       Incident result;
       if (_isEditMode) {
@@ -316,10 +325,17 @@ class _IncidentFormPageState extends State<IncidentFormPage> {
         context.go('/incidents');
       }
     } catch (e) {
+      // If API call fails (e.g., network error), fall back to offline save
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to save draft: $e')));
+        try {
+          await _saveOffline(isDraft: true);
+        } catch (offlineError) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to save draft: $offlineError')),
+            );
+          }
+        }
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -331,6 +347,14 @@ class _IncidentFormPageState extends State<IncidentFormPage> {
 
     setState(() => _submitting = true);
     try {
+      final syncService = context.read<SyncService>();
+
+      // If offline, save to local Drift database
+      if (!syncService.isOnline) {
+        await _saveOffline(isDraft: false);
+        return;
+      }
+
       final data = _buildIncident(isDraft: false);
       Incident result;
       if (_isEditMode) {
@@ -353,13 +377,51 @@ class _IncidentFormPageState extends State<IncidentFormPage> {
         context.go('/incidents');
       }
     } catch (e) {
+      // If API call fails, fall back to offline save
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to submit incident: $e')),
-        );
+        try {
+          await _saveOffline(isDraft: false);
+        } catch (offlineError) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to submit incident: $offlineError'),
+              ),
+            );
+          }
+        }
       }
     } finally {
       if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  /// Save the incident to the local Drift database for offline storage.
+  /// Called when the device is offline or when the API call fails.
+  Future<void> _saveOffline({required bool isDraft}) async {
+    final syncService = context.read<SyncService>();
+    final data = _buildIncident(isDraft: isDraft);
+
+    // Collect photo file paths for deferred upload
+    final photoPaths = _selectedPhotos.map((p) => p.path).toList();
+
+    await syncService.saveIncidentOffline(
+      incidentJson: data.toJson(),
+      photoPaths: photoPaths,
+    );
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isDraft
+                ? 'Draft saved offline -- will sync when connected'
+                : 'Incident saved offline -- will sync when connected',
+          ),
+          backgroundColor: HerzogColors.warningAmber,
+        ),
+      );
+      context.go('/incidents');
     }
   }
 

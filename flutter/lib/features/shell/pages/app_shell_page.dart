@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../app/herzog_theme.dart';
+import '../../../shared/widgets/offline_banner.dart';
 import '../../auth/data/auth_service.dart';
 import '../../auth/data/role.dart';
 import '../../chat/widgets/chat_widget.dart';
@@ -352,10 +353,17 @@ class _DesktopShell extends StatelessWidget {
           bottom: BorderSide(color: HerzogColors.gold, width: 3),
         ),
       ),
-      body: Row(
+      body: Column(
         children: [
-          _Sidebar(navItems: navItems, currentLocation: currentLocation),
-          Expanded(child: child),
+          const OfflineBanner(),
+          Expanded(
+            child: Row(
+              children: [
+                _Sidebar(navItems: navItems, currentLocation: currentLocation),
+                Expanded(child: child),
+              ],
+            ),
+          ),
         ],
       ),
       // AI chat FAB — visible on all authenticated pages (TASK-017)
@@ -732,7 +740,12 @@ class _MobileShell extends StatelessWidget {
           bottom: BorderSide(color: HerzogColors.gold, width: 3),
         ),
       ),
-      body: child,
+      body: Column(
+        children: [
+          const OfflineBanner(),
+          Expanded(child: child),
+        ],
+      ),
       // AI chat FAB — visible on all authenticated pages (TASK-017)
       floatingActionButton: const ChatFab(),
       bottomNavigationBar: Semantics(
