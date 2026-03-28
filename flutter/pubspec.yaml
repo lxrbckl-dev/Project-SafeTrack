@@ -58,6 +58,9 @@ dependencies:
   pdf: ^3.11.0
   printing: ^5.13.0
 
+  # Dark mode persistence (TASK-036)
+  shared_preferences: ^2.3.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
