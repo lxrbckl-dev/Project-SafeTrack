@@ -462,3 +462,23 @@ Already installed: Flutter 3.41.4, Xcode 26.3, Playwright 1.58.2
 - OSHA fields exist on incident model for log generation (TASK-030)
 - Notification model + User email exist for email notifications (TASK-031)
 - CAPA Category field + User model exist for training verification (TASK-032)
+
+### Phase 7: Judge Differentiators
+- Brainstormed features beyond the rubric to impress judges with production readiness
+- Added 6 new tasks (TASK-033 through TASK-038) to build-plan.md as Phase 7:
+  - TASK-033: PDF Incident Report Export (printable reports for OSHA auditors)
+  - TASK-034: Global Search (search across incidents/investigations/CAPAs, Alt+S shortcut)
+  - TASK-035: Incident Lifecycle Timeline (visual timeline from audit log data, new tab on incident detail)
+  - TASK-036: Dark Mode (theme toggle with persisted preference, gold accent on dark backgrounds)
+  - TASK-037: Role-Based Landing Pages (persona-driven UX — Field Reporter lands on incidents, Safety Manager sees pending reviews)
+  - TASK-038: Live Activity Feed (real-time feed of system actions, polling pattern from notifications)
+- All 6 Phase 7 dependencies verified — theme system, AppBar, TabController, audit log, fl_chart all ready
+- Total project: 33 tasks (21 complete + 12 planned across Phase 6 and 7)
+
+### Documentation Cleanup
+- Found and fixed 5 stale references to old dev-login system:
+  - progress.md: keyboard shortcuts marked as done
+  - setup.md: test credentials updated to email/password accounts
+  - CLAUDE.md: auth description updated
+  - architecture.md: Layer 1 describes email/password login
+  - auth.go: code comment references /api/login not /api/dev-login
