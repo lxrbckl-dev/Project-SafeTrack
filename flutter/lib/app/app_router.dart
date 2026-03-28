@@ -1,7 +1,7 @@
 import 'package:go_router/go_router.dart';
 import '../features/auth/data/auth_service.dart';
 import '../features/auth/data/role.dart';
-import '../features/auth/pages/dev_login_page.dart';
+import '../features/auth/pages/login_page.dart';
 import '../features/shell/pages/app_shell_page.dart';
 import '../features/dashboard/pages/safety_dashboard_page.dart';
 import '../features/dashboard/pages/hours_worked_page.dart';
@@ -93,7 +93,7 @@ GoRouter appRouter(AuthService authService) {
       GoRoute(
         path: '/login',
         name: 'login',
-        builder: (context, state) => const DevLoginPage(),
+        builder: (context, state) => const LoginPage(),
       ),
 
       // Authenticated shell — wraps all main app routes with AppShellPage

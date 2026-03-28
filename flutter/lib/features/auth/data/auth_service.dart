@@ -8,17 +8,17 @@ import 'role.dart';
 
 /// Manages authentication state for the SafeTrack app.
 ///
-/// In dev/demo mode, [devLogin] calls [POST /api/dev-login] to obtain a
-/// self-signed JWT for the selected role. In production this will be replaced
-/// by Firebase Auth; the rest of the app reads [token], [currentRole], etc.,
-/// which remain the same regardless of auth provider.
+/// [login] calls [POST /api/login] with email and password to obtain an
+/// HS256 JWT. In production this will be replaced by Firebase Auth; the rest
+/// of the app reads [token], [currentRole], etc., which remain the same
+/// regardless of auth provider.
 class AuthService extends ChangeNotifier {
   String? _userId;
   Role? _currentRole;
   String? _displayName;
   String? _token;
 
-  /// The authenticated user's ID (e.g. "dev-field_reporter").
+  /// The authenticated user's ID (e.g. "1").
   String? get userId => _userId;
 
   /// The authenticated user's role.
@@ -37,22 +37,19 @@ class AuthService extends ChangeNotifier {
   /// Always returns false when not logged in.
   bool isAtLeast(Role role) => _currentRole?.isAtLeast(role) ?? false;
 
-  /// Calls [POST /api/dev-login], stores the returned credentials, and
-  /// notifies listeners so the UI can react to the login event.
-  Future<void> devLogin(Role role) async {
-    final uri = Uri.parse('${ApiConfig.baseUrl}/api/dev-login');
+  /// Calls [POST /api/login] with email and password, stores the returned
+  /// credentials, and notifies listeners so the UI can react to the login event.
+  Future<void> login(String email, String password) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/api/login');
 
     final response = await http.post(
       uri,
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'role': role.apiValue,
-        'displayName': role.displayName,
-      }),
+      body: jsonEncode({'email': email, 'password': password}),
     );
 
     if (response.statusCode != 200) {
-      throw Exception('Dev login failed: ${response.statusCode}');
+      throw Exception('Invalid email or password');
     }
 
     final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -62,7 +59,7 @@ class AuthService extends ChangeNotifier {
     _displayName = data['displayName'] as String?;
 
     final apiValue = data['role'] as String?;
-    _currentRole = apiValue != null ? Role.fromApiValue(apiValue) : role;
+    _currentRole = apiValue != null ? Role.fromApiValue(apiValue) : null;
 
     notifyListeners();
   }

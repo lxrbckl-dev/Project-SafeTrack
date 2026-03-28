@@ -8,7 +8,7 @@ SafeTrack is an Incident Investigation & Corrective Action System for workplace 
 
 | Route | Page | Purpose |
 |---|---|---|
-| `/login` | Dev Login | Pick one of 7 roles to explore the app |
+| `/login` | Login | Email/password login with test account reference card |
 | `/dashboard` | Safety Dashboard | TRIR, DART, Near Miss KPIs, trend charts, leading indicators, recent incidents |
 | `/dashboard/hours-worked` | Hours Worked | Enter total hours worked per period (Safety Manager/Admin) |
 | `/incidents` | Incident List | Filterable table of all incidents with status badges and severity colors |
@@ -26,6 +26,22 @@ SafeTrack is an Incident Investigation & Corrective Action System for workplace 
 | `/admin` | Admin Settings | Configure TRIR benchmark, escalation thresholds |
 | `/admin/factor-types` | Factor Types | Add/edit/delete contributing factor types |
 | `/audit-log` | Audit Log | Paginated audit trail with filters and expandable JSON diffs |
+
+## Login & Test Accounts
+
+The login page (`/login`) uses email/password authentication. For demo purposes, the following seeded test accounts are available. All share the password **demo1234**.
+
+| Email | Display Name | Role |
+|---|---|---|
+| reporter@safetrack.demo | Maria Santos | Field Reporter |
+| coordinator@safetrack.demo | James Chen | Safety Coordinator |
+| manager@safetrack.demo | Sarah Williams | Safety Manager |
+| pm@safetrack.demo | Michael Torres | Project Manager |
+| director@safetrack.demo | Lisa Anderson | Division Manager |
+| executive@safetrack.demo | Robert Kim | Executive |
+| admin@safetrack.demo | Alex Thompson | Admin |
+
+Tapping any account row on the login page auto-fills the email and password fields for convenience.
 
 ## Roles & Permissions
 

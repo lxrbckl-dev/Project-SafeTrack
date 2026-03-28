@@ -33,13 +33,25 @@ const API = process.env.API_BASE_URL ?? 'http://localhost:8001';
 // Helpers
 // ---------------------------------------------------------------------------
 
+/** Maps role names to test account emails for POST /api/login. */
+const ROLE_EMAILS: Record<string, string> = {
+  field_reporter: 'reporter@safetrack.demo',
+  safety_coordinator: 'coordinator@safetrack.demo',
+  safety_manager: 'manager@safetrack.demo',
+  pm: 'pm@safetrack.demo',
+  division_manager: 'director@safetrack.demo',
+  executive: 'executive@safetrack.demo',
+  admin: 'admin@safetrack.demo',
+};
+
 async function devLoginToken(
   page: import('@playwright/test').Page,
   role: string,
 ): Promise<string | null> {
   try {
-    const res = await page.request.post(`${API}/api/dev-login`, {
-      data: { role },
+    const email = ROLE_EMAILS[role] ?? `${role}@safetrack.demo`;
+    const res = await page.request.post(`${API}/api/login`, {
+      data: { email, password: 'demo1234' },
     });
     if (!res.ok()) return null;
     const body = await res.json();
@@ -53,8 +65,19 @@ function authHeaders(token: string) {
   return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 }
 
+/** Maps display role names to test account emails for UI login. */
+const DISPLAY_ROLE_EMAILS: Record<string, string> = {
+  'Admin': 'admin@safetrack.demo',
+  'Safety Manager': 'manager@safetrack.demo',
+  'Field Reporter': 'reporter@safetrack.demo',
+  'Safety Coordinator': 'coordinator@safetrack.demo',
+  'Project Manager': 'pm@safetrack.demo',
+  'Division Manager': 'director@safetrack.demo',
+  'Executive': 'executive@safetrack.demo',
+};
+
 /**
- * Log in via the Flutter dev-login page and wait for dashboard redirect.
+ * Log in via the Flutter login page and wait for dashboard redirect.
  * Returns false (and skips the outer test) when the backend is unreachable.
  */
 async function loginAs(
@@ -62,11 +85,16 @@ async function loginAs(
   roleDisplayName: string,
 ): Promise<boolean> {
   try {
+    const email = DISPLAY_ROLE_EMAILS[roleDisplayName] ?? 'admin@safetrack.demo';
     await page.goto('/login', { timeout: 10000 });
     await page.waitForTimeout(3000);
-    const card = page.getByRole('button', { name: new RegExp(roleDisplayName, 'i') });
-    await card.waitFor({ state: 'visible', timeout: 8000 });
-    await card.click();
+    // Tap the test account row to auto-fill, then click Sign In
+    const row = page.locator(`text=${email}`);
+    await row.waitFor({ state: 'visible', timeout: 8000 });
+    await row.click();
+    // Click sign in button
+    const signIn = page.getByRole('button', { name: /sign in/i });
+    await signIn.click();
     await expect(page).toHaveURL('/dashboard', { timeout: 15000 });
     return true;
   } catch {
