@@ -1,9 +1,13 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/lxRbckl/highlander/backend/internal/database"
 	"github.com/lxRbckl/highlander/backend/internal/handlers"
@@ -121,10 +125,44 @@ func main() {
 
 	mux.Handle("/api/", middleware.FirebaseAuth(api))
 
+	// TASK-048: MCP Server Protocol routes at /mcp/*
+	// Edge case 1: /mcp/* uses MCPAuth (API key), NOT FirebaseAuth.
+	// The restMux passed to RegisterMCPRoutes is the authenticated api mux
+	// so tools/call can proxy to REST handlers with the correct auth context.
+	handlers.RegisterMCPRoutes(mux, db, api)
+
 	handler := middleware.CORS(middleware.Logger(mux))
 
-	log.Printf("Server starting on :%s", port)
-	if err := http.ListenAndServe(":"+port, handler); err != nil {
-		log.Fatalf("Server failed: %v", err)
+	// TASK-048 edge case 18: graceful shutdown — use http.Server with
+	// Shutdown() and a 30s drain period so active MCP tool calls and
+	// WebSocket connections can complete before the process exits.
+	srv := &http.Server{
+		Addr:    ":" + port,
+		Handler: handler,
 	}
+
+	// Start server in a goroutine so we can listen for shutdown signals.
+	go func() {
+		log.Printf("Server starting on :%s", port)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Server failed: %v", err)
+		}
+	}()
+
+	// Wait for SIGINT or SIGTERM.
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	sig := <-quit
+	log.Printf("Received signal %s, starting graceful shutdown...", sig)
+
+	// Allow 30 seconds for in-flight requests (MCP tool calls, WebSocket
+	// connections) to drain before forcing shutdown.
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer shutdownCancel()
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		log.Printf("Server forced to shutdown: %v", err)
+	}
+
+	log.Println("Server exited gracefully")
 }
