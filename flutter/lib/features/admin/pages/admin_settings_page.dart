@@ -384,6 +384,26 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
               label: const Text('Manage Factor Types'),
             ),
           ),
+
+          // ----------------------------------------------------------------
+          // OSHA Log Export
+          // ----------------------------------------------------------------
+          const SettingSectionHeader(title: 'OSHA LOG EXPORT'),
+          Text(
+            'Download OSHA Forms 300, 300A, and 301 as CSV files for '
+            'regulatory reporting.',
+            style: HerzogText.body(),
+          ),
+          const SizedBox(height: 12),
+          Semantics(
+            button: true,
+            label: 'Navigate to OSHA log export',
+            child: OutlinedButton.icon(
+              onPressed: () => context.push('/admin/osha-export'),
+              icon: const Icon(Icons.download_outlined),
+              label: const Text('OSHA Log Export'),
+            ),
+          ),
         ],
       ),
     );
