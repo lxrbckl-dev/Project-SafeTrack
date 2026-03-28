@@ -64,6 +64,7 @@ GoRouter appRouter(AuthService authService) {
       // redirect to /login to force re-authentication.
       if (loggedIn && location == '/login') {
         if (role == null) {
+          authService.logout(); // clear stale/malformed token
           return '/login';
         }
         if (role == Role.fieldReporter) {
