@@ -1030,6 +1030,12 @@
 - **HIGH: Rate limiting required** — agents can call tools much faster than humans. Implement per-key rate limiting (60 requests/minute). Without this, a single agent can DoS the system
 - **MEDIUM: Input sanitization** — MCP tool inputs pass JSON schema validation but may contain XSS/injection payloads. GORM parameterized queries handle SQL injection, but verify no raw SQL in analytics/search handlers
 - **MEDIUM: Agent offline** — MCP has no offline mode. If backend is down, agent gets connection refused. Return clear JSON-RPC error, not generic 500
+- **HIGH: CORS for MCP clients** — external MCP clients (Claude Desktop) may send custom headers (e.g., `X-MCP-Version`) that fail CORS preflight. Add MCP-specific headers to CORS allow-list in `middleware/cors.go`
+- **MEDIUM: Error response format** — REST returns `http.Error()` (plain text), but MCP requires JSON-RPC 2.0 error envelope `{jsonrpc: "2.0", error: {code, message}}`. Wrap `/mcp/tools/call` to convert HTTP errors to JSON-RPC format
+- **MEDIUM: Tool execution timeout** — add 30s context timeout on all tool calls. Without this, expensive queries exhaust the DB connection pool (25 max) if agents retry on timeout
+- **MEDIUM: Concurrent tool calls** — same agent can fire multiple `tools/call` in parallel creating duplicates. Consider idempotency key header (`X-Idempotency-Key`) or request deduplication
+- **HIGH: Notification loop** — agent creates investigation → triggers notification → WebSocket broadcasts to agent → agent processes notification → potential loop. Filter WebSocket broadcasts: don't send notifications to the agent session that triggered them
+- **LOW: Protocol version** — return `protocolVersion: "1.0"` in `initialize` response. Reject unsupported client versions with JSON-RPC error
 
 **QA:** Connect a test MCP client → call tools/list → verify tools match role's capabilities. Call create_incident tool → verify incident created in database. Call with wrong role → verify tool not listed. Verify JSON-RPC error handling for invalid tool names and bad parameters. Verify MCP auth rejects user JWTs (must use API key). Verify rate limiting — 61st request in 1 minute returns 429. Test XSS payload in tool input — verify stored safely, rendered safely.
 
