@@ -1,0 +1,1038 @@
+import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
+import '../../../app/herzog_theme.dart';
+import '../../auth/data/auth_service.dart';
+import '../../auth/data/role.dart';
+import '../data/dashboard_repository.dart';
+
+/// Full safety dashboard replacing the placeholder.
+///
+/// Shows KPI cards, charts (TRIR trend, incident trend stacked bar,
+/// division grouped bar, severity donut), leading indicators, and a
+/// recent-incidents table.
+class SafetyDashboardPage extends StatefulWidget {
+  const SafetyDashboardPage({super.key});
+
+  @override
+  State<SafetyDashboardPage> createState() => _SafetyDashboardPageState();
+}
+
+class _SafetyDashboardPageState extends State<SafetyDashboardPage> {
+  DashboardData? _data;
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final auth = context.read<AuthService>();
+      final repo = DashboardRepository(auth);
+      final data = await repo.getDashboard();
+      if (mounted) setState(() => _data = data);
+    } catch (e) {
+      if (mounted) setState(() => _error = e.toString());
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final auth = context.watch<AuthService>();
+    final canManageHours =
+        auth.currentRole == Role.safetyManager ||
+        auth.currentRole == Role.admin;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('SAFETY DASHBOARD'),
+        actions: [
+          if (canManageHours)
+            IconButton(
+              icon: const Icon(Icons.access_time),
+              tooltip: 'Hours Worked',
+              onPressed: () => context.push('/dashboard/hours-worked'),
+            ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Refresh',
+            onPressed: _load,
+          ),
+        ],
+      ),
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Failed to load dashboard',
+              style: HerzogText.heading(fontSize: 18),
+            ),
+            const SizedBox(height: 8),
+            Text(_error!, style: HerzogText.body(color: HerzogColors.errorRed)),
+            const SizedBox(height: 16),
+            ElevatedButton(onPressed: _load, child: const Text('Retry')),
+          ],
+        ),
+      );
+    }
+    final data = _data;
+    if (data == null) return const SizedBox.shrink();
+
+    return RefreshIndicator(
+      onRefresh: _load,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= 900;
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _KPICards(data: data, isWide: isWide),
+                const SizedBox(height: 24),
+                if (isWide)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(child: _IncidentTrendChart(data: data)),
+                      const SizedBox(width: 16),
+                      Expanded(child: _TRIRTrendChart(data: data)),
+                    ],
+                  )
+                else ...[
+                  _IncidentTrendChart(data: data),
+                  const SizedBox(height: 24),
+                  _TRIRTrendChart(data: data),
+                ],
+                const SizedBox(height: 24),
+                if (isWide)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(child: _DivisionChart(data: data)),
+                      const SizedBox(width: 16),
+                      Expanded(child: _SeverityDonut(data: data)),
+                    ],
+                  )
+                else ...[
+                  _DivisionChart(data: data),
+                  const SizedBox(height: 24),
+                  _SeverityDonut(data: data),
+                ],
+                const SizedBox(height: 24),
+                _LeadingIndicatorsCard(data: data),
+                const SizedBox(height: 24),
+                _RecentIncidentsTable(data: data),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// ---------- KPI Cards ----------
+
+class _KPICards extends StatelessWidget {
+  final DashboardData data;
+  final bool isWide;
+
+  const _KPICards({required this.data, required this.isWide});
+
+  @override
+  Widget build(BuildContext context) {
+    final cards = [
+      _KPITile(
+        label: 'TRIR',
+        value: data.trir.toStringAsFixed(2),
+        trend: data.trir < data.trirPrevious
+            ? _Trend.down
+            : data.trir > data.trirPrevious
+            ? _Trend.up
+            : _Trend.flat,
+        semanticLabel:
+            'TRIR ${data.trir.toStringAsFixed(2)}, previous ${data.trirPrevious.toStringAsFixed(2)}',
+      ),
+      _KPITile(
+        label: 'DART Rate',
+        value: data.dartRate.toStringAsFixed(2),
+        semanticLabel: 'DART Rate ${data.dartRate.toStringAsFixed(2)}',
+      ),
+      _KPITile(
+        label: 'Near Miss Ratio',
+        value: data.nearMissRatio.toStringAsFixed(2),
+        semanticLabel:
+            'Near Miss Ratio ${data.nearMissRatio.toStringAsFixed(2)}',
+      ),
+      _KPITile(
+        label: 'Open Investigations',
+        value: data.openInvestigations.toString(),
+        semanticLabel: '${data.openInvestigations} open investigations',
+      ),
+      _KPITile(
+        label: 'Open CAPAs',
+        value: data.openCapas.toString(),
+        semanticLabel: '${data.openCapas} open CAPAs',
+      ),
+      _KPITile(
+        label: 'Lost Work Days YTD',
+        value: data.lostWorkDaysYtd.toString(),
+        semanticLabel: '${data.lostWorkDaysYtd} lost work days year to date',
+      ),
+    ];
+
+    if (isWide) {
+      return Row(
+        children: cards
+            .map(
+              (c) => Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: c,
+                ),
+              ),
+            )
+            .toList(),
+      );
+    }
+    // Mobile: 2 columns
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: cards
+          .map(
+            (c) => SizedBox(
+              width: (MediaQuery.of(context).size.width - 48) / 2,
+              child: c,
+            ),
+          )
+          .toList(),
+    );
+  }
+}
+
+enum _Trend { up, down, flat }
+
+class _KPITile extends StatelessWidget {
+  final String label;
+  final String value;
+  final _Trend? trend;
+  final String? semanticLabel;
+
+  const _KPITile({
+    required this.label,
+    required this.value,
+    this.trend,
+    this.semanticLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: semanticLabel ?? '$label: $value',
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label.toUpperCase(), style: HerzogText.label()),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Text(value, style: HerzogText.heading(fontSize: 28)),
+                  if (trend != null) ...[
+                    const SizedBox(width: 6),
+                    Icon(
+                      trend == _Trend.down
+                          ? Icons.arrow_downward
+                          : trend == _Trend.up
+                          ? Icons.arrow_upward
+                          : Icons.horizontal_rule,
+                      color: trend == _Trend.down
+                          ? HerzogColors.successGreen
+                          : trend == _Trend.up
+                          ? HerzogColors.errorRed
+                          : HerzogColors.midGray,
+                      size: 20,
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ---------- Incident Trend Stacked Bar ----------
+
+class _IncidentTrendChart extends StatelessWidget {
+  final DashboardData data;
+
+  const _IncidentTrendChart({required this.data});
+
+  static const _typeColors = [
+    HerzogColors.errorRed, // Injury
+    HerzogColors.warningAmber, // Near Miss
+    HerzogColors.navyBlue, // Property Damage
+    HerzogColors.successGreen, // Environmental
+    HerzogColors.chartPurple, // Vehicle
+    HerzogColors.gold, // Fire
+    HerzogColors.chartSlate, // Utility Strike
+  ];
+
+  static const _typeLabels = [
+    'Injury',
+    'Near Miss',
+    'Property Damage',
+    'Environmental',
+    'Vehicle',
+    'Fire',
+    'Utility Strike',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final trend = data.incidentTrend;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'INCIDENT TREND (12 MONTHS)',
+              style: HerzogText.heading(fontSize: 16),
+            ),
+            const SizedBox(height: 4),
+            Wrap(
+              spacing: 12,
+              runSpacing: 4,
+              children: List.generate(_typeLabels.length, (i) {
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: _typeColors[i],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(_typeLabels[i], style: HerzogText.body(fontSize: 11)),
+                  ],
+                );
+              }),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 220,
+              child: trend.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No data',
+                        style: HerzogText.body(color: HerzogColors.smoke),
+                      ),
+                    )
+                  : BarChart(
+                      BarChartData(
+                        alignment: BarChartAlignment.spaceAround,
+                        barTouchData: BarTouchData(enabled: true),
+                        titlesData: FlTitlesData(
+                          leftTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: 28,
+                              getTitlesWidget: (v, _) => Text(
+                                v.toInt().toString(),
+                                style: HerzogText.body(fontSize: 10),
+                              ),
+                            ),
+                          ),
+                          bottomTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              getTitlesWidget: (v, _) {
+                                final idx = v.toInt();
+                                if (idx < 0 || idx >= trend.length) {
+                                  return const SizedBox.shrink();
+                                }
+                                final label = trend[idx].month;
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Text(
+                                    label.length >= 7
+                                        ? label.substring(5)
+                                        : label,
+                                    style: HerzogText.body(fontSize: 9),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          topTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
+                          rightTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
+                        ),
+                        gridData: const FlGridData(show: true),
+                        borderData: FlBorderData(show: false),
+                        barGroups: List.generate(trend.length, (i) {
+                          final t = trend[i];
+                          final values = [
+                            t.injury.toDouble(),
+                            t.nearMiss.toDouble(),
+                            t.propertyDamage.toDouble(),
+                            t.environmental.toDouble(),
+                            t.vehicle.toDouble(),
+                            t.fire.toDouble(),
+                            t.utilityStrike.toDouble(),
+                          ];
+                          return BarChartGroupData(
+                            x: i,
+                            barRods: [
+                              BarChartRodData(
+                                toY: t.total.toDouble(),
+                                width: 14,
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(2),
+                                  topRight: Radius.circular(2),
+                                ),
+                                rodStackItems: _buildStack(values),
+                              ),
+                            ],
+                          );
+                        }),
+                      ),
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<BarChartRodStackItem> _buildStack(List<double> values) {
+    final items = <BarChartRodStackItem>[];
+    double from = 0;
+    for (int i = 0; i < values.length; i++) {
+      if (values[i] > 0) {
+        items.add(BarChartRodStackItem(from, from + values[i], _typeColors[i]));
+        from += values[i];
+      }
+    }
+    return items;
+  }
+}
+
+// ---------- TRIR Trend Line Chart ----------
+
+class _TRIRTrendChart extends StatelessWidget {
+  final DashboardData data;
+
+  const _TRIRTrendChart({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final trend = data.trirTrend;
+    final benchmark = data.trirBenchmark;
+
+    // Find max Y for chart
+    double maxY = benchmark;
+    for (final m in trend) {
+      if (m.trir > maxY) maxY = m.trir;
+    }
+    maxY = (maxY * 1.3).ceilToDouble();
+    if (maxY < 1) maxY = 5;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('TRIR TREND', style: HerzogText.heading(fontSize: 16)),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Container(width: 20, height: 2, color: HerzogColors.navyBlue),
+                const SizedBox(width: 4),
+                Text('TRIR', style: HerzogText.body(fontSize: 11)),
+                const SizedBox(width: 16),
+                _dashedLine(),
+                const SizedBox(width: 4),
+                Text(
+                  'Benchmark (${benchmark.toStringAsFixed(1)})',
+                  style: HerzogText.body(fontSize: 11),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 220,
+              child: trend.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No data',
+                        style: HerzogText.body(color: HerzogColors.smoke),
+                      ),
+                    )
+                  : LineChart(
+                      LineChartData(
+                        minY: 0,
+                        maxY: maxY,
+                        titlesData: FlTitlesData(
+                          leftTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: 32,
+                              getTitlesWidget: (v, _) => Text(
+                                v.toStringAsFixed(1),
+                                style: HerzogText.body(fontSize: 10),
+                              ),
+                            ),
+                          ),
+                          bottomTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              interval: 1,
+                              getTitlesWidget: (v, _) {
+                                final idx = v.toInt();
+                                if (idx < 0 || idx >= trend.length) {
+                                  return const SizedBox.shrink();
+                                }
+                                final label = trend[idx].month;
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Text(
+                                    label.length >= 7
+                                        ? label.substring(5)
+                                        : label,
+                                    style: HerzogText.body(fontSize: 9),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          topTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
+                          rightTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
+                        ),
+                        gridData: const FlGridData(show: true),
+                        borderData: FlBorderData(show: false),
+                        lineBarsData: [
+                          // TRIR line
+                          LineChartBarData(
+                            spots: List.generate(
+                              trend.length,
+                              (i) => FlSpot(i.toDouble(), trend[i].trir),
+                            ),
+                            isCurved: true,
+                            color: HerzogColors.navyBlue,
+                            barWidth: 3,
+                            dotData: const FlDotData(show: true),
+                            belowBarData: BarAreaData(
+                              show: true,
+                              color: HerzogColors.navyBlue.withValues(
+                                alpha: 0.08,
+                              ),
+                            ),
+                          ),
+                          // Benchmark dashed reference line
+                          LineChartBarData(
+                            spots: [
+                              FlSpot(0, benchmark),
+                              FlSpot((trend.length - 1).toDouble(), benchmark),
+                            ],
+                            isCurved: false,
+                            color: HerzogColors.errorRed,
+                            barWidth: 1.5,
+                            dashArray: [6, 4],
+                            dotData: const FlDotData(show: false),
+                          ),
+                        ],
+                      ),
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _dashedLine() {
+    return SizedBox(
+      width: 20,
+      height: 2,
+      child: CustomPaint(painter: _DashedLinePainter()),
+    );
+  }
+}
+
+class _DashedLinePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = HerzogColors.errorRed
+      ..strokeWidth = 2;
+    double x = 0;
+    while (x < size.width) {
+      canvas.drawLine(
+        Offset(x, size.height / 2),
+        Offset(x + 4, size.height / 2),
+        paint,
+      );
+      x += 6;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+// ---------- Division Grouped Bar ----------
+
+class _DivisionChart extends StatelessWidget {
+  final DashboardData data;
+
+  const _DivisionChart({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final divs = data.incidentsByDivision;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'INCIDENTS BY DIVISION',
+              style: HerzogText.heading(fontSize: 16),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 220,
+              child: divs.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No data',
+                        style: HerzogText.body(color: HerzogColors.smoke),
+                      ),
+                    )
+                  : BarChart(
+                      BarChartData(
+                        alignment: BarChartAlignment.spaceAround,
+                        barTouchData: BarTouchData(
+                          enabled: true,
+                          touchTooltipData: BarTouchTooltipData(
+                            getTooltipItem: (group, gIdx, rod, rIdx) {
+                              return BarTooltipItem(
+                                '${divs[group.x.toInt()].division}\n${rod.toY.toInt()}',
+                                HerzogText.body(
+                                  fontSize: 12,
+                                  color: HerzogColors.white,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        titlesData: FlTitlesData(
+                          leftTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: 28,
+                              getTitlesWidget: (v, _) => Text(
+                                v.toInt().toString(),
+                                style: HerzogText.body(fontSize: 10),
+                              ),
+                            ),
+                          ),
+                          bottomTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              getTitlesWidget: (v, _) {
+                                final idx = v.toInt();
+                                if (idx < 0 || idx >= divs.length) {
+                                  return const SizedBox.shrink();
+                                }
+                                final label = divs[idx].division;
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Text(
+                                    label.length > 8
+                                        ? '${label.substring(0, 8)}..'
+                                        : label,
+                                    style: HerzogText.body(fontSize: 9),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          topTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
+                          rightTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
+                        ),
+                        gridData: const FlGridData(show: true),
+                        borderData: FlBorderData(show: false),
+                        barGroups: List.generate(divs.length, (i) {
+                          return BarChartGroupData(
+                            x: i,
+                            barRods: [
+                              BarChartRodData(
+                                toY: divs[i].count.toDouble(),
+                                width: 18,
+                                color:
+                                    HerzogColors.chartColors[i %
+                                        HerzogColors.chartColors.length],
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(3),
+                                  topRight: Radius.circular(3),
+                                ),
+                              ),
+                            ],
+                          );
+                        }),
+                      ),
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------- Severity Donut ----------
+
+class _SeverityDonut extends StatelessWidget {
+  final DashboardData data;
+
+  const _SeverityDonut({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final sevs = data.severityDistribution;
+    final total = sevs.fold<int>(0, (s, e) => s + e.count);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'SEVERITY DISTRIBUTION',
+              style: HerzogText.heading(fontSize: 16),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 220,
+              child: sevs.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No data',
+                        style: HerzogText.body(color: HerzogColors.smoke),
+                      ),
+                    )
+                  : Row(
+                      children: [
+                        Expanded(
+                          child: PieChart(
+                            PieChartData(
+                              sectionsSpace: 2,
+                              centerSpaceRadius: 40,
+                              sections: List.generate(sevs.length, (i) {
+                                final pct = total > 0
+                                    ? (sevs[i].count / total) * 100
+                                    : 0;
+                                return PieChartSectionData(
+                                  value: sevs[i].count.toDouble(),
+                                  title: '${pct.toStringAsFixed(0)}%',
+                                  titleStyle: HerzogText.body(
+                                    fontSize: 11,
+                                    color: HerzogColors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  color:
+                                      HerzogColors.chartColors[i %
+                                          HerzogColors.chartColors.length],
+                                  radius: 55,
+                                );
+                              }),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: List.generate(sevs.length, (i) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 3),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 10,
+                                    height: 10,
+                                    decoration: BoxDecoration(
+                                      color:
+                                          HerzogColors.chartColors[i %
+                                              HerzogColors.chartColors.length],
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    '${sevs[i].severity} (${sevs[i].count})',
+                                    style: HerzogText.body(fontSize: 12),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                        ),
+                      ],
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------- Leading Indicators ----------
+
+class _LeadingIndicatorsCard extends StatelessWidget {
+  final DashboardData data;
+
+  const _LeadingIndicatorsCard({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final li = data.leadingIndicators;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('LEADING INDICATORS', style: HerzogText.heading(fontSize: 16)),
+            const SizedBox(height: 12),
+            _IndicatorRow(
+              label: 'Near Miss Reporting Rate',
+              target: li.nearMissReportingRate.target,
+              actual: li.nearMissReportingRate.actual,
+              unit: 'ratio',
+            ),
+            const SizedBox(height: 12),
+            _IndicatorRow(
+              label: 'CAPA Closure Rate',
+              target: li.capaClosureRate.target,
+              actual: li.capaClosureRate.actual,
+              unit: '%',
+            ),
+            const SizedBox(height: 12),
+            _IndicatorRow(
+              label: 'Investigation Timeliness',
+              target: li.investigationTimeliness.target,
+              actual: li.investigationTimeliness.actual,
+              unit: '%',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _IndicatorRow extends StatelessWidget {
+  final String label;
+  final double target;
+  final double actual;
+  final String unit;
+
+  const _IndicatorRow({
+    required this.label,
+    required this.target,
+    required this.actual,
+    required this.unit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = target > 0 ? (actual / target).clamp(0.0, 1.0) : 0.0;
+    final color = progress >= 0.9
+        ? HerzogColors.successGreen
+        : progress >= 0.6
+        ? HerzogColors.warningAmber
+        : HerzogColors.errorRed;
+
+    return Semantics(
+      label:
+          '$label: actual ${actual.toStringAsFixed(1)}$unit, target ${target.toStringAsFixed(1)}$unit',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(child: Text(label, style: HerzogText.body())),
+              Text(
+                '${actual.toStringAsFixed(1)}$unit / ${target.toStringAsFixed(1)}$unit',
+                style: HerzogText.body(fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 8,
+              backgroundColor: HerzogColors.lightGray,
+              valueColor: AlwaysStoppedAnimation(color),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------- Recent Incidents Table ----------
+
+class _RecentIncidentsTable extends StatelessWidget {
+  final DashboardData data;
+
+  const _RecentIncidentsTable({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final incidents = data.recentIncidents;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('RECENT INCIDENTS', style: HerzogText.heading(fontSize: 16)),
+            const SizedBox(height: 12),
+            incidents.isEmpty
+                ? Text(
+                    'No incidents yet',
+                    style: HerzogText.body(color: HerzogColors.smoke),
+                  )
+                : SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: DataTable(
+                      columns: const [
+                        DataColumn(label: Text('DATE')),
+                        DataColumn(label: Text('TYPE')),
+                        DataColumn(label: Text('SEVERITY')),
+                        DataColumn(label: Text('STATUS')),
+                        DataColumn(label: Text('DIVISION')),
+                      ],
+                      rows: incidents.map((inc) {
+                        return DataRow(
+                          onSelectChanged: (_) {
+                            context.push('/incidents/${inc.id}');
+                          },
+                          cells: [
+                            DataCell(Text(inc.date)),
+                            DataCell(Text(inc.type)),
+                            DataCell(_SeverityChip(severity: inc.severity)),
+                            DataCell(Text(inc.status)),
+                            DataCell(Text(inc.division)),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SeverityChip extends StatelessWidget {
+  final String severity;
+
+  const _SeverityChip({required this.severity});
+
+  @override
+  Widget build(BuildContext context) {
+    Color bg;
+    Color fg;
+    switch (severity.toLowerCase()) {
+      case 'fatality':
+        bg = HerzogColors.errorLight;
+        fg = HerzogColors.errorRed;
+      case 'lost time':
+        bg = HerzogColors.warningLight;
+        fg = HerzogColors.warningAmber;
+      case 'medical treatment':
+        bg = HerzogColors.infoLight;
+        fg = HerzogColors.infoTeal;
+      case 'first aid':
+      case 'near miss':
+        bg = HerzogColors.successLight;
+        fg = HerzogColors.successGreen;
+      default:
+        bg = HerzogColors.lightGray;
+        fg = HerzogColors.darkGray;
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(severity, style: HerzogText.body(fontSize: 12, color: fg)),
+    );
+  }
+}

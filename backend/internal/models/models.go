@@ -15,5 +15,6 @@ func AllModels() []interface{} {
 		&ContributingFactor{},
 		&WitnessStatement{},
 		&CAPA{},
+		&HoursWorked{},
 	}
 }

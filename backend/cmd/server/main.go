@@ -58,6 +58,9 @@ func main() {
 	// CAPA domain routes (CRUD, complete, verify, dashboard)
 	handlers.RegisterCAPARoutes(api, db)
 
+	// Dashboard & hours-worked routes (TRIR, DART, charts)
+	handlers.RegisterDashboardRoutes(api, db)
+
 	mux.Handle("/api/", middleware.FirebaseAuth(api))
 
 	handler := middleware.CORS(middleware.Logger(mux))
