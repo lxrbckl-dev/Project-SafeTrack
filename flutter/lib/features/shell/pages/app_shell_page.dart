@@ -70,13 +70,11 @@ class _NavItem {
   final String label;
   final IconData icon;
   final String route;
-  final String? shortcutHint;
 
   const _NavItem({
     required this.label,
     required this.icon,
     required this.route,
-    this.shortcutHint,
   });
 }
 
@@ -94,13 +92,11 @@ List<_NavItem> _visibleNavItems(Role? role) {
       label: 'Dashboard',
       icon: Icons.dashboard,
       route: '/dashboard',
-      shortcutHint: 'Ctrl+Shift+H',
     ),
     const _NavItem(
       label: 'Incidents',
       icon: Icons.report_problem,
       route: '/incidents',
-      shortcutHint: 'Ctrl+Shift+N',
     ),
   ];
 
@@ -111,7 +107,6 @@ List<_NavItem> _visibleNavItems(Role? role) {
         label: 'Investigations',
         icon: Icons.search,
         route: '/investigations',
-        shortcutHint: 'Ctrl+Shift+V',
       ),
     );
   }
@@ -123,7 +118,6 @@ List<_NavItem> _visibleNavItems(Role? role) {
         label: 'CAPAs',
         icon: Icons.assignment_turned_in,
         route: '/capas',
-        shortcutHint: 'Ctrl+Shift+A',
       ),
     );
   }
@@ -196,7 +190,7 @@ bool _isTextFieldFocused() {
 /// - Keyboard navigable sidebar with proper focus indicators (WCAG 2.4.7)
 /// - Skip-nav link as first focusable element (WCAG 2.4.1)
 /// - Sufficient contrast: Gold on Black (14.4:1 AAA) for active, Smoke on Black (7.0:1 AAA) for inactive
-/// - Shortcuts are discoverable via ? overlay + sidebar hint (WCAG 2.1.4)
+/// - Shortcuts are discoverable via ? overlay (WCAG 2.1.4)
 class AppShellPage extends StatelessWidget {
   /// The current page widget rendered in the body area (from ShellRoute).
   final Widget child;
@@ -739,7 +733,6 @@ class _SidebarHeader extends StatelessWidget {
 /// Inactive state: smoke text, transparent background
 /// Hover: slight lightening via InkWell splash
 /// Focus: gold outline on dark background (WCAG 2.4.7)
-/// Shortcut hint: small key badge shown next to label when a shortcut exists.
 class _SidebarNavItem extends StatelessWidget {
   final _NavItem item;
   final bool isActive;
@@ -753,9 +746,7 @@ class _SidebarNavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label:
-          '${item.label} navigation'
-          '${item.shortcutHint != null ? ', shortcut: ${item.shortcutHint}' : ''}',
+      label: '${item.label} navigation',
       selected: isActive,
       button: true,
       child: Focus(
@@ -832,46 +823,12 @@ class _SidebarNavItem extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      if (item.shortcutHint != null) ...[
-                        const SizedBox(width: 6),
-                        _NavShortcutBadge(shortcut: item.shortcutHint!),
-                      ],
                     ],
                   ),
                 ),
               ),
             );
           },
-        ),
-      ),
-    );
-  }
-}
-
-/// Small shortcut key badge displayed next to a nav item label.
-///
-/// Visually subtle: dark gray background, smoke border, dim text.
-/// Only shown when the nav item has an associated single-key shortcut.
-class _NavShortcutBadge extends StatelessWidget {
-  final String shortcut;
-
-  const _NavShortcutBadge({required this.shortcut});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-      decoration: BoxDecoration(
-        color: HerzogColors.darkGray.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(3),
-        border: Border.all(color: HerzogColors.midGray.withValues(alpha: 0.5)),
-      ),
-      child: Text(
-        shortcut,
-        style: HerzogText.label(
-          fontSize: 9,
-          color: HerzogColors.smoke,
-          fontWeight: FontWeight.w700,
         ),
       ),
     );
