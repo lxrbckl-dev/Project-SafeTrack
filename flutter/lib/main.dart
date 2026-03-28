@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 import 'app/app_router.dart';
 import 'app/herzog_theme.dart';
 import 'core/database/app_database.dart';
 import 'core/database/connection.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/onboarding_service.dart';
 import 'core/services/sync_service.dart';
 import 'core/services/theme_service.dart';
 import 'features/auth/data/auth_service.dart';
@@ -20,11 +22,14 @@ void main() async {
   // Store handle to prevent GC from disposing semantics.
   SemanticsBinding.instance.ensureSemantics();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const MyApp());
+  final prefs = await SharedPreferences.getInstance();
+  runApp(MyApp(prefs: prefs));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final SharedPreferences prefs;
+
+  const MyApp({super.key, required this.prefs});
 
   @override
   Widget build(BuildContext context) {
@@ -77,6 +82,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => FormFillService()),
         // ThemeService — persists light/dark preference to SharedPreferences.
         ChangeNotifierProvider(create: (_) => ThemeService()..loadPreference()),
+        // OnboardingService — tracks whether the first-run tour has been shown.
+        Provider<OnboardingService>(create: (_) => OnboardingService(prefs)),
       ],
       child: Builder(
         builder: (context) {

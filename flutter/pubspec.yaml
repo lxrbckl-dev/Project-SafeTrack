@@ -68,6 +68,9 @@ dependencies:
   # Voice-to-text input (TASK-040)
   speech_to_text: ^7.0.0
 
+  # Onboarding tour (TASK-042)
+  tutorial_coach_mark: ^1.3.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
