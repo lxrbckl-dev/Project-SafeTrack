@@ -1,12 +1,14 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
 
 import '../../../app/herzog_theme.dart';
 import '../../auth/data/auth_service.dart';
 import '../../auth/data/role.dart';
 import '../data/dashboard_repository.dart';
+import '../services/dashboard_pdf_service.dart';
 import '../widgets/body_map_chart.dart';
 import '../widgets/division_radar_chart.dart';
 import '../widgets/time_heatmap_chart.dart';
@@ -30,6 +32,7 @@ class _SafetyDashboardPageState extends State<SafetyDashboardPage> {
   DashboardData? _data;
   bool _loading = true;
   String? _error;
+  bool _generatingPdf = false;
 
   // Advanced analytics data
   List<BodyPartCount>? _bodyMapData;
@@ -108,6 +111,50 @@ class _SafetyDashboardPageState extends State<SafetyDashboardPage> {
     }
   }
 
+  /// Shows a month/year picker, then generates and opens the PDF report.
+  Future<void> _exportReport() async {
+    final data = _data;
+    if (data == null) return;
+
+    // Default to previous month.
+    final now = DateTime.now();
+    final defaultMonth = DateTime(now.year, now.month - 1);
+
+    // Show month/year picker dialog.
+    final selectedMonth = await showDialog<DateTime>(
+      context: context,
+      builder: (ctx) => _MonthYearPickerDialog(initialDate: defaultMonth),
+    );
+    if (selectedMonth == null || !mounted) return;
+
+    setState(() => _generatingPdf = true);
+    try {
+      final pdf = await DashboardPdfService.generateReport(
+        data: data,
+        reportMonth: selectedMonth,
+      );
+      if (!mounted) return;
+
+      final monthLabel =
+          '${selectedMonth.year}_${selectedMonth.month.toString().padLeft(2, '0')}';
+      await Printing.layoutPdf(
+        onLayout: (_) => pdf.save(),
+        name: 'SafeTrack_Monthly_Report_$monthLabel.pdf',
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to generate PDF: $e'),
+            backgroundColor: HerzogColors.errorRed,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _generatingPdf = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthService>();
@@ -119,6 +166,27 @@ class _SafetyDashboardPageState extends State<SafetyDashboardPage> {
       appBar: AppBar(
         title: const Text('SAFETY DASHBOARD'),
         actions: [
+          if (_data != null)
+            _generatingPdf
+                ? const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                : OutlinedButton.icon(
+                    icon: const Icon(Icons.picture_as_pdf, size: 18),
+                    label: const Text('Export Report'),
+                    onPressed: _exportReport,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: HerzogColors.navyBlue,
+                      side: const BorderSide(color: HerzogColors.navyBlue),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                    ),
+                  ),
+          const SizedBox(width: 8),
           if (canManageHours)
             IconButton(
               icon: const Icon(Icons.access_time),
@@ -1212,6 +1280,114 @@ class _SeverityChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(severity, style: HerzogText.body(fontSize: 12, color: fg)),
+    );
+  }
+}
+
+// ---------- Month / Year Picker Dialog ----------
+
+/// Dialog that lets the user pick a month and year for the PDF report.
+class _MonthYearPickerDialog extends StatefulWidget {
+  final DateTime initialDate;
+
+  const _MonthYearPickerDialog({required this.initialDate});
+
+  @override
+  State<_MonthYearPickerDialog> createState() => _MonthYearPickerDialogState();
+}
+
+class _MonthYearPickerDialogState extends State<_MonthYearPickerDialog> {
+  late int _selectedYear;
+  late int _selectedMonth;
+
+  static const _monthNames = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedYear = widget.initialDate.year;
+    _selectedMonth = widget.initialDate.month;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    // Allow years from 3 years ago up to current year.
+    final years = List.generate(4, (i) => now.year - 3 + i);
+
+    return AlertDialog(
+      title: Semantics(
+        header: true,
+        child: Text(
+          'Select Report Month',
+          style: HerzogText.heading(fontSize: 18),
+        ),
+      ),
+      content: SizedBox(
+        width: 300,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Year selector
+            DropdownButtonFormField<int>(
+              initialValue: _selectedYear,
+              decoration: const InputDecoration(
+                labelText: 'Year',
+                border: OutlineInputBorder(),
+              ),
+              items: years
+                  .map((y) => DropdownMenuItem(value: y, child: Text('$y')))
+                  .toList(),
+              onChanged: (v) {
+                if (v != null) setState(() => _selectedYear = v);
+              },
+            ),
+            const SizedBox(height: 16),
+            // Month selector
+            DropdownButtonFormField<int>(
+              initialValue: _selectedMonth,
+              decoration: const InputDecoration(
+                labelText: 'Month',
+                border: OutlineInputBorder(),
+              ),
+              items: List.generate(
+                12,
+                (i) =>
+                    DropdownMenuItem(value: i + 1, child: Text(_monthNames[i])),
+              ),
+              onChanged: (v) {
+                if (v != null) setState(() => _selectedMonth = v);
+              },
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton.icon(
+          icon: const Icon(Icons.picture_as_pdf, size: 18),
+          label: const Text('Generate PDF'),
+          onPressed: () {
+            Navigator.of(context).pop(DateTime(_selectedYear, _selectedMonth));
+          },
+        ),
+      ],
     );
   }
 }
