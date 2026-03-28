@@ -400,8 +400,9 @@ class _DesktopShell extends StatelessWidget {
           NotificationBell(key: OnboardingKeys.notificationBell),
           const SizedBox(width: 8),
         ],
-        shape: const Border(
-          bottom: BorderSide(color: HerzogColors.gold, width: 3),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(3),
+          child: Container(color: HerzogColors.gold, height: 3),
         ),
       ),
       body: Column(
@@ -879,8 +880,9 @@ class _MobileShell extends StatelessWidget {
           NotificationBell(key: OnboardingKeys.notificationBell),
           const SizedBox(width: 8),
         ],
-        shape: const Border(
-          bottom: BorderSide(color: HerzogColors.gold, width: 3),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(3),
+          child: Container(color: HerzogColors.gold, height: 3),
         ),
       ),
       body: Column(
