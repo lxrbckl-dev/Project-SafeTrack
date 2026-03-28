@@ -838,6 +838,177 @@
 
 ---
 
+## Phase 10: AI-Powered Navigation
+
+> Enhance the in-app AI assistant to generate clickable pre-filled URLs, making the chat a command center for the app.
+
+### TASK-044: Query Parameter Pre-Fill on Form Pages
+- **Difficulty:** Routine
+- **Assignee:** SWE-2
+- **Dependencies:** TASK-005, TASK-007, TASK-009 merged (form pages exist)
+
+**Flutter:**
+- Update `IncidentFormPage` to read query parameters from `GoRouterState.uri.queryParameters` on init:
+  - `type`, `division`, `project`, `location`, `severity`, `description`, `shift`, `weather`
+  - Pre-fill corresponding `TextEditingController` values
+- Update `InvestigationFormPage` to read: `incidentId` (already exists), `leadInvestigator`
+- Update `CAPAFormPage` to read: `investigationId` (already exists), `type`, `category`, `priority`, `description`
+- URL example: `/incidents/new?type=Near+Miss&division=Construction&location=Rail+Yard+5`
+- Fields pre-filled but editable — user reviews before submitting
+
+**QA:** Navigate to `/incidents/new?type=Injury&division=Construction` → verify Type and Division are pre-filled. Verify all supported params work on each form. Verify URL with no params still works (empty form). Verify pre-filled fields are editable.
+
+---
+
+### TASK-045: AI Chat URL Generation
+- **Difficulty:** Complex
+- **Assignee:** SWE-1
+- **Dependencies:** TASK-044 merged (pre-fill params work), TASK-017 merged (AI chat exists)
+
+**Go:**
+- Update `handlers/chat.go` system prompt to include:
+  - Full list of available routes with supported query parameters
+  - Instruction: when user describes an action, generate a clickable URL instead of JSON dispatch
+  - URL format: `[Action description](/route?param=value&param2=value2)`
+  - Example: user says "I need to report a near miss at the Houston rail yard" → AI responds with context + `[Report Near Miss Incident](/incidents/new?type=Near+Miss&location=Houston+Rail+Yard)`
+- Keep existing JSON action dispatch as fallback for non-URL actions (navigate-only, no pre-fill needed)
+- Update wiki.md RAG context with the URL generation format
+
+**Flutter:**
+- Update `ChatWidget` message rendering to detect markdown links `[text](url)` and render as clickable `InkWell` widgets that call `context.go(url)`
+- Style clickable links with Herzog gold underline
+
+**QA:** Ask AI "I need to report an injury at the downtown office" → verify it generates a clickable URL → click it → verify incident form opens with type=Injury and location pre-filled. Test with various natural language inputs. Verify non-URL responses still render normally. Verify RBAC — AI should not generate URLs for pages the user's role can't access.
+
+---
+
+## Phase 11: MCP Agent Integration
+
+> Expose SafeTrack as an MCP server so external AI agents (Claude Desktop, OpenClaw, any MCP client) can authenticate, discover capabilities, and execute role-scoped actions through the existing API.
+
+### TASK-046: Agent API Key System
+- **Difficulty:** Complex
+- **Assignee:** SWE-1
+- **Dependencies:** TASK-023 merged (user model)
+
+**Go models:**
+- `AgentApiKey` — ID, UserID (foreign key to User), KeyHash (bcrypt hash of the API key), KeyPrefix (first 8 chars for display, e.g., `stk_abc1...`), Name (user-given label, e.g., "OpenClaw agent"), IsActive, LastUsedAt, CreatedAt, RevokedAt. Register in `AllModels()`
+
+**Go handlers (`handlers/agent_auth.go`):**
+- `POST /api/agent/keys` — Safety Manager or Admin creates an API key for a user. Returns the full key ONCE (never stored in plaintext). Response: `{key: "stk_abc123...", prefix: "stk_abc1", userId: 5, role: "field_reporter"}`
+- `GET /api/agent/keys` — list active keys for current user (shows prefix + name + lastUsed, never full key)
+- `DELETE /api/agent/keys/{id}` — revoke a key (sets IsActive=false, RevokedAt=now). Audit-logged
+- `POST /api/agent/auth` — accepts `{apiKey: "stk_abc123..."}`. Validates against stored hash. Returns JWT with same claims as user login PLUS `is_agent: true` claim. Audit-logged as "agent_login"
+
+**Go middleware update (`middleware/auth.go`):**
+- Extract `is_agent` claim from JWT and set on request context
+- Add `GetIsAgent(r)` helper to `helpers.go`
+
+**Go audit log update:**
+- All audit log entries include `is_agent` flag so actions show "Maria Santos (via agent)" vs "Maria Santos"
+
+**Flutter:**
+- `features/admin/pages/api_keys_page.dart` — manage API keys: create (show key once in modal), list active keys, revoke
+- Route: `/admin/api-keys` (Admin + Safety Manager only)
+
+**QA:** Create API key → authenticate with it via curl → verify JWT has is_agent=true. Verify RBAC is identical to user's role. Revoke key → verify auth fails. Verify audit log shows agent attribution. Verify only Admin/Safety Manager can manage keys.
+
+---
+
+### TASK-047: Agent Capabilities Endpoint
+- **Difficulty:** Routine
+- **Assignee:** SWE-2
+- **Dependencies:** TASK-046 merged (agent auth)
+
+**Go handlers (`handlers/agent_capabilities.go`):**
+- `GET /api/agent/capabilities` — returns role-scoped list of available actions as JSON:
+  ```json
+  {
+    "role": "field_reporter",
+    "capabilities": [
+      {
+        "action": "create_incident",
+        "method": "POST",
+        "path": "/api/incidents",
+        "description": "Create a new incident report",
+        "parameters": { "type": "string enum [Injury, Near Miss, ...]", "location": "string", ... }
+      },
+      {
+        "action": "list_incidents",
+        "method": "GET",
+        "path": "/api/incidents",
+        "description": "List incidents (scoped to reporter's drafts + all non-draft)"
+      }
+    ]
+  }
+  ```
+- Each role gets a different capabilities set matching existing RBAC rules
+- Include parameter schemas for create/update actions
+- Safety Manager gets investigation/CAPA management capabilities
+- Admin gets settings/API key capabilities
+- Field Reporter gets incident creation only
+
+**QA:** Authenticate as each of 7 roles → call capabilities → verify each role sees only their permitted actions. Verify parameter schemas are accurate. Verify unauthorized actions are not listed.
+
+---
+
+### TASK-048: MCP Server Protocol
+- **Difficulty:** Complex
+- **Assignee:** SWE-1
+- **Dependencies:** TASK-046 merged (agent auth), TASK-047 merged (capabilities)
+
+**Go:**
+- `handlers/mcp.go` — MCP protocol handler at `/mcp/`
+- Implements MCP server protocol (JSON-RPC 2.0 over HTTP or SSE):
+  - `initialize` — returns server info and capabilities
+  - `tools/list` — maps capabilities endpoint to MCP tool definitions with JSON schemas
+  - `tools/call` — executes a tool by proxying to the corresponding REST endpoint with the agent's JWT
+- Tool names derived from capabilities: `create_incident`, `list_incidents`, `get_investigation`, `approve_investigation`, `create_capa`, `verify_capa`, `search`, `get_dashboard`, etc.
+- Each tool includes parameter schema so MCP clients auto-generate correct inputs
+- Authentication: API key passed as MCP auth header, converted to JWT internally
+- RBAC enforced: tools only listed if the agent's role permits them
+
+**Example MCP tool definition:**
+```json
+{
+  "name": "create_incident",
+  "description": "Create a new incident report in SafeTrack",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "type": {"type": "string", "enum": ["Injury", "Near Miss", "Property Damage", "Environmental", "Vehicle", "Fire", "Utility Strike"]},
+      "location": {"type": "string"},
+      "division": {"type": "string"},
+      "description": {"type": "string"},
+      "severity": {"type": "string", "enum": ["Low", "Medium", "High", "Critical"]}
+    },
+    "required": ["type", "location", "description"]
+  }
+}
+```
+
+**QA:** Connect a test MCP client → call tools/list → verify tools match role's capabilities. Call create_incident tool → verify incident created in database. Call with wrong role → verify tool not listed. Verify JSON-RPC error handling for invalid tool names and bad parameters.
+
+---
+
+### TASK-049: Agent Session Awareness
+- **Difficulty:** Routine
+- **Assignee:** SWE-2
+- **Dependencies:** TASK-046 merged (agent auth with is_agent claim)
+
+**Go:**
+- Track active agent sessions: `GET /api/agent/sessions` (Admin only) — shows currently active agent tokens (last API call within 5 minutes), their role, user, and key name
+- `GET /api/agent/activity` — scoped version of activity feed filtered to agent-only actions
+
+**Flutter:**
+- `features/admin/pages/agent_sessions_page.dart` — live view of active agent sessions with role, user, last action, connected since
+- Agent activity indicator in the admin dashboard — "2 agents active" badge
+- Route: `/admin/agents`
+
+**QA:** Authenticate agent via API key → verify it appears in active sessions. Wait 5+ minutes → verify it drops off. Verify only Admin can see sessions page. Verify agent activity filters correctly.
+
+---
+
 ## Parallelism Map
 
 ```
@@ -865,19 +1036,20 @@ T10     TASK-019: AI Agent             (polish)                       Tests 017-
 
 | Metric | Value |
 |---|---|
-| Total tasks | 38 (21 complete + 17 planned) |
+| Total tasks | 44 (40 complete + 8 bug fixes + 6 planned) |
 | Trivial | 0 |
-| Routine | 15 (001, 002, 003, 011, 013, 015, 016, 017, 018, 024, 030, 035, 036, 040, 042) |
-| Complex | 22 (004, 005, 006, 007, 008, 009, 010, 012, 019, 023, 026, 027, 028, 029, 031, 032, 033, 034, 038, 039, 041, 043) |
+| Routine | 18 (001, 002, 003, 011, 013, 015, 016, 017, 018, 024, 030, 035, 036, 040, 042, 044, 047, 049) |
+| Complex | 25 (004, 005, 006, 007, 008, 009, 010, 012, 019, 023, 026, 027, 028, 029, 031, 032, 033, 034, 038, 039, 041, 043, 045, 046, 048) |
 | Critical | 1 (014) |
 | Phases 0-5 (complete) | 19 tasks — all merged and QA verified |
-| TASK-021, 022 (complete) | Keyboard shortcut updates — merged (PRs #44, #46) |
-| TASK-023 (complete) | Login system — merged (PR #48) |
-| TASK-024 (complete) | Playwright fixes — merged (PR #51) |
-| Phase 6 (in progress) | 7 tasks — TASK-026, 027, 028, 029, 030, 031, 032 |
-| Phase 7 (planned) | 6 tasks — TASK-033, 034, 035, 036, 037, 038 |
-| Phase 8 (planned) | 3 tasks — TASK-039, 040, 041 |
-| Phase 9 (planned) | 2 tasks — TASK-042, 043 |
+| Post-launch (complete) | TASK-021, 022, 023, 024 — merged |
+| Phase 6 (complete) | 7 tasks — TASK-026, 027, 028, 029, 030, 031, 032 |
+| Phase 7 (complete) | 6 tasks — TASK-033, 034, 035, 036, 037, 038 |
+| Phase 8 (complete) | 3 tasks — TASK-039, 040, 041 |
+| Phase 9 (complete) | 2 tasks — TASK-042, 043 |
+| Bug fixes (complete) | 8 fixes — issues #88-91, #94-97 |
+| Phase 10 (planned) | 2 tasks — TASK-044, 045 |
+| Phase 11 (planned) | 4 tasks — TASK-046, 047, 048, 049 |
 
 ## Shared File Coordination
 
