@@ -407,7 +407,8 @@
 
 > These tasks implement the rubric's "Future Phase (Deferred)" items. All prerequisite data models and infrastructure are already in place from Phases 0-5.
 
-### TASK-020: User Authentication System (Login Page + Seeded Accounts)
+### TASK-023: User Authentication System (Login Page + Seeded Accounts) ✅
+> Renumbered from TASK-020 to TASK-023 to match actual implementation (PR #48, Issue #47).
 - **Difficulty:** Complex
 - **Assignee:** SWE-1
 - **Dependencies:** All feature tasks merged
@@ -439,10 +440,10 @@
 
 ---
 
-### TASK-023: Offline Incident Reporting
+### TASK-026: Offline Incident Reporting
 - **Difficulty:** Complex
 - **Assignee:** SWE-2
-- **Dependencies:** TASK-020 merged
+- **Dependencies:** TASK-023 merged
 
 **Flutter:**
 - Wire existing `AppDatabase` (Drift) into `main.dart` MultiProvider
@@ -456,7 +457,7 @@
 
 ---
 
-### TASK-024: Fishbone / Ishikawa Diagram
+### TASK-027: Fishbone / Ishikawa Diagram
 - **Difficulty:** Complex
 - **Assignee:** SWE-1
 - **Dependencies:** TASK-007 merged (investigation UI with contributing factors)
@@ -471,7 +472,7 @@
 
 ---
 
-### TASK-025: Automated Recurrence Detection
+### TASK-028: Automated Recurrence Detection
 - **Difficulty:** Complex
 - **Assignee:** SWE-2
 - **Dependencies:** TASK-011 merged (manual recurrence linking)
@@ -490,7 +491,7 @@
 
 ---
 
-### TASK-026: Advanced Analytics Views
+### TASK-029: Advanced Analytics Views
 - **Difficulty:** Complex
 - **Assignee:** SWE-1
 - **Dependencies:** TASK-010 merged (safety dashboard)
@@ -510,7 +511,7 @@
 
 ---
 
-### TASK-027: OSHA 300/300A/301 Log Generation
+### TASK-030: OSHA 300/300A/301 Log Generation
 - **Difficulty:** Routine
 - **Assignee:** SWE-2
 - **Dependencies:** TASK-004 merged (incident models with OSHA fields)
@@ -528,10 +529,10 @@
 
 ---
 
-### TASK-028: Email/Push Notifications
+### TASK-031: Email/Push Notifications
 - **Difficulty:** Complex
 - **Assignee:** SWE-1
-- **Dependencies:** TASK-013 merged (in-app notifications), TASK-020 merged (user accounts with emails)
+- **Dependencies:** TASK-013 merged (in-app notifications), TASK-023 merged (user accounts with emails)
 
 **Go:**
 - `services/email.go` — email delivery service (SMTP or SendGrid)
@@ -543,6 +544,33 @@
 - Email templates for: overdue investigation, overdue CAPA, railroad deadline, review request
 
 **QA:** Escalation triggers email to correct user. Preferences respected. In-app notifications still work. Email contains correct entity links.
+
+---
+
+### TASK-032: Training CAPA Verification
+- **Difficulty:** Complex
+- **Assignee:** SWE-2
+- **Dependencies:** TASK-008 merged (CAPA models), TASK-023 merged (user accounts)
+
+**Go models:**
+- `TrainingRequirement` — ID, CAPAID, CourseName, Description, AssignedToUserID, AssignedByUserID, DueDate, Status (Pending/Completed), CreatedAt, UpdatedAt. Register in `AllModels()`
+- `TrainingCompletion` — ID, TrainingRequirementID, CompletedByUserID, CompletionDate, DurationHours, InstructorName, Notes, Evidence, VerifiedByUserID, CreatedAt. Register in `AllModels()`
+
+**Go handlers (`handlers/training.go`):**
+- `POST /api/training` — auto-created when a CAPA with category "Training" is created. Links to CAPA via CAPAID. Sets due date from CAPA due date. Audit-log
+- `GET /api/training` — list with filters (?status, ?assigned_to, ?capa_id)
+- `GET /api/training/{id}` — single requirement with completion record
+- `POST /api/training/{id}/complete` — body: {completionDate, durationHours, instructorName, notes, evidence}. Status → Completed. Auto-updates linked CAPA to Completed with training completion as evidence. Audit-log
+- RBAC: Safety Coordinator+ can create/view. Supervisors (Safety Coordinator+) log completions for their team
+
+**Flutter:**
+- `features/training/pages/training_list_page.dart` — list of pending/completed training requirements with status badges
+- `features/training/pages/training_detail_page.dart` — requirement details, completion form (date, hours, instructor, notes), completion record display
+- When creating a CAPA with category "Training", auto-navigate to training requirement after save
+- On CAPA detail page, show linked training requirement status with link to training detail
+- Routes: `/training`, `/training/:id`
+
+**QA:** Creating a Training CAPA auto-creates training requirement. Completing training auto-completes linked CAPA. Completion record shows as CAPA evidence. Training list filters work. Audit logged. ADA compliant.
 
 ---
 
@@ -573,13 +601,14 @@ T10     TASK-019: AI Agent             (polish)                       Tests 017-
 
 | Metric | Value |
 |---|---|
-| Total tasks | 26 (19 complete + 7 planned) |
+| Total tasks | 27 (20 complete + 7 planned) |
 | Trivial | 0 |
-| Routine | 10 (001, 002, 003, 011, 013, 015, 016, 017, 018, 027) |
-| Complex | 15 (004, 005, 006, 007, 008, 009, 010, 012, 019, 020, 023, 024, 025, 026, 028) |
+| Routine | 10 (001, 002, 003, 011, 013, 015, 016, 017, 018, 030) |
+| Complex | 16 (004, 005, 006, 007, 008, 009, 010, 012, 019, 023, 026, 027, 028, 029, 031, 032) |
 | Critical | 1 (014) |
 | Phases 0-5 (complete) | 19 tasks — all merged and QA verified |
-| Phase 6 (planned) | 7 tasks — TASK-020, 023, 024, 025, 026, 027, 028 |
+| TASK-023 (complete) | Login system — merged (PR #48) |
+| Phase 6 (planned) | 7 tasks — TASK-026, 027, 028, 029, 030, 031, 032 |
 
 ## Shared File Coordination
 
