@@ -30,7 +30,7 @@ var investigationWriteRoles = []string{
 // endpoints (Issue 4).
 func RegisterInvestigationRoutes(api *http.ServeMux, db *gorm.DB) {
 	// CRUD — read endpoints require at least safety_coordinator (or PM/DivMgr/Exec/Admin).
-	api.HandleFunc("POST /api/investigations", CreateInvestigation(db))
+	api.HandleFunc("POST /api/investigations", middleware.RequireRole(CreateInvestigation(db), "safety_manager", "admin"))
 	api.HandleFunc("GET /api/investigations", middleware.RequireRole(ListInvestigations(db), investigationReadRoles...))
 	api.HandleFunc("GET /api/investigations/{id}", middleware.RequireRole(GetInvestigation(db), investigationReadRoles...))
 	api.HandleFunc("PUT /api/investigations/{id}", middleware.RequireRole(UpdateInvestigation(db), investigationWriteRoles...))
