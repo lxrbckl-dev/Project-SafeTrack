@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'app/app_router.dart';
 import 'app/herzog_theme.dart';
+import 'core/services/notification_service.dart';
 import 'features/auth/data/auth_service.dart';
 
 void main() async {
@@ -22,7 +23,19 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => AuthService())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthService()),
+        // NotificationService depends on the JWT from AuthService.
+        // ProxyProvider propagates the token whenever AuthService changes.
+        ChangeNotifierProxyProvider<AuthService, NotificationService>(
+          create: (_) => NotificationService(),
+          update: (_, auth, previous) {
+            final service = previous ?? NotificationService();
+            service.setToken(auth.token);
+            return service;
+          },
+        ),
+      ],
       child: Builder(
         builder: (context) => MaterialApp.router(
           title: 'Highlander',
