@@ -212,14 +212,35 @@ class _InvestigationDetailPageState extends State<InvestigationDetailPage>
             const SizedBox(height: 16),
 
             // Link to incident
-            Semantics(
-              label: 'View linked incident',
-              button: true,
-              child: ElevatedButton.icon(
-                onPressed: () => context.go('/incidents/${inv.incidentId}'),
-                icon: const Icon(Icons.open_in_new, size: 16),
-                label: Text('View Incident #${inv.incidentId}'),
-              ),
+            Wrap(
+              spacing: 12,
+              runSpacing: 8,
+              children: [
+                Semantics(
+                  label: 'View linked incident',
+                  button: true,
+                  child: ElevatedButton.icon(
+                    onPressed: () => context.go('/incidents/${inv.incidentId}'),
+                    icon: const Icon(Icons.open_in_new, size: 16),
+                    label: Text('View Incident #${inv.incidentId}'),
+                  ),
+                ),
+                // Create CAPA button — visible after investigation is approved
+                if (inv.status == 'Approved' && _isSafetyManager)
+                  Semantics(
+                    label: 'Create CAPA from this investigation',
+                    button: true,
+                    child: ElevatedButton.icon(
+                      onPressed: () =>
+                          context.go('/capas/new?investigationId=${inv.id}'),
+                      icon: const Icon(Icons.add_circle_outline, size: 16),
+                      label: const Text('Create CAPA'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: HerzogColors.successGreen,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ],
         ),
