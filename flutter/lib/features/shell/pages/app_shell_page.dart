@@ -430,9 +430,9 @@ class _Sidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      key: OnboardingKeys.sidebar,
       width: _kSidebarWidth,
       child: Material(
+        key: OnboardingKeys.sidebar,
         color: HerzogColors.richBlack,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
