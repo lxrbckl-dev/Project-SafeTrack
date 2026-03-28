@@ -61,6 +61,10 @@ dependencies:
   # Dark mode persistence (TASK-036)
   shared_preferences: ^2.3.0
 
+  # Incident map view (TASK-039)
+  flutter_map: ^7.0.0
+  latlong2: ^0.9.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
