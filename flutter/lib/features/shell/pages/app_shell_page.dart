@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../app/herzog_theme.dart';
+import '../../../core/services/theme_service.dart';
 import '../../../shared/widgets/offline_banner.dart';
 import '../../auth/data/auth_service.dart';
 import '../../auth/data/role.dart';
@@ -460,6 +461,9 @@ class _Sidebar extends StatelessWidget {
               ),
             ),
 
+            // Dark-mode toggle (TASK-036)
+            const _DarkModeToggle(),
+
             // Shortcut discoverability hint (WCAG 2.1.4)
             _ShortcutHint(),
           ],
@@ -473,6 +477,59 @@ class _Sidebar extends StatelessWidget {
       return currentLocation == '/dashboard' || currentLocation == '/';
     }
     return currentLocation.startsWith(route);
+  }
+}
+
+/// Sun / moon toggle button at the bottom of the sidebar.
+///
+/// Switches between light and dark mode via [ThemeService.toggle].
+///
+/// ADA/WCAG compliance:
+/// - Semantic label "Toggle dark mode" (WCAG 1.3.1).
+/// - Gold icon on dark sidebar — ~8:1 contrast (WCAG AAA, 1.4.3).
+/// - Keyboard accessible via InkWell focus handling (WCAG 2.1.1).
+class _DarkModeToggle extends StatelessWidget {
+  const _DarkModeToggle();
+
+  @override
+  Widget build(BuildContext context) {
+    final themeService = context.watch<ThemeService>();
+    final isDark = themeService.isDarkMode;
+
+    return Semantics(
+      label: 'Toggle dark mode',
+      button: true,
+      toggled: isDark,
+      child: Tooltip(
+        message: isDark ? 'Switch to light mode' : 'Switch to dark mode',
+        child: InkWell(
+          onTap: themeService.toggle,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: const BoxDecoration(
+              border: Border(top: BorderSide(color: HerzogColors.darkGray)),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  isDark ? Icons.light_mode : Icons.dark_mode,
+                  size: 14,
+                  color: isDark ? HerzogColors.gold : HerzogColors.smoke,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  isDark ? 'Light mode' : 'Dark mode',
+                  style: HerzogText.label(
+                    fontSize: 11,
+                    color: isDark ? HerzogColors.gold : HerzogColors.smoke,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

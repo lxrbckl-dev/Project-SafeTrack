@@ -9,6 +9,7 @@ import 'core/database/app_database.dart';
 import 'core/database/connection.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/sync_service.dart';
+import 'core/services/theme_service.dart';
 import 'features/auth/data/auth_service.dart';
 import 'features/chat/data/chat_repository.dart';
 import 'features/chat/data/form_fill_service.dart';
@@ -74,13 +75,23 @@ class MyApp extends StatelessWidget {
         // FormFillService holds pending AI-dispatched form fill data.
         // Form pages consume pending data on init to auto-populate controllers.
         ChangeNotifierProvider(create: (_) => FormFillService()),
+        // ThemeService — persists light/dark preference to SharedPreferences.
+        ChangeNotifierProvider(create: (_) => ThemeService()..loadPreference()),
       ],
       child: Builder(
-        builder: (context) => MaterialApp.router(
-          title: 'SafeTrack',
-          theme: herzogTheme(),
-          routerConfig: appRouter(context.read<AuthService>()),
-        ),
+        builder: (context) {
+          return Consumer<ThemeService>(
+            builder: (context, themeService, _) => MaterialApp.router(
+              title: 'SafeTrack',
+              theme: herzogTheme(),
+              darkTheme: herzogDarkTheme(),
+              themeMode: themeService.isDarkMode
+                  ? ThemeMode.dark
+                  : ThemeMode.light,
+              routerConfig: appRouter(context.read<AuthService>()),
+            ),
+          );
+        },
       ),
     );
   }
