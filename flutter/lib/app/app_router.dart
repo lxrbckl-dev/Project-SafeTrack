@@ -8,7 +8,9 @@ import '../features/incidents/pages/incident_list_page.dart';
 import '../features/incidents/pages/incident_form_page.dart';
 import '../features/incidents/pages/incident_detail_page.dart';
 import '../features/incidents/pages/osha_determination_page.dart';
-import '../features/investigations/pages/investigations_placeholder_page.dart';
+import '../features/investigations/pages/investigation_list_page.dart';
+import '../features/investigations/pages/investigation_detail_page.dart';
+import '../features/investigations/pages/investigation_form_page.dart';
 import '../features/capas/pages/capas_placeholder_page.dart';
 import '../features/admin/pages/admin_settings_page.dart';
 import '../features/admin/pages/factor_types_page.dart';
@@ -131,10 +133,34 @@ GoRouter appRouter(AuthService authService) {
             ],
           ),
 
+          // Investigation routes
           GoRoute(
             path: '/investigations',
             name: 'investigations',
-            builder: (context, state) => const InvestigationsPlaceholderPage(),
+            builder: (context, state) => const InvestigationListPage(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'investigationNew',
+                builder: (context, state) {
+                  final incidentId = int.tryParse(
+                    state.uri.queryParameters['incidentId'] ?? '',
+                  );
+                  return InvestigationFormPage(incidentId: incidentId);
+                },
+              ),
+              GoRoute(
+                path: ':id',
+                name: 'investigationDetail',
+                builder: (context, state) {
+                  final id = int.tryParse(state.pathParameters['id'] ?? '');
+                  if (id == null) {
+                    return const InvestigationListPage();
+                  }
+                  return InvestigationDetailPage(investigationId: id);
+                },
+              ),
+            ],
           ),
           GoRoute(
             path: '/capas',
