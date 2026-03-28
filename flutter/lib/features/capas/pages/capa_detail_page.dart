@@ -66,10 +66,14 @@ class _CAPADetailPageState extends State<CAPADetailPage> {
   /// Whether the current user is the assignee of this CAPA.
   bool get _isAssignee => _auth.userId == _capa?.assignedToUserId;
 
-  /// Whether the current user has Safety Coordinator or higher role.
+  /// Whether the current user is a Safety Coordinator or Safety Manager/Admin
+  /// (not PM, Division Manager, or Executive — those roles are view-only for CAPAs).
   bool get _isSafetyCoordinatorPlus {
     final role = _auth.currentRole;
-    return role != null && role.isAtLeast(Role.safetyCoordinator);
+    if (role == null) return false;
+    return role == Role.safetyCoordinator ||
+        role == Role.safetyManager ||
+        role == Role.admin;
   }
 
   /// Whether the current user has a read-only role (Executive).

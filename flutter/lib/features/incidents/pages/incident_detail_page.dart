@@ -6,21 +6,24 @@ import 'package:provider/provider.dart';
 import '../../../app/herzog_theme.dart';
 import '../../auth/data/auth_service.dart';
 import '../../auth/data/role.dart';
+import '../../capas/data/capa_repository.dart';
 import '../../investigations/data/investigation_repository.dart';
 import '../data/incident_link_repository.dart';
 import '../data/incident_repository.dart';
 import '../widgets/link_incident_dialog.dart';
 import '../widgets/status_badge.dart';
 
-/// Read-only detail view of an incident with tabs for future integration.
+/// Read-only detail view of an incident with integrated tabs.
 ///
 /// Features:
 /// - Full incident field display
 /// - Photos grid
 /// - Status badge at top
 /// - Medical fields gated by role (Safety Coordinator+)
-/// - Tabs: Info, OSHA, Investigation, CAPAs (placeholder), Recurrence
-/// - Action buttons based on role and status
+/// - Tabs: Info, OSHA, Investigation, CAPAs, Recurrence
+/// - Action buttons: Edit, Start Investigation, OSHA Determination, Close, Reopen
+/// - Close validates all CAPAs verified effective (backend enforces)
+/// - Reopen available from Closed status (Safety Manager+)
 class IncidentDetailPage extends StatefulWidget {
   final int incidentId;
 
@@ -35,14 +38,19 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
   late final IncidentRepository _repo;
   late final InvestigationRepository _invRepo;
   late final IncidentLinkRepository _linkRepo;
+  late final CAPARepository _capaRepo;
   late final AuthService _auth;
   late final TabController _tabController;
 
   Incident? _incident;
   Investigation? _linkedInvestigation;
   List<IncidentLink> _links = [];
+  List<CAPA> _capas = [];
   bool _linksLoading = false;
+  bool _capasLoading = false;
   bool _loading = true;
+  bool _closing = false;
+  bool _reopening = false;
   String? _error;
 
   @override
@@ -52,6 +60,7 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
     _repo = IncidentRepository(_auth);
     _invRepo = InvestigationRepository(_auth);
     _linkRepo = IncidentLinkRepository(_auth);
+    _capaRepo = CAPARepository(_auth);
     _tabController = TabController(length: 5, vsync: this);
     _loadIncident();
   }
@@ -87,8 +96,9 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
           _linkedInvestigation = linkedInv;
           _loading = false;
         });
-        // Load recurrence links in the background after main data is ready.
+        // Load recurrence links and CAPAs in the background after main data is ready.
         _loadLinks();
+        _loadCapas();
       }
     } catch (e) {
       if (mounted) {
@@ -109,6 +119,60 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
       // Non-fatal — recurrence tab shows empty state.
     } finally {
       if (mounted) setState(() => _linksLoading = false);
+    }
+  }
+
+  Future<void> _loadCapas() async {
+    setState(() => _capasLoading = true);
+    try {
+      final result = await _capaRepo.listCAPAs(incidentId: widget.incidentId);
+      if (mounted) setState(() => _capas = result.data);
+    } catch (_) {
+      // Non-fatal — CAPAs tab shows empty state.
+    } finally {
+      if (mounted) setState(() => _capasLoading = false);
+    }
+  }
+
+  Future<void> _closeIncident() async {
+    setState(() => _closing = true);
+    try {
+      final updated = await _repo.closeIncident(widget.incidentId);
+      if (mounted) {
+        setState(() => _incident = updated);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Incident closed successfully')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Cannot close incident: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _closing = false);
+    }
+  }
+
+  Future<void> _reopenIncident() async {
+    setState(() => _reopening = true);
+    try {
+      final updated = await _repo.reopenIncident(widget.incidentId);
+      if (mounted) {
+        setState(() => _incident = updated);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Incident reopened')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to reopen incident: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _reopening = false);
     }
   }
 
@@ -145,7 +209,7 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
                 _buildInfoTab(),
                 _buildOshaTab(),
                 _buildInvestigationTab(),
-                _buildPlaceholderTab('CAPAs', 'CAPA management (TASK-009)'),
+                _buildCapasTab(),
                 _buildRecurrenceTab(),
               ],
             ),
@@ -331,61 +395,138 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
     final isReporter = incident.reporterId == _auth.userId;
     // Executive is read-only: hide all action buttons.
     final isReadOnly = role == Role.executive;
+    // Safety Manager (and Admin) can close/reopen incidents.
+    final isSafetyManager =
+        role != null &&
+        (role == Role.safetyManager || role == Role.admin) &&
+        role != Role.executive;
+    // Safety Coordinator and above (not PM, not DivMgr, not Executive) can
+    // run OSHA determination and start investigations.
+    final isSafetyOps =
+        role != null &&
+        (role == Role.safetyCoordinator ||
+            role == Role.safetyManager ||
+            role == Role.admin);
 
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            StatusBadge(status: incident.status),
-            const Spacer(),
-            // Action buttons based on role + status (hidden for Executive)
-            if (!isReadOnly)
-              Wrap(
-                spacing: 8,
-                children: [
-                  // Edit: reporter can edit if draft or Reported
-                  if (isReporter &&
-                      (incident.status == 'Draft' ||
-                          incident.status == 'Reported'))
-                    ElevatedButton.icon(
-                      onPressed: () =>
-                          context.go('/incidents/${incident.id}/edit'),
-                      icon: const Icon(Icons.edit, size: 16),
-                      label: const Text('Edit'),
-                    ),
+            Row(
+              children: [
+                StatusBadge(status: incident.status),
+                const Spacer(),
+                // Action buttons based on role + status (hidden for Executive)
+                if (!isReadOnly)
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      // Edit: reporter can edit if draft or Reported
+                      if (isReporter &&
+                          (incident.status == 'Draft' ||
+                              incident.status == 'Reported'))
+                        Semantics(
+                          label: 'Edit incident',
+                          button: true,
+                          child: ElevatedButton.icon(
+                            onPressed: () =>
+                                context.go('/incidents/${incident.id}/edit'),
+                            icon: const Icon(Icons.edit, size: 16),
+                            label: const Text('Edit'),
+                          ),
+                        ),
 
-                  // Start Investigation: Safety Manager + Reported status
-                  if (role != null &&
-                      role.isAtLeast(Role.safetyManager) &&
-                      role != Role.executive &&
-                      incident.status == 'Reported' &&
-                      _linkedInvestigation == null)
-                    ElevatedButton.icon(
-                      onPressed: () => context.go(
-                        '/investigations/new?incidentId=${incident.id}',
-                      ),
-                      icon: const Icon(Icons.search, size: 16),
-                      label: const Text('Start Investigation'),
-                    ),
+                      // Start Investigation: Safety Manager + Reported or Reopened status
+                      // Reopened incidents can have a new investigation assigned.
+                      if (isSafetyManager &&
+                          (incident.status == 'Reported' ||
+                              incident.status == 'Reopened') &&
+                          _linkedInvestigation == null)
+                        Semantics(
+                          label: 'Start investigation for this incident',
+                          button: true,
+                          child: ElevatedButton.icon(
+                            onPressed: () => context.go(
+                              '/investigations/new?incidentId=${incident.id}',
+                            ),
+                            icon: const Icon(Icons.search, size: 16),
+                            label: const Text('Start Investigation'),
+                          ),
+                        ),
 
-                  // Run OSHA Determination: Safety Coordinator+, not yet determined
-                  if (role != null &&
-                      role.isAtLeast(Role.safetyCoordinator) &&
-                      role != Role.executive &&
-                      incident.isOshaRecordable == null)
-                    ElevatedButton.icon(
-                      onPressed: () =>
-                          context.go('/incidents/${incident.id}/osha'),
-                      icon: const Icon(Icons.checklist, size: 16),
-                      label: const Text('OSHA Determination'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: HerzogColors.gold,
-                        foregroundColor: HerzogColors.richBlack,
-                      ),
-                    ),
-                ],
-              ),
+                      // Run OSHA Determination: Safety ops roles only, not yet determined
+                      if (isSafetyOps && incident.isOshaRecordable == null)
+                        Semantics(
+                          label: 'Run OSHA recordability determination',
+                          button: true,
+                          child: ElevatedButton.icon(
+                            onPressed: () =>
+                                context.go('/incidents/${incident.id}/osha'),
+                            icon: const Icon(Icons.checklist, size: 16),
+                            label: const Text('OSHA Determination'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: HerzogColors.gold,
+                              foregroundColor: HerzogColors.richBlack,
+                            ),
+                          ),
+                        ),
+
+                      // Close Incident: Safety Manager, status is CAPA In Progress
+                      // Backend validates all CAPAs are Verified Effective.
+                      if (isSafetyManager &&
+                          incident.status == 'CAPA In Progress')
+                        Semantics(
+                          label: 'Close this incident',
+                          button: true,
+                          child: ElevatedButton.icon(
+                            onPressed: _closing ? null : _closeIncident,
+                            icon: _closing
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Icon(Icons.lock, size: 16),
+                            label: const Text('Close Incident'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: HerzogColors.successGreen,
+                              foregroundColor: HerzogColors.white,
+                            ),
+                          ),
+                        ),
+
+                      // Reopen: Safety Manager, status is Closed
+                      if (isSafetyManager && incident.status == 'Closed')
+                        Semantics(
+                          label: 'Reopen this incident',
+                          button: true,
+                          child: ElevatedButton.icon(
+                            onPressed: _reopening ? null : _reopenIncident,
+                            icon: _reopening
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Icon(Icons.lock_open, size: 16),
+                            label: const Text('Reopen'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: HerzogColors.warningAmber,
+                              foregroundColor: HerzogColors.white,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+              ],
+            ),
           ],
         ),
       ),
@@ -586,7 +727,8 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
           ),
           if (isSafetyManager &&
               _auth.currentRole != Role.executive &&
-              _incident?.status == 'Reported') ...[
+              (_incident?.status == 'Reported' ||
+                  _incident?.status == 'Reopened')) ...[
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: () => context.go(
@@ -599,6 +741,260 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
         ],
       ),
     );
+  }
+
+  Widget _buildCapasTab() {
+    final role = _auth.currentRole;
+    final canCreateCapa =
+        role != null &&
+        (role == Role.safetyCoordinator ||
+            role == Role.safetyManager ||
+            role == Role.admin);
+
+    if (_capasLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 800),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(child: _sectionTitle('CORRECTIVE ACTIONS (CAPAs)')),
+                // Create CAPA only available when there is a linked
+                // approved investigation.
+                if (canCreateCapa &&
+                    _linkedInvestigation != null &&
+                    _linkedInvestigation!.status == 'Approved')
+                  Semantics(
+                    label: 'Create a new CAPA for this incident',
+                    button: true,
+                    child: ElevatedButton.icon(
+                      onPressed: () => context.go(
+                        '/capas/new?investigationId=${_linkedInvestigation!.id}',
+                      ),
+                      icon: const Icon(Icons.add, size: 16),
+                      label: const Text('Create CAPA'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: HerzogColors.navyBlue,
+                        foregroundColor: HerzogColors.white,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            if (_capas.isEmpty)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.assignment_turned_in_outlined,
+                        size: 48,
+                        color: HerzogColors.smoke.withValues(alpha: 0.5),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'No CAPAs yet',
+                        style: HerzogText.heading(fontSize: 18),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'CAPAs are created after an investigation is approved.',
+                        style: HerzogText.body(color: HerzogColors.midGray),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _capas.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 8),
+                itemBuilder: (context, index) => _buildCapaCard(_capas[index]),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCapaCard(CAPA capa) {
+    final Color statusColor;
+    switch (capa.status) {
+      case 'Verified Effective':
+        statusColor = HerzogColors.successGreen;
+      case 'Verified Ineffective':
+        statusColor = HerzogColors.errorRed;
+      case 'Verification Pending':
+        statusColor = HerzogColors.warningAmber;
+      case 'Completed':
+        statusColor = HerzogColors.infoTeal;
+      default:
+        statusColor = HerzogColors.midGray;
+    }
+
+    return Semantics(
+      label: 'CAPA ${capa.id}: ${capa.type}, ${capa.status}',
+      button: true,
+      child: Card(
+        child: InkWell(
+          onTap: () => context.go('/capas/${capa.id}'),
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    // Status chip
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: statusColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(3),
+                        border: Border.all(
+                          color: statusColor.withValues(alpha: 0.4),
+                        ),
+                      ),
+                      child: Text(
+                        capa.status.toUpperCase(),
+                        style: HerzogText.label(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: statusColor,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Priority chip
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _priorityColor(
+                          capa.priority,
+                        ).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                      child: Text(
+                        capa.priority.toUpperCase(),
+                        style: HerzogText.label(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: _priorityColor(capa.priority),
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    if (capa.isOverdue)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: HerzogColors.errorLight,
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                        child: Text(
+                          'OVERDUE',
+                          style: HerzogText.label(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: HerzogColors.errorRed,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '${capa.type} — ${capa.category}',
+                  style: HerzogText.body(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: HerzogColors.richBlack,
+                  ),
+                ),
+                if (capa.description.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    capa.description,
+                    style: HerzogText.body(
+                      fontSize: 12,
+                      color: HerzogColors.midGray,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+                if (capa.dueDate != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Due: ${DateFormat('MM/dd/yyyy').format(capa.dueDate!)}',
+                    style: HerzogText.body(
+                      fontSize: 11,
+                      color: capa.isOverdue
+                          ? HerzogColors.errorRed
+                          : HerzogColors.smoke,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      'View CAPA #${capa.id}',
+                      style: HerzogText.body(
+                        fontSize: 11,
+                        color: HerzogColors.navyBlue,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const Icon(
+                      Icons.chevron_right,
+                      size: 14,
+                      color: HerzogColors.navyBlue,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Color _priorityColor(String priority) {
+    switch (priority) {
+      case 'Critical':
+        return HerzogColors.errorRed;
+      case 'High':
+        return HerzogColors.warningAmber;
+      case 'Medium':
+        return HerzogColors.infoTeal;
+      default:
+        return HerzogColors.midGray;
+    }
   }
 
   Widget _buildRecurrenceTab() {
@@ -812,28 +1208,6 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
         }
       }
     }
-  }
-
-  Widget _buildPlaceholderTab(String title, String description) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.construction,
-            size: 48,
-            color: HerzogColors.smoke.withValues(alpha: 0.5),
-          ),
-          const SizedBox(height: 12),
-          Text(title, style: HerzogText.heading(fontSize: 18)),
-          const SizedBox(height: 8),
-          Text(
-            description,
-            style: HerzogText.body(color: HerzogColors.midGray),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _sectionTitle(String title) {
