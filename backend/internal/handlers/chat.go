@@ -294,7 +294,7 @@ func Chat(db *gorm.DB) http.HandlerFunc {
 
 		// Edge case 12: audit log chat requests so agent usage is visible.
 		userID := middleware.GetUserID(r)
-		userRole := middleware.GetUserRole(r)
+		_ = userRole // already declared above for route list
 		isAgent := middleware.GetIsAgent(r)
 		if db != nil {
 			// Truncate prompt for audit log (avoid storing large payloads).
