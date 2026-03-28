@@ -65,8 +65,7 @@ class _LoginPageState extends State<LoginPage> {
         foregroundColor: HerzogColors.gold,
       ),
       body: SafeArea(
-        child: Align(
-          alignment: Alignment.topCenter,
+        child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 480),
             child: SingleChildScrollView(

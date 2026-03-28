@@ -56,7 +56,11 @@
       "Read(//Users/highlander/Downloads/**)",
       "Bash(sips -g pixelWidth -g pixelHeight ~/Downloads/b6ae0e36-d826-4cbb-ab5b-69285f9d1f43-2.png)",
       "Bash(sips -g pixelWidth -g pixelHeight ~/Downloads/c3c9b16b-7388-4b95-b295-05db10394109-2.png)",
-      "Bash(sips -g pixelWidth -g pixelHeight -g format /Users/highlander/Desktop/highlander/flutter/assets/icon.png)"
+      "Bash(sips -g pixelWidth -g pixelHeight -g format /Users/highlander/Desktop/highlander/flutter/assets/icon.png)",
+      "Bash(ls -lt ~/Downloads/*.png)",
+      "Bash(sips -g pixelWidth -g pixelHeight ~/Downloads/resized_2048.png)",
+      "Bash(SRC=~/Downloads/resized_2048.png sips -z 32 32 \"$SRC\" --out /Users/highlander/Desktop/highlander/flutter/web/favicon.png)",
+      "Read(//Users/highlander/Desktop/highlander/**)"
     ],
     "deny": [],
     "defaultMode": "bypassPermissions",
