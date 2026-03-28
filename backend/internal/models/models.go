@@ -14,5 +14,6 @@ func AllModels() []interface{} {
 		&FiveWhy{},
 		&ContributingFactor{},
 		&WitnessStatement{},
+		&CAPA{},
 	}
 }
