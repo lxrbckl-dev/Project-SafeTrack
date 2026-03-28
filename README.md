@@ -82,7 +82,7 @@ lsof -ti:3000 | xargs kill -9
 | `Alt+I` | Incidents |
 | `Alt+V` | Investigations |
 | `Alt+C` | CAPAs |
-| `Ctrl+K` | Toggle AI chat |
+| `Alt+K` | Toggle AI chat |
 | `/` | Toggle AI chat (not in text fields) |
 | `?` | Show all shortcuts |
 | `Esc` | Close panels |

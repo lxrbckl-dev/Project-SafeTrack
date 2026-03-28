@@ -70,7 +70,7 @@ All data flows through the Go API to PostgreSQL:
 | Alt+I (Option+I on Mac) | Go to Incidents |
 | Alt+V (Option+V on Mac) | Go to Investigations |
 | Alt+C (Option+C on Mac) | Go to CAPAs |
-| Ctrl+K | Toggle AI chat |
+| Alt+K | Toggle AI chat |
 | / | Toggle AI chat (disabled in text fields) |
 | ? | Show keyboard shortcuts overlay |
 | Esc | Close open panels |
