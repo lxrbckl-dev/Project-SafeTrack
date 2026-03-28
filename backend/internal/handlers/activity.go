@@ -46,10 +46,17 @@ func GetActivityFeed(db *gorm.DB) http.HandlerFunc {
 		query := db.Model(&models.AuditLog{}).Order("timestamp desc")
 
 		// Filter by timestamp if provided.
-		if since := r.URL.Query().Get("since"); since != "" {
-			if t, err := time.Parse(time.RFC3339, since); err == nil {
-				query = query.Where("timestamp > ?", t)
+		var sinceTime *time.Time
+		if sinceStr := r.URL.Query().Get("since"); sinceStr != "" {
+			t, err := time.Parse(time.RFC3339, sinceStr)
+			if err != nil {
+				http.Error(w, "invalid 'since' parameter, expected RFC3339 format", http.StatusBadRequest)
+				return
 			}
+			sinceTime = &t
+		}
+		if sinceTime != nil {
+			query = query.Where("timestamp > ?", sinceTime)
 		}
 
 		// Limit results.
@@ -121,10 +128,13 @@ func applyActivityRBAC(query *gorm.DB, userID, userRole string, r *http.Request)
 	if userRole == "pm" {
 		if project := middleware.GetUserProject(r); project != "" {
 			query = query.Where(
-				"(entity_type != 'incident' OR entity_id IN (SELECT id FROM incidents WHERE project_job_site = ?))"+
-					" AND (entity_type != 'investigation' OR entity_id IN (SELECT incident_id FROM investigations WHERE incident_id IN (SELECT id FROM incidents WHERE project_job_site = ?)))"+
-					" AND (entity_type NOT IN ('incident', 'investigation') OR entity_type = 'incident' OR entity_type = 'investigation')",
-				project, project,
+				"("+
+					"(entity_type = 'incident' AND entity_id IN (SELECT id FROM incidents WHERE project_job_site = ?))"+
+					" OR (entity_type = 'investigation' AND entity_id IN (SELECT id FROM investigations WHERE incident_id IN (SELECT id FROM incidents WHERE project_job_site = ?)))"+
+					" OR (entity_type = 'capa' AND entity_id IN (SELECT id FROM capas WHERE incident_id IN (SELECT id FROM incidents WHERE project_job_site = ?)))"+
+					" OR entity_type NOT IN ('incident', 'investigation', 'capa')"+
+					")",
+				project, project, project,
 			)
 		}
 	}
@@ -133,10 +143,13 @@ func applyActivityRBAC(query *gorm.DB, userID, userRole string, r *http.Request)
 	if userRole == "division_manager" {
 		if division := middleware.GetUserDivision(r); division != "" {
 			query = query.Where(
-				"(entity_type != 'incident' OR entity_id IN (SELECT id FROM incidents WHERE division = ?))"+
-					" AND (entity_type != 'investigation' OR entity_id IN (SELECT incident_id FROM investigations WHERE incident_id IN (SELECT id FROM incidents WHERE division = ?)))"+
-					" AND (entity_type NOT IN ('incident', 'investigation') OR entity_type = 'incident' OR entity_type = 'investigation')",
-				division, division,
+				"("+
+					"(entity_type = 'incident' AND entity_id IN (SELECT id FROM incidents WHERE division = ?))"+
+					" OR (entity_type = 'investigation' AND entity_id IN (SELECT id FROM investigations WHERE incident_id IN (SELECT id FROM incidents WHERE division = ?)))"+
+					" OR (entity_type = 'capa' AND entity_id IN (SELECT id FROM capas WHERE incident_id IN (SELECT id FROM incidents WHERE division = ?)))"+
+					" OR entity_type NOT IN ('incident', 'investigation', 'capa')"+
+					")",
+				division, division, division,
 			)
 		}
 	}

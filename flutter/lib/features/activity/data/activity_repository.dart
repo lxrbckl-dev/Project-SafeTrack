@@ -31,7 +31,7 @@ class ActivityFeedItem {
     return ActivityFeedItem(
       id: json['id'] as int? ?? 0,
       timestamp: json['timestamp'] != null
-          ? DateTime.parse(json['timestamp'] as String)
+          ? DateTime.parse(json['timestamp'] as String).toLocal()
           : DateTime.now(),
       userDisplayName: json['userDisplayName'] as String? ?? '',
       userRole: json['userRole'] as String? ?? '',
