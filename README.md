@@ -80,11 +80,11 @@ lsof -ti:3000 | xargs kill -9
 
 | Key | Action |
 |---|---|
-| `Alt+D` | Dashboard |
-| `Alt+I` | Incidents |
-| `Alt+V` | Investigations |
-| `Alt+C` | CAPAs |
-| `Alt+K` | Toggle AI chat |
+| `Ctrl+Shift+H` | Dashboard |
+| `Ctrl+Shift+N` | Incidents |
+| `Ctrl+Shift+V` | Investigations |
+| `Ctrl+Shift+A` | CAPAs |
+| `Ctrl+Shift+K` | Toggle AI chat |
 | `/` | Toggle AI chat (not in text fields) |
 | `?` | Show all shortcuts |
 | `Esc` | Close panels |

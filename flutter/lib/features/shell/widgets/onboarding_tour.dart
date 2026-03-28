@@ -239,7 +239,7 @@ class _OnboardingTourState extends State<OnboardingTour> {
                 title: 'AI Assistant',
                 body:
                     'Ask the AI assistant questions about SafeTrack. '
-                    'Press Alt+K to open the chat from anywhere.',
+                    'Press Ctrl+Shift+K to open the chat from anywhere.',
               ),
             ),
           ],
@@ -363,7 +363,7 @@ class _OnboardingTourState extends State<OnboardingTour> {
                 title: 'AI Assistant',
                 body:
                     'Ask the AI assistant questions about SafeTrack. '
-                    'Press Alt+K to open the chat from anywhere.',
+                    'Press Ctrl+Shift+K to open the chat from anywhere.',
               ),
             ),
           ],

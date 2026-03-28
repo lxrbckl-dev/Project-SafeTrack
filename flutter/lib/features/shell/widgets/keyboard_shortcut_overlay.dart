@@ -48,14 +48,26 @@ class KeyboardShortcutOverlay extends StatelessWidget {
                 const _ShortcutGroup(
                   title: 'NAVIGATION',
                   shortcuts: [
-                    _ShortcutRow(key: 'Alt+D', description: 'Go to Dashboard'),
-                    _ShortcutRow(key: 'Alt+I', description: 'Go to Incidents'),
                     _ShortcutRow(
-                      key: 'Alt+V',
+                      key: 'Ctrl+Shift+H',
+                      description: 'Go to Dashboard',
+                    ),
+                    _ShortcutRow(
+                      key: 'Ctrl+Shift+N',
+                      description: 'Go to Incidents',
+                    ),
+                    _ShortcutRow(
+                      key: 'Ctrl+Shift+V',
                       description: 'Go to Investigations',
                     ),
-                    _ShortcutRow(key: 'Alt+C', description: 'Go to CAPAs'),
-                    _ShortcutRow(key: 'Alt+S', description: 'Global Search'),
+                    _ShortcutRow(
+                      key: 'Ctrl+Shift+A',
+                      description: 'Go to CAPAs',
+                    ),
+                    _ShortcutRow(
+                      key: 'Ctrl+Shift+S',
+                      description: 'Global Search',
+                    ),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -63,7 +75,7 @@ class KeyboardShortcutOverlay extends StatelessWidget {
                   title: 'PANELS',
                   shortcuts: [
                     _ShortcutRow(
-                      key: 'Alt+K  /  /',
+                      key: 'Ctrl+Shift+K  /  /',
                       description: 'Toggle AI Chat',
                     ),
                     _ShortcutRow(key: 'Esc', description: 'Close open panel'),

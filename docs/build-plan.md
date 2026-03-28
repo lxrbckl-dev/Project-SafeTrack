@@ -383,7 +383,7 @@
 
 **Flutter:**
 - `Shortcuts`/`Actions` widget in app shell
-- Shortcuts: page navigation (Alt+D=Dashboard, Alt+I=Incidents, Alt+V=Investigations, Alt+C=CAPAs), chatbot toggle (Alt+K or /), Escape to close panels
+- Shortcuts: page navigation (Ctrl+Shift+H=Dashboard, Ctrl+Shift+N=Incidents, Ctrl+Shift+V=Investigations, Ctrl+Shift+A=CAPAs), chatbot toggle (Ctrl+Shift+K or /), Escape to close panels
 
 **QA:** All shortcuts work. No conflicts with browser defaults. Visible shortcut hints somewhere in UI.
 
@@ -613,12 +613,12 @@
 
 **Flutter:**
 - Search icon button in AppBar (both desktop and mobile layouts in `app_shell_page.dart`)
-- `Alt+S` keyboard shortcut to focus search
+- `Ctrl+Shift+S` keyboard shortcut to focus search
 - `features/search/pages/search_results_page.dart` — grouped results by entity type (Incidents, Investigations, CAPAs) with clickable rows that navigate to detail pages
 - Search input with debounced API calls (300ms)
 - Route: `/search?q=`
 
-**QA:** Search returns results across all 3 entity types. RBAC-scoped (Field Reporter doesn't see admin data). Debounce works. Clicking result navigates to correct detail page. Empty state for no results. Alt+S focuses search. Responsive at 375px.
+**QA:** Search returns results across all 3 entity types. RBAC-scoped (Field Reporter doesn't see admin data). Debounce works. Clicking result navigates to correct detail page. Empty state for no results. Ctrl+Shift+S focuses search. Responsive at 375px.
 
 ---
 
@@ -800,7 +800,7 @@
   1. Sidebar/nav — "Navigate between Dashboard, Incidents, Investigations, and CAPAs"
   2. New Incident button — "Report an incident from here"
   3. Notification bell — "Escalation alerts appear here"
-  4. AI chat (Alt+K) — "Ask the AI assistant questions about SafeTrack"
+  4. AI chat (Ctrl+Shift+K) — "Ask the AI assistant questions about SafeTrack"
   5. Keyboard shortcuts — "Press ? to see all keyboard shortcuts"
 - "Skip Tour" button always visible
 - "Restart Tour" option in settings or sidebar footer
