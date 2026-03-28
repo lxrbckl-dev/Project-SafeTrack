@@ -8,7 +8,7 @@ Structure the presentation to walk judges through each rubric category, demonstr
 
 ### 1. Functionality & Completeness
 - Live demo: incident reporting → investigation (interactive 5-Why) → CAPA lifecycle → safety dashboard with TRIR/DART
-- Show 7 RBAC roles via dev login role picker — each sees different UI
+- Show 7 RBAC roles via email/password login with seeded test accounts — each sees different UI
 - Admin settings: configurable factor types, TRIR benchmark
 - Audit log viewer: full traceability of every action
 - Application-level medical data encryption
@@ -28,7 +28,7 @@ Structure the presentation to walk judges through each rubric category, demonstr
 ### 3. Architecture & Design
 - Monorepo: flutter/, backend/, deploy/, playwright/, eval/
 - Go backend + PostgreSQL (relational match with Drift/SQLite — no translation layer)
-- Three-layer auth: dev login (role switcher for demo) + Firebase Auth (real SSO) + Azure AD-ready (provider-agnostic JWT middleware)
+- Three-layer auth: email/password login (seeded demo accounts) + Firebase Auth (real SSO) + Azure AD-ready (provider-agnostic JWT middleware)
 - 7 RBAC roles with role-based UI and route protection
 - API-first data flow: Flutter → Go API → PostgreSQL (Drift available for local caching, offline sync deferred)
 - Feature-first directory structure

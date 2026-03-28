@@ -11,7 +11,7 @@
 | Flutter multi-platform scaffold | iOS, Android, Web, macOS, Windows — all build and run |
 | go_router navigation | 4 routes configured, works on web with URL handling |
 | Drift local database | Notes table with CRUD, works on mobile (SQLite) and web (WASM) |
-| Auth system (3-layer) | Dev login (role picker for demo) + Firebase Auth (real SSO) + provider-agnostic Go middleware (Azure AD-ready) |
+| Auth system (3-layer) | Email/password login (seeded demo accounts, bcrypt) + Firebase Auth (real SSO) + provider-agnostic Go middleware (Azure AD-ready) |
 | RBAC (7 roles) | Field Reporter, Safety Coordinator, Safety Manager, PM, Division Manager, Executive, Admin |
 | Go backend | Go API server with GORM ORM, health/sync/data/chat endpoints, JWT auth middleware |
 | PostgreSQL (via GORM) | Auto-migrating ORM — agents define tables as Go structs, no SQL migrations needed |
@@ -141,10 +141,10 @@ Each agent is trained with embedded skills in their definition files (`.claude/a
 | ~~Safety dashboard~~ | ~~TRIR/DART/Near Miss KPIs, trend charts, incidents by division, severity donut, leading indicators, recent incidents table, TRIR benchmark configurable via admin settings~~ — DONE (TASK-010, QA PASSED) |
 | ~~Manual recurrence linking~~ | ~~Link incidents by similarity type, cluster view~~ — DONE (TASK-011, QA PASSED) |
 | ~~Audit log viewer~~ | ~~UI for browsing immutable audit trail — Admin and Safety Manager access~~ — DONE (TASK-012, QA PASSED) |
-| Admin settings page | Configurable factor types, TRIR industry benchmark, system settings |
-| Medical data encryption | Application-level encryption for injured person fields in Go backend |
-| RBAC route protection | 7 roles with scoped UI and API permissions per rubric |
-| Draft incident visibility | Drafts visible only to reporter |
+| ~~Admin settings page~~ | ~~Configurable factor types, TRIR industry benchmark, system settings~~ — DONE (TASK-003, QA PASSED) |
+| ~~Medical data encryption~~ | ~~Application-level encryption for injured person fields in Go backend~~ — DONE (TASK-004, AES-256-GCM) |
+| ~~RBAC route protection~~ | ~~7 roles with scoped UI and API permissions per rubric~~ — DONE (TASK-014, QA PASSED) |
+| ~~Draft incident visibility~~ | ~~Drafts visible only to reporter~~ — DONE (TASK-014, QA PASSED) |
 
 ## Not Started — Supporting Features
 

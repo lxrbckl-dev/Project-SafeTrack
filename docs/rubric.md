@@ -54,7 +54,7 @@ An internal web application for incident reporting, investigation workflows (5-W
 - Recent incidents table: last 10 with date, type, severity, status, division
 
 ### Security & Standards
-- Azure AD SSO (demo: dev login with role picker; production: provider-agnostic JWT middleware supports Azure AD as config swap)
+- Azure AD SSO (demo: email/password login with seeded test accounts; production: provider-agnostic JWT middleware supports Azure AD as config swap)
 - RBAC: 7 roles (see below)
 - Injured person medical data restricted to Safety role and above; medical data encrypted at application level before reaching the database
 - All incident and investigation actions immutably audit-logged; records retained permanently; audit log viewer accessible in the UI

@@ -8,7 +8,7 @@ Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutt
 |---|---|
 | [Quick Start](#quick-start) | Get the app running locally |
 | [Stopping Everything](#stopping-everything) | Shut down services |
-| [Demo Roles](#demo-roles) | 7 roles to explore |
+| [Demo Accounts](#demo-accounts) | 7 test accounts to explore |
 | [Keyboard Shortcuts](#keyboard-shortcuts) | Navigation hotkeys |
 | [Troubleshooting](#troubleshooting) | Common issues & fixes |
 
@@ -60,19 +60,19 @@ lsof -ti:3000 | xargs kill -9
 
 ---
 
-## Demo Roles
+## Demo Accounts
 
-| Role | What you can do |
-|---|---|
-| **Field Reporter** | Create incidents |
-| **Safety Coordinator** | Manage investigations/CAPAs, link incidents |
-| **Safety Manager** | Approve investigations, assign investigators, configure system |
-| **PM** | View project-scoped data |
-| **Division Manager** | View division-scoped data |
-| **Executive** | View all data (read-only) |
-| **Admin** | Configure system settings, view audit log |
+All test accounts use password **`demo1234`**.
 
-> All test accounts use password **`demo1234`**. Tap any account row on the login page to auto-fill.
+| Email | Role | What you can do |
+|---|---|---|
+| `reporter@safetrack.demo` | Field Reporter | Create incidents |
+| `coordinator@safetrack.demo` | Safety Coordinator | Manage investigations/CAPAs, link incidents |
+| `manager@safetrack.demo` | Safety Manager | Approve investigations, assign investigators, configure system |
+| `pm@safetrack.demo` | PM | View project-scoped data |
+| `director@safetrack.demo` | Division Manager | View division-scoped data |
+| `executive@safetrack.demo` | Executive | View all data (read-only) |
+| `admin@safetrack.demo` | Admin | Configure system settings, view audit log |
 
 > **Suggested walkthrough:** Start as Field Reporter to create an incident, then switch to Safety Manager to investigate it.
 

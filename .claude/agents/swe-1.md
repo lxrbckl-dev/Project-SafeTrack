@@ -133,7 +133,7 @@ If it doesn't return `{"status":"ok"}`, fix docker-compose before proceeding.
 5. Use `ApiConfig.baseUrl` for all API calls — never hardcode URLs
 6. Use direct API calls to the Go backend via `ApiConfig.baseUrl` — do NOT create Drift tables for feature data
 7. If the feature needs role-based access:
-   - Check the current user's role (from the dev login role picker or Firebase Auth claims)
+   - Check the current user's role (from AuthService after email/password login or Firebase Auth claims)
    - Use the role to show/hide UI elements and protect routes — **hide unauthorized actions entirely** (don't show with error)
    - Role is extracted from the JWT by Go middleware and set on the request context — see `backend-patterns.md` Auth Context section
    - Go middleware checks the role and returns 403 if unauthorized

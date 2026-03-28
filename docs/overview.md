@@ -25,7 +25,7 @@ The hackathon rubric (`docs/rubric.md`) **dictates priority.** All infrastructur
 | Local DB | Drift (SQLite wrapper) | WebAssembly on web, native SQLite on mobile |
 | Remote DB | PostgreSQL (via Go API) | Relational — matches Drift's SQLite schema naturally |
 | ORM | GORM | Auto-migrates tables from Go structs on startup |
-| Auth | Three-layer | Dev login (role picker for demo) + Firebase Auth (real SSO) + Azure AD-ready (provider-agnostic Go middleware) |
+| Auth | Three-layer | Email/password login (seeded demo accounts, bcrypt) + Firebase Auth (real SSO) + Azure AD-ready (provider-agnostic Go middleware) |
 | Connectivity | `connectivity_plus` | Network state detection |
 | Local LLM | Ollama | Mac Mini M4 Pro, 48GB RAM |
 | LLM Model | Qwen 2.5 7B | Strong coding + reasoning, selected for in-app assistant role |

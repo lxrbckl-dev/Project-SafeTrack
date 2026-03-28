@@ -97,7 +97,7 @@ Place tests in `/playwright/` directory:
 
 ## RBAC Testing
 
-The app has a dev login with a role picker. Test each role per the rubric (see `docs/rubric.md` for full spec):
+The app has email/password login with seeded test accounts (all password: demo1234). Test each role per the rubric (see `docs/rubric.md` for full spec):
 - **Field Reporter** — can create incidents. Cannot manage investigations, CAPAs, or configure system.
 - **Safety Coordinator** — can manage investigations/CAPAs, manually link incidents. Cannot approve investigations or configure system.
 - **Safety Manager** — can review/approve investigations, assign investigators, configure system. Full access to safety functions.
