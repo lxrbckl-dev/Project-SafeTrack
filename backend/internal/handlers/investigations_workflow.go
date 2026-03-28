@@ -22,6 +22,7 @@ func CreateOrUpdateFiveWhy(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		// RBAC: Executive is read-only.
 		if middleware.IsReadOnlyRole(userRole) {
@@ -66,7 +67,7 @@ func CreateOrUpdateFiveWhy(db *gorm.DB) http.HandlerFunc {
 				return
 			}
 
-			LogAction(db, userID, userRole, "update", "five_why", existing.ID, beforeJSON, toJSON(existing), "")
+			LogAction(db, userID, userRole, "update", "five_why", existing.ID, beforeJSON, toJSON(existing), "", isAgent)
 
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(existing)
@@ -88,7 +89,7 @@ func CreateOrUpdateFiveWhy(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		LogAction(db, userID, userRole, "create", "five_why", fiveWhy.ID, "", toJSON(fiveWhy), "")
+		LogAction(db, userID, userRole, "create", "five_why", fiveWhy.ID, "", toJSON(fiveWhy), "", isAgent)
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
@@ -103,6 +104,7 @@ func DeleteFiveWhy(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		// RBAC: Executive is read-only.
 		if middleware.IsReadOnlyRole(userRole) {
@@ -119,7 +121,7 @@ func DeleteFiveWhy(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		LogAction(db, userID, userRole, "delete", "five_why", fiveWhy.ID, toJSON(fiveWhy), "", "")
+		LogAction(db, userID, userRole, "delete", "five_why", fiveWhy.ID, toJSON(fiveWhy), "", "", isAgent)
 
 		if err := db.Delete(&fiveWhy).Error; err != nil {
 			http.Error(w, "database error", http.StatusInternalServerError)
@@ -138,6 +140,7 @@ func CreateContributingFactor(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		// RBAC: Executive is read-only.
 		if middleware.IsReadOnlyRole(userRole) {
@@ -171,7 +174,7 @@ func CreateContributingFactor(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		LogAction(db, userID, userRole, "create", "contributing_factor", factor.ID, "", toJSON(factor), "")
+		LogAction(db, userID, userRole, "create", "contributing_factor", factor.ID, "", toJSON(factor), "", isAgent)
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
@@ -185,6 +188,7 @@ func DeleteContributingFactor(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		// RBAC: Executive is read-only.
 		if middleware.IsReadOnlyRole(userRole) {
@@ -201,7 +205,7 @@ func DeleteContributingFactor(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		LogAction(db, userID, userRole, "delete", "contributing_factor", factor.ID, toJSON(factor), "", "")
+		LogAction(db, userID, userRole, "delete", "contributing_factor", factor.ID, toJSON(factor), "", "", isAgent)
 
 		if err := db.Delete(&factor).Error; err != nil {
 			http.Error(w, "database error", http.StatusInternalServerError)
@@ -220,6 +224,7 @@ func CreateWitnessStatement(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		// RBAC: Executive is read-only.
 		if middleware.IsReadOnlyRole(userRole) {
@@ -253,7 +258,7 @@ func CreateWitnessStatement(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		LogAction(db, userID, userRole, "create", "witness_statement", statement.ID, "", toJSON(statement), "")
+		LogAction(db, userID, userRole, "create", "witness_statement", statement.ID, "", toJSON(statement), "", isAgent)
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
@@ -267,6 +272,7 @@ func UpdateWitnessStatement(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		// RBAC: Executive is read-only.
 		if middleware.IsReadOnlyRole(userRole) {
@@ -318,7 +324,7 @@ func UpdateWitnessStatement(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		LogAction(db, userID, userRole, "update", "witness_statement", existing.ID, beforeJSON, toJSON(existing), "")
+		LogAction(db, userID, userRole, "update", "witness_statement", existing.ID, beforeJSON, toJSON(existing), "", isAgent)
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(existing)
@@ -334,6 +340,7 @@ func SubmitForReview(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		// RBAC: Executive is read-only.
 		if middleware.IsReadOnlyRole(userRole) {
@@ -386,7 +393,7 @@ func SubmitForReview(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		LogAction(db, userID, userRole, "status_change", "investigation", investigation.ID, beforeJSON, toJSON(investigation), "Submitted for review")
+		LogAction(db, userID, userRole, "status_change", "investigation", investigation.ID, beforeJSON, toJSON(investigation), "Submitted for review", isAgent)
 
 		// Notify Safety Manager(s): in-app notification + email if preference allows.
 		// The AssignedBy field holds the Safety Manager who created the investigation.
@@ -416,6 +423,7 @@ func ReviewInvestigation(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		// RBAC: Safety Manager only.
 		if userRole != "safety_manager" && userRole != "admin" {
@@ -474,10 +482,10 @@ func ReviewInvestigation(db *gorm.DB) http.HandlerFunc {
 				incidentBefore := toJSON(incident)
 				incident.Status = "Investigation Complete"
 				db.Save(&incident)
-				LogAction(db, userID, userRole, "status_change", "incident", incident.ID, incidentBefore, toJSON(incident), "Investigation approved")
+				LogAction(db, userID, userRole, "status_change", "incident", incident.ID, incidentBefore, toJSON(incident), "Investigation approved", isAgent)
 			}
 
-			LogAction(db, userID, userRole, "approve", "investigation", investigation.ID, beforeJSON, toJSON(investigation), req.Comments)
+			LogAction(db, userID, userRole, "approve", "investigation", investigation.ID, beforeJSON, toJSON(investigation), req.Comments, isAgent)
 
 		case "return":
 			investigation.Status = "Returned"
@@ -487,7 +495,7 @@ func ReviewInvestigation(db *gorm.DB) http.HandlerFunc {
 				return
 			}
 
-			LogAction(db, userID, userRole, "return", "investigation", investigation.ID, beforeJSON, toJSON(investigation), req.Comments)
+			LogAction(db, userID, userRole, "return", "investigation", investigation.ID, beforeJSON, toJSON(investigation), req.Comments, isAgent)
 		}
 
 		w.Header().Set("Content-Type", "application/json")

@@ -50,6 +50,7 @@ func CheckRecurrence(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		if !canCheckRecurrence(userRole) {
 			http.Error(w, "forbidden", http.StatusForbidden)
@@ -183,7 +184,7 @@ func CheckRecurrence(db *gorm.DB) http.HandlerFunc {
 		sortMatches(matches)
 
 		LogAction(db, userID, userRole, "check_recurrence", "incident", uint(incidentID),
-			"", toJSON(map[string]interface{}{"matchCount": len(matches)}), "")
+			"", toJSON(map[string]interface{}{"matchCount": len(matches)}), "", isAgent)
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(matches)
@@ -224,6 +225,7 @@ func DismissSuggestion(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		if !canCheckRecurrence(userRole) {
 			http.Error(w, "forbidden", http.StatusForbidden)
@@ -263,7 +265,7 @@ func DismissSuggestion(db *gorm.DB) http.HandlerFunc {
 		}
 
 		LogAction(db, userID, userRole, "dismiss_suggestion", "incident", uint(incidentID),
-			"", toJSON(ds), "")
+			"", toJSON(ds), "", isAgent)
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)

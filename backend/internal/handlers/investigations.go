@@ -117,6 +117,7 @@ func CreateInvestigation(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		// RBAC: Safety Manager only.
 		if userRole != "safety_manager" && userRole != "admin" {
@@ -182,9 +183,9 @@ func CreateInvestigation(db *gorm.DB) http.HandlerFunc {
 					http.Error(w, "database error updating incident status", http.StatusInternalServerError)
 					return
 				}
-				LogAction(db, userID, userRole, "status_change", "incident", incident.ID, incidentBefore, toJSON(incident), "Investigation reopened")
+				LogAction(db, userID, userRole, "status_change", "incident", incident.ID, incidentBefore, toJSON(incident), "Investigation reopened", isAgent)
 
-				LogAction(db, userID, userRole, "reopen", "investigation", existing.ID, beforeJSON, toJSON(existing), fmt.Sprintf("Investigation reopened for incident %d", req.IncidentID))
+				LogAction(db, userID, userRole, "reopen", "investigation", existing.ID, beforeJSON, toJSON(existing), fmt.Sprintf("Investigation reopened for incident %d", req.IncidentID), isAgent)
 
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusOK)
@@ -218,9 +219,9 @@ func CreateInvestigation(db *gorm.DB) http.HandlerFunc {
 			http.Error(w, "database error updating incident status", http.StatusInternalServerError)
 			return
 		}
-		LogAction(db, userID, userRole, "status_change", "incident", incident.ID, incidentBefore, toJSON(incident), "Investigation assigned")
+		LogAction(db, userID, userRole, "status_change", "incident", incident.ID, incidentBefore, toJSON(incident), "Investigation assigned", isAgent)
 
-		LogAction(db, userID, userRole, "create", "investigation", investigation.ID, "", toJSON(investigation), fmt.Sprintf("Investigation assigned to %s for incident %d", req.LeadInvestigatorID, req.IncidentID))
+		LogAction(db, userID, userRole, "create", "investigation", investigation.ID, "", toJSON(investigation), fmt.Sprintf("Investigation assigned to %s for incident %d", req.LeadInvestigatorID, req.IncidentID), isAgent)
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
@@ -368,6 +369,7 @@ func UpdateInvestigation(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		// RBAC: Executive is read-only.
 		if middleware.IsReadOnlyRole(userRole) {
@@ -409,7 +411,7 @@ func UpdateInvestigation(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		LogAction(db, userID, userRole, "update", "investigation", existing.ID, beforeJSON, toJSON(existing), "")
+		LogAction(db, userID, userRole, "update", "investigation", existing.ID, beforeJSON, toJSON(existing), "", isAgent)
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(existing)

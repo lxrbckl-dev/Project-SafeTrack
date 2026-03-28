@@ -404,6 +404,28 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
               label: const Text('OSHA Log Export'),
             ),
           ),
+
+          const SizedBox(height: 32),
+
+          // ----------------------------------------------------------------
+          // Agent API Keys
+          // ----------------------------------------------------------------
+          const SettingSectionHeader(title: 'AGENT API KEYS'),
+          Text(
+            'Manage API keys for external agents. Keys allow automated systems '
+            'to authenticate and interact with the application.',
+            style: HerzogText.body(),
+          ),
+          const SizedBox(height: 12),
+          Semantics(
+            button: true,
+            label: 'Navigate to agent API keys',
+            child: OutlinedButton.icon(
+              onPressed: () => context.push('/admin/api-keys'),
+              icon: const Icon(Icons.vpn_key),
+              label: const Text('Manage API Keys'),
+            ),
+          ),
         ],
       ),
     );

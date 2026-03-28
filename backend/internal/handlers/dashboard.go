@@ -383,6 +383,7 @@ func CreateHoursWorked(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
+		isAgent := middleware.GetIsAgent(r)
 
 		if userRole != "safety_manager" && userRole != "admin" {
 			http.Error(w, "forbidden", http.StatusForbidden)
@@ -415,7 +416,7 @@ func CreateHoursWorked(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		LogAction(db, userID, userRole, "create", "hours_worked", hw.ID, "", toJSON(hw), "")
+		LogAction(db, userID, userRole, "create", "hours_worked", hw.ID, "", toJSON(hw), "", isAgent)
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
