@@ -86,13 +86,13 @@ List<_NavItem> _visibleNavItems(Role? role) {
       label: 'Dashboard',
       icon: Icons.dashboard,
       route: '/dashboard',
-      shortcutHint: 'D',
+      shortcutHint: 'Alt+D',
     ),
     const _NavItem(
       label: 'Incidents',
       icon: Icons.report_problem,
       route: '/incidents',
-      shortcutHint: 'I',
+      shortcutHint: 'Alt+I',
     ),
   ];
 
@@ -103,7 +103,7 @@ List<_NavItem> _visibleNavItems(Role? role) {
         label: 'Investigations',
         icon: Icons.search,
         route: '/investigations',
-        shortcutHint: 'V',
+        shortcutHint: 'Alt+V',
       ),
     );
   }
@@ -115,7 +115,7 @@ List<_NavItem> _visibleNavItems(Role? role) {
         label: 'CAPAs',
         icon: Icons.assignment_turned_in,
         route: '/capas',
-        shortcutHint: 'C',
+        shortcutHint: 'Alt+C',
       ),
     );
   }
@@ -157,14 +157,14 @@ bool _isTextFieldFocused() {
 /// The main authenticated app shell.
 ///
 /// Wraps the layout in [Shortcuts] + [Actions] to provide app-wide keyboard
-/// navigation shortcuts. Single-letter shortcuts are guarded so they fire only
-/// when no text field is focused.
+/// navigation shortcuts. Alt+letter shortcuts do not produce text input, so
+/// they do not need to be guarded against text field focus.
 ///
 /// **Shortcuts:**
-/// - **D** → /dashboard
-/// - **I** → /incidents
-/// - **V** → /investigations
-/// - **C** → /capas
+/// - **Alt+D** → /dashboard
+/// - **Alt+I** → /incidents
+/// - **Alt+V** → /investigations
+/// - **Alt+C** → /capas
 /// - **Ctrl+K** or **/** → Toggle AI Chat (no-op if chat widget not present)
 /// - **Escape** → Close any open panel
 /// - **?** (Shift+/) → Show keyboard shortcuts overlay
@@ -221,9 +221,10 @@ class AppShellPage extends StatelessWidget {
 
 /// Wraps the app shell with [Shortcuts] and [Actions] for keyboard navigation.
 ///
-/// Single-letter shortcuts are guarded against text field focus via
-/// [_isTextFieldFocused]. Ctrl+K, /, and Escape work regardless of focus state
-/// but do not conflict with browser defaults (Ctrl+C, Ctrl+V, etc.).
+/// Alt+letter shortcuts do not produce text input and require no text-field
+/// guard. The `/` shortcut is still guarded via [_isTextFieldFocused] because
+/// it is a bare character key. Ctrl+K and Escape work regardless of focus
+/// state and do not conflict with browser defaults (Ctrl+C, Ctrl+V, etc.).
 class _AppShortcutsWrapper extends StatelessWidget {
   final Widget child;
 
@@ -233,12 +234,15 @@ class _AppShortcutsWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return Shortcuts(
       shortcuts: const <ShortcutActivator, Intent>{
-        // Single-letter navigation — guarded in Actions against text-field focus
-        SingleActivator(LogicalKeyboardKey.keyD): _NavigateDashboardIntent(),
-        SingleActivator(LogicalKeyboardKey.keyI): _NavigateIncidentsIntent(),
-        SingleActivator(LogicalKeyboardKey.keyV):
+        // Alt+letter navigation — modifier combo won't conflict with text input
+        SingleActivator(LogicalKeyboardKey.keyD, alt: true):
+            _NavigateDashboardIntent(),
+        SingleActivator(LogicalKeyboardKey.keyI, alt: true):
+            _NavigateIncidentsIntent(),
+        SingleActivator(LogicalKeyboardKey.keyV, alt: true):
             _NavigateInvestigationsIntent(),
-        SingleActivator(LogicalKeyboardKey.keyC): _NavigateCAPAsIntent(),
+        SingleActivator(LogicalKeyboardKey.keyC, alt: true):
+            _NavigateCAPAsIntent(),
 
         // Chat toggle: Ctrl+K (all platforms) — does not conflict with browser
         SingleActivator(LogicalKeyboardKey.keyK, control: true):
@@ -258,14 +262,14 @@ class _AppShortcutsWrapper extends StatelessWidget {
         actions: <Type, Action<Intent>>{
           _NavigateDashboardIntent: CallbackAction<_NavigateDashboardIntent>(
             onInvoke: (_) {
-              if (_isTextFieldFocused()) return null;
+              // Alt+D — modifier combo does not produce text; no guard needed.
               context.go('/dashboard');
               return null;
             },
           ),
           _NavigateIncidentsIntent: CallbackAction<_NavigateIncidentsIntent>(
             onInvoke: (_) {
-              if (_isTextFieldFocused()) return null;
+              // Alt+I — modifier combo does not produce text; no guard needed.
               context.go('/incidents');
               return null;
             },
@@ -273,14 +277,14 @@ class _AppShortcutsWrapper extends StatelessWidget {
           _NavigateInvestigationsIntent:
               CallbackAction<_NavigateInvestigationsIntent>(
                 onInvoke: (_) {
-                  if (_isTextFieldFocused()) return null;
+                  // Alt+V — modifier combo does not produce text; no guard needed.
                   context.go('/investigations');
                   return null;
                 },
               ),
           _NavigateCAPAsIntent: CallbackAction<_NavigateCAPAsIntent>(
             onInvoke: (_) {
-              if (_isTextFieldFocused()) return null;
+              // Alt+C — modifier combo does not produce text; no guard needed.
               context.go('/capas');
               return null;
             },

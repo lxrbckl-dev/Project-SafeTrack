@@ -48,10 +48,13 @@ class KeyboardShortcutOverlay extends StatelessWidget {
                 const _ShortcutGroup(
                   title: 'NAVIGATION',
                   shortcuts: [
-                    _ShortcutRow(key: 'D', description: 'Go to Dashboard'),
-                    _ShortcutRow(key: 'I', description: 'Go to Incidents'),
-                    _ShortcutRow(key: 'V', description: 'Go to Investigations'),
-                    _ShortcutRow(key: 'C', description: 'Go to CAPAs'),
+                    _ShortcutRow(key: 'Alt+D', description: 'Go to Dashboard'),
+                    _ShortcutRow(key: 'Alt+I', description: 'Go to Incidents'),
+                    _ShortcutRow(
+                      key: 'Alt+V',
+                      description: 'Go to Investigations',
+                    ),
+                    _ShortcutRow(key: 'Alt+C', description: 'Go to CAPAs'),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -228,7 +231,7 @@ class _Footer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Text(
-        'Single-key shortcuts are disabled while a text field is focused',
+        '/ shortcut is disabled while a text field is focused',
         style: HerzogText.label(fontSize: 10, color: HerzogColors.midGray),
         textAlign: TextAlign.center,
       ),
