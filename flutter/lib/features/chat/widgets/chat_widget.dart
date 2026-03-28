@@ -54,9 +54,9 @@ class _ChatFabState extends State<ChatFab> with SingleTickerProviderStateMixin {
   late final ChatRepository _repo;
 
   @override
-  void initState() {
-    super.initState();
-    _repo = ChatRepository();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _repo = context.read<ChatRepository>();
   }
 
   @override
@@ -207,10 +207,13 @@ class _ChatPanel extends StatelessWidget {
                 color: HerzogColors.borderGray,
               ),
               Expanded(
-                child: _MessageList(
-                  messages: messages,
-                  isLoading: isLoading,
-                  scrollController: scrollController,
+                child: Semantics(
+                  liveRegion: true,
+                  child: _MessageList(
+                    messages: messages,
+                    isLoading: isLoading,
+                    scrollController: scrollController,
+                  ),
                 ),
               ),
               const Divider(
