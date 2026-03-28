@@ -32,8 +32,12 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
   final TextEditingController _trirController = TextEditingController();
   final TextEditingController _escalationController = TextEditingController();
 
+  final TextEditingController _recurrenceLookbackController =
+      TextEditingController();
+
   bool _savingTrir = false;
   bool _savingEscalation = false;
+  bool _savingRecurrenceLookback = false;
 
   @override
   void initState() {
@@ -45,6 +49,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
   void dispose() {
     _trirController.dispose();
     _escalationController.dispose();
+    _recurrenceLookbackController.dispose();
     super.dispose();
   }
 
@@ -64,6 +69,8 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
           _trirController.text = s.value;
         } else if (s.key == 'escalation_days') {
           _escalationController.text = s.value;
+        } else if (s.key == 'recurrence_lookback_months') {
+          _recurrenceLookbackController.text = s.value;
         }
       }
     } catch (e) {
@@ -134,6 +141,39 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
       }
     } finally {
       if (mounted) setState(() => _savingEscalation = false);
+    }
+  }
+
+  Future<void> _saveRecurrenceLookback() async {
+    final token = context.read<AuthService>().token;
+    if (token == null) return;
+
+    final value = _recurrenceLookbackController.text.trim();
+    if (int.tryParse(value) == null || int.parse(value) < 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Lookback window must be a positive whole number.'),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _savingRecurrenceLookback = true);
+    try {
+      await _repo.updateSetting(token, 'recurrence_lookback_months', value);
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Lookback window saved.')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _savingRecurrenceLookback = false);
     }
   }
 
@@ -263,6 +303,55 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                 child: ElevatedButton(
                   onPressed: _savingEscalation ? null : _saveEscalation,
                   child: _savingEscalation
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: HerzogColors.white,
+                          ),
+                        )
+                      : const Text('Save'),
+                ),
+              ),
+            ],
+          ),
+
+          // ----------------------------------------------------------------
+          // Recurrence Detection
+          // ----------------------------------------------------------------
+          const SettingSectionHeader(title: 'RECURRENCE DETECTION'),
+          Text(
+            'Number of months to look back when scanning for recurring '
+            'incidents.',
+            style: HerzogText.body(),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Semantics(
+                  label: 'Lookback window in months',
+                  child: TextFormField(
+                    controller: _recurrenceLookbackController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Lookback Window (months)',
+                      hintText: '12',
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Semantics(
+                button: true,
+                label: 'Save recurrence lookback window',
+                child: ElevatedButton(
+                  onPressed: _savingRecurrenceLookback
+                      ? null
+                      : _saveRecurrenceLookback,
+                  child: _savingRecurrenceLookback
                       ? const SizedBox(
                           width: 16,
                           height: 16,

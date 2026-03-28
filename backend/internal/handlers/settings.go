@@ -54,8 +54,12 @@ func SeedDefaultSettings(db *gorm.DB) {
 	}
 
 	db.Create(&defaults)
+}
 
-	// Ensure recurrence lookback setting exists even on pre-existing databases.
+// SeedMissingSettings ensures any settings added after the initial seed are
+// present on pre-existing databases. Safe to call on every startup — it is a
+// no-op when all rows already exist.
+func SeedMissingSettings(db *gorm.DB) {
 	seedSettingIfMissing(db, models.Setting{
 		Category:  "recurrence",
 		Key:       "recurrence_lookback_months",
