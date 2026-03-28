@@ -7,7 +7,8 @@ import '../features/dashboard/pages/dashboard_placeholder_page.dart';
 import '../features/incidents/pages/incidents_placeholder_page.dart';
 import '../features/investigations/pages/investigations_placeholder_page.dart';
 import '../features/capas/pages/capas_placeholder_page.dart';
-import '../features/admin/pages/admin_placeholder_page.dart';
+import '../features/admin/pages/admin_settings_page.dart';
+import '../features/admin/pages/factor_types_page.dart';
 import '../features/audit_log/pages/audit_log_placeholder_page.dart';
 
 /// Builds the [GoRouter] with auth redirect and shell routing.
@@ -95,7 +96,14 @@ GoRouter appRouter(AuthService authService) {
           GoRoute(
             path: '/admin',
             name: 'admin',
-            builder: (context, state) => const AdminPlaceholderPage(),
+            builder: (context, state) => const AdminSettingsPage(),
+            routes: [
+              GoRoute(
+                path: 'factor-types',
+                name: 'factorTypes',
+                builder: (context, state) => const FactorTypesPage(),
+              ),
+            ],
           ),
           GoRoute(
             path: '/audit-log',
