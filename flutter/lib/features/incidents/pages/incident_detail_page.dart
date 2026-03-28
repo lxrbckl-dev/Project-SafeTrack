@@ -12,7 +12,9 @@ import '../../capas/data/capa_repository.dart';
 import '../../investigations/data/investigation_repository.dart';
 import '../data/incident_link_repository.dart';
 import '../data/incident_repository.dart';
+import '../data/incident_timeline_repository.dart';
 import '../services/incident_pdf_service.dart';
+import '../widgets/incident_timeline.dart';
 import '../widgets/link_incident_dialog.dart';
 import '../widgets/status_badge.dart';
 
@@ -42,6 +44,7 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
   late final InvestigationRepository _invRepo;
   late final IncidentLinkRepository _linkRepo;
   late final CAPARepository _capaRepo;
+  late final IncidentTimelineRepository _timelineRepo;
   late final AuthService _auth;
   late final TabController _tabController;
 
@@ -50,16 +53,19 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
   List<IncidentLink> _links = [];
   List<CAPA> _capas = [];
   List<RecurrenceMatch> _suggestions = [];
+  List<TimelineEvent> _timelineEvents = [];
   bool _linksLoading = false;
   bool _capasLoading = false;
   bool _suggestionsLoading = false;
   bool _suggestionsChecked = false;
+  bool _timelineLoading = false;
   bool _loading = true;
   bool _closing = false;
   bool _reopening = false;
   bool _generatingPdf = false;
   String? _error;
   String? _suggestionsError;
+  String? _timelineError;
 
   @override
   void initState() {
@@ -69,7 +75,8 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
     _invRepo = InvestigationRepository(_auth);
     _linkRepo = IncidentLinkRepository(_auth);
     _capaRepo = CAPARepository(_auth);
-    _tabController = TabController(length: 5, vsync: this);
+    _timelineRepo = IncidentTimelineRepository(_auth);
+    _tabController = TabController(length: 6, vsync: this);
     _loadIncident();
   }
 
@@ -104,9 +111,10 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
           _linkedInvestigation = linkedInv;
           _loading = false;
         });
-        // Load recurrence links and CAPAs in the background after main data is ready.
+        // Load recurrence links, CAPAs, and timeline in the background after main data is ready.
         _loadLinks();
         _loadCapas();
+        _loadTimeline();
       }
     } catch (e) {
       if (mounted) {
@@ -139,6 +147,21 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
       // Non-fatal — CAPAs tab shows empty state.
     } finally {
       if (mounted) setState(() => _capasLoading = false);
+    }
+  }
+
+  Future<void> _loadTimeline() async {
+    setState(() {
+      _timelineLoading = true;
+      _timelineError = null;
+    });
+    try {
+      final events = await _timelineRepo.getTimeline(widget.incidentId);
+      if (mounted) setState(() => _timelineEvents = events);
+    } catch (e) {
+      if (mounted) setState(() => _timelineError = e.toString());
+    } finally {
+      if (mounted) setState(() => _timelineLoading = false);
     }
   }
 
@@ -349,6 +372,7 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
             Tab(text: 'INVESTIGATION'),
             Tab(text: 'CAPAs'),
             Tab(text: 'RECURRENCE'),
+            Tab(text: 'TIMELINE'),
           ],
           isScrollable: true,
           tabAlignment: TabAlignment.start,
@@ -366,6 +390,7 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
                 _buildInvestigationTab(),
                 _buildCapasTab(),
                 _buildRecurrenceTab(),
+                _buildTimelineTab(),
               ],
             ),
     );
@@ -1643,6 +1668,49 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
         }
       }
     }
+  }
+
+  Widget _buildTimelineTab() {
+    if (_timelineLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_timelineError != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.error_outline,
+                size: 48,
+                color: HerzogColors.errorRed,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Failed to load timeline',
+                style: HerzogText.heading(fontSize: 18),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _timelineError!,
+                style: HerzogText.body(color: HerzogColors.midGray),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: _loadTimeline,
+                icon: const Icon(Icons.refresh, size: 16),
+                label: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return IncidentTimeline(events: _timelineEvents);
   }
 
   Widget _sectionTitle(String title) {

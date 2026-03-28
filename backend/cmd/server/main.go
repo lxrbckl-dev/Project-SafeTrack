@@ -89,6 +89,9 @@ func main() {
 	// Global search routes (cross-entity search with RBAC scoping)
 	handlers.RegisterSearchRoutes(api, db)
 
+	// Incident lifecycle timeline route (cross-entity chronological view)
+	handlers.RegisterIncidentTimelineRoutes(api, db)
+
 	mux.Handle("/api/", middleware.FirebaseAuth(api))
 
 	handler := middleware.CORS(middleware.Logger(mux))
