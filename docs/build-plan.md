@@ -863,6 +863,8 @@
 - Deep-link with params while not logged in: auth redirect must preserve query params so they survive the login → redirect-back flow
 - FormFillService conflict: if AI dispatch queues pending fields AND URL has query params, query params take precedence (clear pending fields on param-based init)
 - Type coercion: `?severity=High` is invalid (severity uses Fatality/Lost Time/etc, not High/Low) — must validate against actual enum values
+- Empty query params: `/incidents/new?type=` (empty string) must be treated as missing, not as valid empty value
+- Null role in router: if JWT role deserialization fails, router defaults to dashboard — add explicit null check and redirect to login
 
 **QA:** Navigate to `/incidents/new?type=Injury&division=Construction` → verify Type and Division are pre-filled. Verify all supported params work on each form. Verify URL with no params still works (empty form). Verify pre-filled fields are editable. Verify edit mode (`/incidents/5/edit?type=Injury`) ignores query params and loads from API. Verify invalid enum values are ignored.
 
@@ -1039,6 +1041,10 @@
 - **MEDIUM: Concurrent tool calls** — same agent can fire multiple `tools/call` in parallel creating duplicates. Consider idempotency key header (`X-Idempotency-Key`) or request deduplication
 - **HIGH: Notification loop** — agent creates investigation → triggers notification → WebSocket broadcasts to agent → agent processes notification → potential loop. Filter WebSocket broadcasts: don't send notifications to the agent session that triggered them
 - **LOW: Protocol version** — return `protocolVersion: "1.0"` in `initialize` response. Reject unsupported client versions with JSON-RPC error
+- **MEDIUM: API not versioned** — endpoints are `/api/incidents` not `/api/v1/incidents`. MCP tool schemas will break silently if API fields change. MCP capabilities endpoint must be regenerated when API schema changes — document this as a deployment requirement
+- **MEDIUM: JSON chat parser fragility** — bare-JSON brace parser in `chat.go` fails on escaped backslashes before quotes (e.g., `"foo\\\\""`). Use `json.Valid()` before custom parsing
+- **LOW: JWT expiry boundary** — no leeway on token validation. Add 30s leeway to `jwt.ParseWithClaims` to handle clock skew between agent and server
+- **LOW: Timezone in OSHA calculations** — all timestamps stored as UTC but OSHA reporting expects local time. Document that TRIR/incident date calculations use UTC — future phase should add timezone-aware date handling
 - **MEDIUM: Photo upload via MCP** — current photo endpoint requires multipart/form-data. MCP agents use JSON. Either add a base64 JSON photo upload endpoint (`POST /api/incidents/{id}/photos/json`) or document that photo upload is not available via MCP
 - **MEDIUM: DB connection pool** — MaxOpenConns=25. Parallel agent tool calls can exhaust the pool. Add context timeouts (30s read, 10s write) so stale connections are released
 - **MEDIUM: WebSocket hub goroutine leak** — when send buffer is full, a goroutine is spawned to unregister. Rapid agent disconnects can cause unbounded goroutine growth. Add goroutine cap or sync unregister
