@@ -7,10 +7,9 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../app/herzog_theme.dart';
 import '../data/auth_service.dart';
 
-/// Email/password login page with a test accounts reference card.
+/// Email/password login page with forgot password and support contact links.
 ///
-/// Replaces the old DevLoginPage (role picker). Users enter email + password,
-/// or tap a test account row to auto-fill the email field for convenience.
+/// Users enter email + password for seeded test accounts (all password: demo1234).
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 

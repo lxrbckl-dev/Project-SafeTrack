@@ -8,7 +8,7 @@ SafeTrack is an Incident Investigation & Corrective Action System for workplace 
 
 | Route | Page | Purpose |
 |---|---|---|
-| `/login` | Login | Email/password login with tap-to-autofill test account cards |
+| `/login` | Login | Email/password login with forgot password and support contact |
 | `/dashboard` | Safety Dashboard | TRIR, DART, Near Miss KPIs, trend charts, leading indicators, body map, time heatmap, division radar, recent incidents |
 | `/dashboard/hours-worked` | Hours Worked | Enter total hours worked per period (Safety Manager/Admin) |
 | `/incidents` | Incident List | Filterable table with status badges, severity colors, map toggle |
@@ -36,7 +36,7 @@ SafeTrack is an Incident Investigation & Corrective Action System for workplace 
 
 ## Login & Test Accounts
 
-The login page uses email/password authentication. Tapping any test account row auto-fills the credentials. All accounts share password **demo1234**.
+The login page uses email/password authentication. All test accounts share password **demo1234**. Forgot password and support contact links are available below the sign-in button.
 
 | Email | Display Name | Role |
 |---|---|---|
