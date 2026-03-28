@@ -51,10 +51,14 @@ func FirebaseAuth(next http.Handler) http.Handler {
 
 		userID, _ := claims["sub"].(string)
 		userRole, _ := claims["role"].(string)
+		userDivision, _ := claims["division"].(string)
+		userProject, _ := claims["project"].(string)
 
 		ctx := r.Context()
 		ctx = context.WithValue(ctx, "userRole", userRole)
 		ctx = context.WithValue(ctx, "userID", userID)
+		ctx = context.WithValue(ctx, "userDivision", userDivision)
+		ctx = context.WithValue(ctx, "userProject", userProject)
 		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)

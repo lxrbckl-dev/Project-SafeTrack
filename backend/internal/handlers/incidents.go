@@ -184,15 +184,18 @@ func ListIncidents(db *gorm.DB) http.HandlerFunc {
 		// CRITICAL: Draft incidents visible only to the reporter.
 		query = query.Where("(is_draft = false OR reporter_id = ?)", userID)
 
-		// RBAC: PM scoped data — filter by matching PM's user ID against
-		// project_job_site field (pragmatic: PM user ID encodes their project).
+		// RBAC: PM scoped data — filter by matching project from JWT claim.
 		if userRole == "pm" {
-			query = query.Where("project_job_site = ?", userID)
+			if project := middleware.GetUserProject(r); project != "" {
+				query = query.Where("project_job_site = ?", project)
+			}
 		}
 
-		// RBAC: Division Manager scoped data — filter by matching division.
+		// RBAC: Division Manager scoped data — filter by matching division from JWT claim.
 		if userRole == "division_manager" {
-			query = query.Where("division = ?", userID)
+			if division := middleware.GetUserDivision(r); division != "" {
+				query = query.Where("division = ?", division)
+			}
 		}
 
 		// Optional filters.
@@ -274,15 +277,19 @@ func GetIncident(db *gorm.DB) http.HandlerFunc {
 		}
 
 		// RBAC: PM scoped — can only view incidents matching their project.
-		if userRole == "pm" && incident.ProjectJobSite != userID {
-			http.Error(w, "not found", http.StatusNotFound)
-			return
+		if userRole == "pm" {
+			if project := middleware.GetUserProject(r); project != "" && incident.ProjectJobSite != project {
+				http.Error(w, "not found", http.StatusNotFound)
+				return
+			}
 		}
 
 		// RBAC: Division Manager scoped — can only view incidents in their division.
-		if userRole == "division_manager" && incident.Division != userID {
-			http.Error(w, "not found", http.StatusNotFound)
-			return
+		if userRole == "division_manager" {
+			if division := middleware.GetUserDivision(r); division != "" && incident.Division != division {
+				http.Error(w, "not found", http.StatusNotFound)
+				return
+			}
 		}
 
 		// Medical field access control.

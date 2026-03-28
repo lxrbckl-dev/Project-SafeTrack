@@ -13,22 +13,34 @@ import (
 	"github.com/lxRbckl/highlander/backend/internal/models"
 )
 
+// capaReadRoles lists roles allowed to read CAPA data.
+// Field Reporters are excluded — they can only see incidents.
+var capaReadRoles = []string{
+	"safety_coordinator", "safety_manager", "pm", "division_manager", "executive", "admin",
+}
+
+// capaWriteRoles lists roles allowed to write CAPA data.
+// Executive is read-only; Field Reporters are excluded entirely.
+var capaWriteRoles = []string{
+	"safety_coordinator", "safety_manager", "pm", "division_manager", "admin",
+}
+
 // RegisterCAPARoutes wires up all CAPA-related endpoints on the authenticated
-// api mux.
+// api mux. Field reporters are blocked from all CAPA endpoints (Issue 4).
 func RegisterCAPARoutes(api *http.ServeMux, db *gorm.DB) {
 	// Dashboard must be registered before the {id} routes to avoid
 	// "dashboard" being captured as a path parameter.
-	api.HandleFunc("GET /api/capas/dashboard", CAPADashboard(db))
+	api.HandleFunc("GET /api/capas/dashboard", middleware.RequireRole(CAPADashboard(db), capaReadRoles...))
 
-	// CRUD
-	api.HandleFunc("POST /api/capas", CreateCAPA(db))
-	api.HandleFunc("GET /api/capas", ListCAPAs(db))
-	api.HandleFunc("GET /api/capas/{id}", GetCAPA(db))
-	api.HandleFunc("PUT /api/capas/{id}", UpdateCAPA(db))
+	// CRUD — read endpoints require at least safety_coordinator (or PM/DivMgr/Exec/Admin).
+	api.HandleFunc("POST /api/capas", middleware.RequireRole(CreateCAPA(db), capaWriteRoles...))
+	api.HandleFunc("GET /api/capas", middleware.RequireRole(ListCAPAs(db), capaReadRoles...))
+	api.HandleFunc("GET /api/capas/{id}", middleware.RequireRole(GetCAPA(db), capaReadRoles...))
+	api.HandleFunc("PUT /api/capas/{id}", middleware.RequireRole(UpdateCAPA(db), capaWriteRoles...))
 
 	// Workflow
-	api.HandleFunc("POST /api/capas/{id}/complete", CompleteCAPA(db))
-	api.HandleFunc("POST /api/capas/{id}/verify", VerifyCAPA(db))
+	api.HandleFunc("POST /api/capas/{id}/complete", middleware.RequireRole(CompleteCAPA(db), capaWriteRoles...))
+	api.HandleFunc("POST /api/capas/{id}/verify", middleware.RequireRole(VerifyCAPA(db), capaWriteRoles...))
 }
 
 // ---------- helpers ----------
@@ -265,21 +277,22 @@ func CreateCAPA(db *gorm.DB) http.HandlerFunc {
 // PM and Division Manager see scoped data via incident join.
 func ListCAPAs(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userID := middleware.GetUserID(r)
 		userRole := middleware.GetUserRole(r)
-		_ = userID
-		_ = userRole
 
 		query := db.Model(&models.CAPA{})
 
 		// RBAC: PM scoped — only CAPAs for incidents on their projects.
 		if userRole == "pm" {
-			query = query.Where("incident_id IN (SELECT id FROM incidents WHERE project_job_site = ?)", userID)
+			if project := middleware.GetUserProject(r); project != "" {
+				query = query.Where("incident_id IN (SELECT id FROM incidents WHERE project_job_site = ?)", project)
+			}
 		}
 
 		// RBAC: Division Manager scoped — only CAPAs for incidents in their division.
 		if userRole == "division_manager" {
-			query = query.Where("incident_id IN (SELECT id FROM incidents WHERE division = ?)", userID)
+			if division := middleware.GetUserDivision(r); division != "" {
+				query = query.Where("incident_id IN (SELECT id FROM incidents WHERE division = ?)", division)
+			}
 		}
 
 		// Optional filters.
@@ -345,13 +358,37 @@ func ListCAPAs(db *gorm.DB) http.HandlerFunc {
 }
 
 // GetCAPA handles GET /api/capas/{id}.
+// PM and Division Manager scope checks are enforced via the linked incident.
 func GetCAPA(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		userRole := middleware.GetUserRole(r)
+
 		id := r.PathValue("id")
 		var capa models.CAPA
 		if err := db.First(&capa, id).Error; err != nil {
 			http.Error(w, "not found", http.StatusNotFound)
 			return
+		}
+
+		// RBAC: PM/Division Manager scope check via linked incident.
+		if userRole == "pm" || userRole == "division_manager" {
+			var incident models.Incident
+			if err := db.First(&incident, capa.IncidentID).Error; err != nil {
+				http.Error(w, "forbidden", http.StatusForbidden)
+				return
+			}
+			if userRole == "pm" {
+				if project := middleware.GetUserProject(r); project != "" && incident.ProjectJobSite != project {
+					http.Error(w, "forbidden", http.StatusForbidden)
+					return
+				}
+			}
+			if userRole == "division_manager" {
+				if division := middleware.GetUserDivision(r); division != "" && incident.Division != division {
+					http.Error(w, "forbidden", http.StatusForbidden)
+					return
+				}
+			}
 		}
 
 		// Update overdue status in real-time.
