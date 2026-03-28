@@ -24,6 +24,7 @@ import '../features/notifications/pages/notification_preferences_page.dart';
 import '../features/search/pages/search_results_page.dart';
 import '../features/training/pages/training_list_page.dart';
 import '../features/training/pages/training_detail_page.dart';
+import '../features/activity/pages/activity_page.dart';
 
 /// Builds the [GoRouter] with auth redirect and shell routing.
 ///
@@ -296,6 +297,11 @@ GoRouter appRouter(AuthService authService) {
             path: '/notification-preferences',
             name: 'notificationPreferences',
             builder: (context, state) => const NotificationPreferencesPage(),
+          ),
+          GoRoute(
+            path: '/activity',
+            name: 'activity',
+            builder: (context, state) => const ActivityPage(),
           ),
         ],
       ),
