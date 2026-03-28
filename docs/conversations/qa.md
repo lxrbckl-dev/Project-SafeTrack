@@ -57,3 +57,22 @@
 [2026-03-27] Commented QA PASSED on PR #40 (https://github.com/lxRbckl/highlander/pull/40#issuecomment-4146737579).
 [2026-03-27] Worktree highlander-swe1 cleaned up. Task #18 (Phase 5 Differentiators) marked completed.
 
+## 2026-03-28 — Post-Launch, Phase 6, Phase 7
+
+[2026-03-28] QA PASSED PR #44 (TASK-021 Alt shortcuts): Alt+D/I/V/C bindings, text field guard removed, overlay updated. Merged.
+[2026-03-28] QA PASSED PR #46 (TASK-022 Alt+K): Alt+K binding, no stale Ctrl+K refs, overlay/README/wiki updated. Merged.
+[2026-03-28] QA PASSED PR #48 (TASK-023 Email login): 22/22 checks — bcrypt, 401 no enumeration, PasswordHash json:"-", seed migrated, LoginPage with test accounts. Merged.
+[2026-03-28] QA PASSED PR #51 (TASK-024 Playwright fixes): Zero dev-login refs remain, correct role-to-email mapping, dynamic userIds. Bug fixes verified: notifications userId, capas assignee, audit-log filter. Merged.
+[2026-03-28] QA PASSED PR #59 (TASK-027 Fishbone): 11/11 checks. Bug fixes verified: perpendicular bones, structural shouldRepaint, shared _kBoneSpacing. Merged.
+[2026-03-28] QA PASSED PR #60 (TASK-026 Offline): 12/12 checks. Bug fixes verified: Provider start(), resetStuckSyncingRows, SyncStatus constants, Retry/Discard buttons. Merged.
+[2026-03-28] QA PASSED PR #61 (TASK-029 Analytics): 9/9 checks. Bug fixes verified: explicit RBAC (not isAtLeast), bulk GROUP BY queries, body map tap target spread + 14px cap. Merged.
+[2026-03-28] QA PASSED PR #62 (TASK-028 Recurrence): 9/9 checks. Bug fixes verified: SeedMissingSettings unconditional, admin UI for lookback. Merged.
+[2026-03-28] QA PASSED PR #63 (TASK-031 Email Notifications): 9/9 checks. Bug fix verified: SendReviewRequestEmail wired into SubmitForReview. Merged.
+[2026-03-28] QA PASSED PR #64 (TASK-030 OSHA Export): 8/8 checks. 3 CSV endpoints, RBAC, web download. Merged.
+[2026-03-28] QA PASSED PR #71 (TASK-033 PDF Export): 9/9 checks. Bug fixes verified: Future.wait parallel, RBAC intent comment. Merged.
+[2026-03-28] QA PASSED PR #72 (TASK-032 Training CAPA): 11/11 checks. Bug fix verified: db.Transaction wrapping 3 writes. Merged.
+[2026-03-28] QA PASSED PR #73 (TASK-034 Search): 9/9 checks. Cross-entity ILIKE, RBAC scoping, debounce, Alt+S. Merged.
+[2026-03-28] QA PASSED PR #74 (TASK-035 Timeline): 10/10 checks. Bug fixes verified: case "return", r.PathValue, ParseUint lookup, doc comment. Merged.
+[2026-03-28] QA PASSED PR #75 (TASK-037 Landing Pages): 7/7 checks. Bug fix verified: excludeSemantics on QuickActionCard. Merged.
+[2026-03-28] QA PASSED PR #76 (TASK-036 Dark Mode): 9/9 checks. Bug fixes verified: textMuted 0xFF819AAA (4.70:1 WCAG AA), neutral chip theme. Merged.
+[2026-03-28] QA PASSED PR #77 (TASK-038 Activity Feed — FINAL): 13/13 checks. Bug fixes verified: CAPA RBAC scoping, 400 on bad since, .toLocal() timezone. Additional fixes: incident_link entity type match, verify template via status_change inspection. Merged. BUILD COMPLETE.

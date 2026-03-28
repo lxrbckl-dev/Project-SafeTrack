@@ -180,3 +180,26 @@ TPM runs `/cost` after each major delegation and appends results below.
 ### Cost Log
 
 <!-- TPM appends /cost output here -->
+
+#### 2026-03-28 — Full Build Session (Phases 0-7)
+
+**Subagent token usage (estimated from task completion reports):**
+
+| Category | Est. Tokens | Notes |
+|---|---|---|
+| Phase 0-5 SWE builds | ~2.5M | 19 tasks, mix of Sonnet + Opus |
+| Phase 0-5 peer reviews | ~800K | Cross-review every PR |
+| Phase 0-5 QA | ~1.2M | Code verification + Playwright specs |
+| Post-launch (021-024) | ~400K | Alt shortcuts, login overhaul, Playwright fixes |
+| Phase 6 SWE builds (026-032) | ~1.2M | 7 tasks, mostly Opus |
+| Phase 6 reviews + QA | ~600K | |
+| Phase 7 SWE builds (033-038) | ~1.0M | 6 tasks, mix of Sonnet + Opus |
+| Phase 7 reviews + QA | ~500K | |
+| Fix cycles (all phases) | ~800K | ~30 blocker fixes across all PRs |
+| **Subagent subtotal** | **~9.0M** | |
+| TPM orchestration | **~1M+** | Main conversation context |
+| **Estimated session total** | **~10M+** | |
+
+**Note:** These are estimates from agent completion metadata. Run `/cost` in the CLI for exact totals with pricing.
+
+**Build output:** 35 tasks, 77 PRs, ~25,000 lines of code added across Go backend + Flutter frontend + Playwright tests.

@@ -44,3 +44,28 @@
 [01:30] TPM assigned TASK-019: In-App AI Agent (Issue #37, Complex/Opus) — FINAL TASK
 [01:55] Completed TASK-019: JSON action dispatch (navigate/fill/navigate_and_fill), backend action parser, FormFillService, action buttons in chat, RBAC-gated, reactive form fill via listeners. PR #40 opened.
 [02:00] SWE-2 peer reviewed PR #40: Found 2 blockers — fill no-op on mounted forms, brace parser bug. Fixed both + dispose cleanup. QA PASSED. PR #40 merged.
+
+## 2026-03-28
+
+### Post-Launch
+[02:15] TPM assigned TASK-021: Alt modifier shortcuts (Issue #43, Routine/Sonnet). Completed. QA PASSED. PR #44 merged.
+[02:25] TPM assigned TASK-022: Ctrl+K→Alt+K (Issue #45, Routine/Sonnet). Completed. QA PASSED. PR #46 merged.
+[02:35] TPM assigned TASK-023: Email/password login (Issue #47, Complex/Opus). Completed: User model + bcrypt, POST /api/login, 12 seeded users, LoginPage. PR #48. SWE-2 LGTM. QA PASSED. Merged.
+[03:15] TPM assigned TASK-024: Fix Playwright dev-login refs (Issue #49, Routine/Sonnet). Completed: 8 spec files updated. PR #51. SWE-2 found 1 blocker (email as userId). Fixed. QA PASSED. Merged.
+
+### Phase 6
+[03:35] TPM assigned TASK-027: Fishbone Diagram (Issue #53, Complex/Opus). Completed: CustomPainter fishbone, 6 spines, InteractiveViewer. PR #59. SWE-2 found 2 blockers (bone direction, shouldRepaint). Fixed. QA PASSED. Merged.
+[04:35] Peer reviewed SWE-2's PR #60 (TASK-026 Offline): Found 4 blockers. SWE-2 fixed.
+[05:00] TPM assigned TASK-029: Advanced Analytics (Issue #55, Complex/Opus). Completed: body-map, time-heatmap, division-radar endpoints + Flutter charts. PR #61. SWE-2 found 3 blockers (RBAC, N+1, tap targets). Fixed. QA PASSED. Merged.
+[05:30] Peer reviewed SWE-2's PR #62 (TASK-028 Recurrence): Found 2 blockers (seed placement, missing admin UI). SWE-2 fixed.
+[06:15] TPM assigned TASK-031: Email Notifications (Issue #57, Complex/Opus). Completed: SMTP service, HTML templates, notification preferences. PR #63. SWE-2 found 1 blocker (dead SendReviewRequestEmail). Wired into SubmitForReview. QA PASSED. Merged.
+[06:50] Peer reviewed SWE-2's PR #64 (TASK-030 OSHA Export): LGTM.
+
+### Phase 7
+[07:05] TPM assigned TASK-033: PDF Incident Report Export (Issue #65, Complex/Opus). Completed: multi-page branded PDF, RBAC-gated medical data. PR #71. SWE-2 found 2 issues (sequential fetch, RBAC comment). Fixed. QA PASSED. Merged.
+[07:45] Peer reviewed SWE-2's PR #72 (TASK-032 Training CAPA): Found 1 blocker (no DB transaction). SWE-2 fixed.
+[08:30] TPM assigned TASK-035: Incident Timeline (Issue #67, Routine/Sonnet). Completed: cross-entity audit timeline, color-coded dots. PR #74. SWE-2 found 4 blockers (wrong action string, manual URL parse, user lookup, stale comment). Fixed. QA PASSED. Merged.
+[08:45] Peer reviewed SWE-2's PR #73 (TASK-034 Search): LGTM.
+[09:00] TPM assigned TASK-037: Role-Based Landing Pages (Issue #69, Routine/Sonnet). Completed: role-specific redirects, welcome header, quick action cards. PR #75. SWE-2 found 1 ADA bug (excludeSemantics). Fixed. QA PASSED. Merged.
+[09:30] Peer reviewed SWE-2's PR #76 (TASK-036 Dark Mode): Found 2 blockers (WCAG contrast, chip theme). SWE-2 fixed.
+[09:45] Peer reviewed SWE-2's PR #77 (TASK-038 Activity Feed): Found 3 blockers (RBAC CAPA leak, silent parse, timezone). SWE-2 fixed. QA found 2 more (dead link template, unreachable verify). SWE-2 fixed. Merged.

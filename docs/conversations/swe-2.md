@@ -43,3 +43,34 @@
 [01:35] SWE-1 peer reviewed PR #39: Found 2 blockers — `/` not guarded + _isTextFieldFocused unreliable. Fixed both (added guard + findAncestorWidgetOfExactType fallback). QA PASSED. PR #39 merged.
 [01:45] Peer reviewed SWE-1's PR #38 (TASK-017): Found 2 blockers — hardcoded ChatRepository, missing liveRegion. SWE-1 fixed both.
 [02:00] Peer reviewed SWE-1's PR #40 (TASK-019 — final task): Found 2 blockers — fill no-op on mounted forms, brace parser bug. SWE-1 fixed both. QA PASSED. PR #40 merged.
+
+## 2026-03-28
+
+### Post-Launch
+[02:20] Peer reviewed SWE-1's PR #44 (TASK-021 Alt shortcuts): LGTM.
+[02:30] Peer reviewed SWE-1's PR #46 (TASK-022 Alt+K): LGTM.
+[02:45] Peer reviewed SWE-1's PR #48 (TASK-023 login, Opus security): LGTM — bcrypt, no enumeration, seed migrated.
+[03:20] Peer reviewed SWE-1's PR #51 (TASK-024 Playwright): Found 1 blocker (email as userId). SWE-1 fixed. QA PASSED. Merged.
+
+### Phase 6
+[03:30] TPM assigned TASK-026: Offline Incident Reporting (Issue #52, Complex/Opus). Completed: Drift offline table, SyncService, connectivity banner, photo queuing, server-wins conflict. PR #60.
+[04:15] SWE-1 found 4 blockers (Provider start, stuck syncing, untyped strings, no tap handler). Fixed all 4 (SyncStatus constants, resetStuckSyncingRows, Retry/Discard buttons). QA PASSED. Merged.
+[04:35] Peer reviewed SWE-1's PR #59 (TASK-027 Fishbone): Found 2 blockers (bone direction, shouldRepaint) + 1 minor. SWE-1 fixed.
+[05:00] TPM assigned TASK-028: Automated Recurrence Detection (Issue #54, Complex/Opus). Completed: 4-criteria scoring, DismissedSuggestion model, confirm/dismiss UI. PR #62.
+[05:30] SWE-1 found 2 blockers (seed placement, missing admin UI for lookback). Fixed both (SeedMissingSettings + admin section). QA PASSED. Merged.
+[06:00] Peer reviewed SWE-1's PR #61 (TASK-029 Analytics): Found 3 blockers (RBAC mismatch, N+1, overlapping targets). SWE-1 fixed.
+[06:15] TPM assigned TASK-030: OSHA 300/300A/301 Log Generation (Issue #56, Routine/Sonnet). Completed: 3 CSV endpoints, web download, admin page. PR #64. SWE-1 LGTM. QA PASSED. Merged.
+[07:00] Peer reviewed SWE-1's PR #63 (TASK-031 Email Notifications): Found 1 blocker (dead SendReviewRequestEmail). SWE-1 wired it.
+[07:10] TPM assigned TASK-032: Training CAPA Verification (Issue #58, Complex/Opus). Completed: TrainingRequirement + TrainingCompletion models, auto-create from Training CAPAs, completion auto-updates CAPA. PR #72.
+[07:45] SWE-1 found 1 blocker (no DB transaction in CompleteTraining). Fixed with db.Transaction. QA PASSED. Merged. Phase 6 complete.
+
+### Phase 7
+[07:50] Peer reviewed SWE-1's PR #71 (TASK-033 PDF Export): Found 2 issues (sequential fetch, RBAC comment). SWE-1 fixed.
+[08:00] TPM assigned TASK-034: Global Search (Issue #66, Complex/Opus). Completed: cross-entity ILIKE search, RBAC scoping, debounced UI, Alt+S shortcut. PR #73. SWE-1 LGTM. QA PASSED. Merged.
+[08:45] Peer reviewed SWE-1's PR #74 (TASK-035 Timeline): Found 4 blockers (action string, URL parse, user lookup, doc comment). SWE-1 fixed.
+[09:15] TPM assigned TASK-036: Dark Mode (Issue #68, Routine/Sonnet). Completed: herzogDarkTheme, ThemeService + SharedPreferences, sun/moon toggle. PR #76.
+[09:20] SWE-1 found 2 blockers (WCAG contrast 4.48:1, chip theme blanket green). Fixed (textMuted→0xFF819AAA, neutral chip theme). QA PASSED. Merged.
+[09:30] Peer reviewed SWE-1's PR #75 (TASK-037 Landing Pages): Found 1 ADA bug (excludeSemantics). SWE-1 fixed.
+[09:45] TPM assigned TASK-038: Live Activity Feed (Issue #70, Complex/Opus) — FINAL TASK.
+[10:00] Completed: GET /api/activity with human-readable messages, RBAC scoping, Flutter feed with avatars/relative timestamps/action icons, 30s polling, dashboard integration. PR #77.
+[10:05] SWE-1 found 3 blockers (CAPA RBAC leak, silent parse, timezone). Fixed. QA found 2 more (dead link template, unreachable verify template). Fixed. QA PASSED. PR #77 merged. BUILD COMPLETE.
