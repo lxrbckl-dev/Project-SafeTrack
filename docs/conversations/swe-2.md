@@ -73,4 +73,23 @@
 [09:30] Peer reviewed SWE-1's PR #75 (TASK-037 Landing Pages): Found 1 ADA bug (excludeSemantics). SWE-1 fixed.
 [09:45] TPM assigned TASK-038: Live Activity Feed (Issue #70, Complex/Opus) — FINAL TASK.
 [10:00] Completed: GET /api/activity with human-readable messages, RBAC scoping, Flutter feed with avatars/relative timestamps/action icons, 30s polling, dashboard integration. PR #77.
-[10:05] SWE-1 found 3 blockers (CAPA RBAC leak, silent parse, timezone). Fixed. QA found 2 more (dead link template, unreachable verify template). Fixed. QA PASSED. PR #77 merged. BUILD COMPLETE.
+[10:05] SWE-1 found 3 blockers (CAPA RBAC leak, silent parse, timezone). Fixed. QA found 2 more (dead link template, unreachable verify template). Fixed. QA PASSED. PR #77 merged.
+
+### Phase 8
+[10:15] TPM assigned TASK-040: Voice-to-Text Incident Reporting (Issue #79, Routine/Sonnet). Completed: VoiceInputButton shared widget, pulsing animation, speech_to_text, integrated into incident/investigation/CAPA forms. PR #83.
+[10:25] SWE-1 found 2 blockers (missing platform permissions in AndroidManifest/Info.plist, stale existingText captured at start not in onResult). Fixed both. QA PASSED. Merged.
+[10:30] Peer reviewed SWE-1's PR #84 (TASK-039 Map View): Found 2 blockers (dropdown initialValue vs value, legend label "Critical/Fatality" should be "Fatality/Lost Time"). SWE-1 fixed.
+[11:10] TPM assigned TASK-042: Onboarding Tour (Issue #81, Routine/Sonnet). Completed: tutorial_coach_mark, 5 desktop steps + 4 mobile steps, OnboardingService with SharedPreferences, role-adaptive, skip/restart. PR #86.
+[11:20] SWE-1 found 1 blocker (tour crashes on mobile — sidebar GlobalKeys null, NotFoundTargetException). Fixed: added bottomNav/bottomNavNewIncident keys for mobile tour path. QA PASSED. Merged.
+[11:30] Peer reviewed SWE-1's PR #85 (TASK-041 Dashboard PDF): LGTM.
+
+### Phase 9
+[12:15] Peer reviewed SWE-1's PR #87 (TASK-043 WebSocket — final feature): Found 2 security blockers (notification events broadcast to ALL clients, race condition delete under RLock). SWE-1 fixed (UserID filter + unregister channel).
+
+### Bug Sweep
+[13:15] Fixed #88 (login redirect — context.go('/login') instead of '/dashboard') + #91 (POST /api/investigations wrapped in middleware.RequireRole). PR #93. QA PASSED. Merged.
+[13:20] Peer reviewed SWE-1's PR #92 (fix #89 reopen + #90 close status): LGTM.
+
+### Resilience Fixes
+[14:15] Fixed #95 (map per_page cap 100→500) + #96 (PopScope unsaved changes warning with _isDirty tracking). PR #98. Review caught 2 more bugs inline (AppBar bypassing PopScope, AI form-fill not calling _markDirty). Fixed. QA PASSED. Merged.
+[14:20] Peer reviewed SWE-1's PR #99 (fix #94 JWT 401 + #97 upload limit): Review caught fragile error string comparison. SWE-1 fixed.

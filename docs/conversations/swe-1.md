@@ -69,3 +69,22 @@
 [09:00] TPM assigned TASK-037: Role-Based Landing Pages (Issue #69, Routine/Sonnet). Completed: role-specific redirects, welcome header, quick action cards. PR #75. SWE-2 found 1 ADA bug (excludeSemantics). Fixed. QA PASSED. Merged.
 [09:30] Peer reviewed SWE-2's PR #76 (TASK-036 Dark Mode): Found 2 blockers (WCAG contrast, chip theme). SWE-2 fixed.
 [09:45] Peer reviewed SWE-2's PR #77 (TASK-038 Activity Feed): Found 3 blockers (RBAC CAPA leak, silent parse, timezone). SWE-2 fixed. QA found 2 more (dead link template, unreachable verify). SWE-2 fixed. Merged.
+
+### Phase 8
+[10:15] TPM assigned TASK-039: Incident Map View (Issue #78, Complex/Opus). Completed: flutter_map + OSM tiles, severity markers, popup cards, filters, My Location FAB. PR #84.
+[10:20] SWE-2 found 2 blockers (dropdown initialValue vs value, legend label wrong). Fixed. QA PASSED. Merged.
+[10:25] Peer reviewed SWE-2's PR #83 (TASK-040 Voice-to-Text): Found 2 blockers (missing platform permissions, stale existingText). SWE-2 fixed.
+[11:10] TPM assigned TASK-041: Dashboard PDF Summary (Issue #80, Complex/Opus). Completed: monthly safety PDF with KPIs, tables, branding, month picker. PR #85. SWE-2 LGTM. QA PASSED. Merged.
+[11:40] Peer reviewed SWE-2's PR #86 (TASK-042 Onboarding Tour): Found 1 blocker (tour crashes on mobile — sidebar GlobalKeys null). SWE-2 fixed.
+
+### Phase 9
+[12:00] TPM assigned TASK-043: WebSocket Real-Time Updates (Issue #82, Complex/Opus) — FINAL FEATURE. Completed: gorilla/websocket hub, JWT auth, RBAC broadcast, NotificationService + ActivityFeed integration, exponential backoff reconnect. PR #87.
+[12:15] SWE-2 found 2 security blockers (notification data leak to all clients, race condition map mutation under RLock). Fixed (UserID filter + unregister channel). QA PASSED. Merged.
+
+### Bug Sweep
+[13:15] Fixed #89 (reopen investigation — reset existing when incident Reopened) + #90 (CloseIncident status guard). PR #92. QA PASSED. Merged.
+[13:20] Peer reviewed SWE-2's PR #93 (fix #88 login redirect + #91 RBAC middleware): LGTM.
+
+### Resilience Fixes
+[14:15] Fixed #94 (JWT 401 interceptor — new ApiClient wrapping all HTTP calls, 10 repositories updated) + #97 (upload 10MB MaxBytesReader with 413 response). PR #99. Review caught fragile error string check — upgraded to errors.As. QA PASSED. Merged.
+[14:20] Peer reviewed SWE-2's PR #98 (fix #95 map cap + #96 unsaved changes). Review caught AppBar bypassing PopScope + AI fill not marking dirty. SWE-2 fixed.

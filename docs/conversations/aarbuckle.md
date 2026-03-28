@@ -555,3 +555,15 @@ Already installed: Flutter 3.41.4, Xcode 26.3, Playwright 1.58.2
 - 40 feature tasks + 8 bug fixes across 9 phases + 2 stress test rounds
 - Go build: CLEAN, Go vet: CLEAN, Dart analyze: No issues found
 - Zero broken builds on main throughout the entire project
+
+### Phase 10 + 11 Planning (AI Navigation + MCP Agent Integration)
+- Discussed enhancing the in-app AI to generate clickable pre-fill URLs instead of auto-navigating (transparency for users)
+- Designed Phase 10: TASK-044 (query param pre-fill on forms) + TASK-045 (AI chat generates clickable URLs)
+- Discussed agent-to-agent communication architecture — external agents (OpenClaw, Claude Desktop) authenticate via API keys and interact through MCP protocol
+- Canonical solution: API key model (scoped to user role, bcrypt hashed, revocable, audit-logged with is_agent flag)
+- Chose MCP route over REST-only — MCP is additive, doesn't affect existing UI or API
+- MCP server built into Go backend (single process, shared auth) rather than separate service
+- Designed Phase 11: TASK-046 (API key system), TASK-047 (capabilities endpoint), TASK-048 (MCP server protocol), TASK-049 (agent session awareness)
+- Key RBAC principle: agents inherit user's role, Field Reporter's agent can only do Field Reporter things
+- Total project: 44 tasks across 11 phases
+- Cleaned up stale SWE worktrees from VS Code source control panel

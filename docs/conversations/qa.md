@@ -75,4 +75,24 @@
 [2026-03-28] QA PASSED PR #74 (TASK-035 Timeline): 10/10 checks. Bug fixes verified: case "return", r.PathValue, ParseUint lookup, doc comment. Merged.
 [2026-03-28] QA PASSED PR #75 (TASK-037 Landing Pages): 7/7 checks. Bug fix verified: excludeSemantics on QuickActionCard. Merged.
 [2026-03-28] QA PASSED PR #76 (TASK-036 Dark Mode): 9/9 checks. Bug fixes verified: textMuted 0xFF819AAA (4.70:1 WCAG AA), neutral chip theme. Merged.
-[2026-03-28] QA PASSED PR #77 (TASK-038 Activity Feed — FINAL): 13/13 checks. Bug fixes verified: CAPA RBAC scoping, 400 on bad since, .toLocal() timezone. Additional fixes: incident_link entity type match, verify template via status_change inspection. Merged. BUILD COMPLETE.
+[2026-03-28] QA PASSED PR #77 (TASK-038 Activity Feed — FINAL): 13/13 checks. Bug fixes verified: CAPA RBAC scoping, 400 on bad since, .toLocal() timezone. Additional fixes: incident_link entity type match, verify template via status_change inspection. Merged.
+
+### Phase 8-9
+[2026-03-28] QA PASSED PR #83 (TASK-040 Voice-to-Text): 8/8 checks. Bug fixes verified: platform permissions (Android/iOS/macOS), existingText inside onResult. Merged.
+[2026-03-28] QA PASSED PR #84 (TASK-039 Map View): 12/12 checks. Bug fixes verified: DropdownButtonFormField initialValue (Flutter 3.33+ API), legend "Fatality/Lost Time". Merged.
+[2026-03-28] QA PASSED PR #85 (TASK-041 Dashboard PDF): 7/7 checks. All KPI sections, Herzog branding, month picker, Printing.layoutPdf. Merged.
+[2026-03-28] QA PASSED PR #86 (TASK-042 Onboarding Tour): 10/10 checks. Bug fix verified: mobile tour uses bottomNav keys (not sidebar). Merged.
+[2026-03-28] QA PASSED PR #87 (TASK-043 WebSocket — final feature): 15/15 checks. Security fixes verified: notification UserID filter, unregister channel (no RLock mutation). Merged.
+
+### Bug Sweep
+[2026-03-28] Exploratory bug sweep: 6 bugs found across 17 integration test areas. 4 High/Medium → Issues #88-91. 2 Low deferred.
+[2026-03-28] QA PASSED PR #92 (fix #89 reopen investigation + #90 CloseIncident status guard). Merged.
+[2026-03-28] QA PASSED PR #93 (fix #88 login redirect + #91 investigation RBAC middleware). Merged.
+
+### Resilience Stress Test
+[2026-03-28] Resilience sweep: 14 edge case tests. 1 FAIL (JWT 401), 6 WARN, 7 PASS → Issues #94-97.
+[2026-03-28] QA PASSED PR #99 (fix #94 JWT 401 ApiClient interceptor + #97 upload 10MB MaxBytesReader). Review caught fragile error string — fixed to errors.As. Merged.
+[2026-03-28] QA PASSED PR #98 (fix #95 map cap 100→500 + #96 PopScope unsaved changes). Review caught AppBar bypass + AI fill dirty flag — both fixed inline. Merged.
+
+### Final Verification
+[2026-03-28] Integration stress test: 17/17 PASS. Resilience re-sweep: CLEAN. go build CLEAN. go vet CLEAN. dart analyze: No issues found. BUILD COMPLETE.
