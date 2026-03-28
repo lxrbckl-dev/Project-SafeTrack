@@ -123,7 +123,14 @@ func main() {
 	// Agent capabilities endpoint (GET /api/agent/capabilities)
 	handlers.RegisterAgentCapabilityRoutes(api)
 
-	mux.Handle("/api/", middleware.FirebaseAuth(api))
+	// Agent session tracking routes (active sessions, agent-only activity feed)
+	handlers.RegisterAgentSessionRoutes(api, db)
+
+	// Wrap the authenticated API mux with:
+	//   1. FirebaseAuth — JWT verification and claims extraction.
+	//   2. UpdateAgentLastUsed — updates AgentApiKey.LastUsedAt on every agent
+	//      API call so the 5-minute active-session heuristic stays current.
+	mux.Handle("/api/", middleware.FirebaseAuth(middleware.UpdateAgentLastUsed(db)(api)))
 
 	// TASK-048: MCP Server Protocol routes at /mcp/*
 	// Edge case 1: /mcp/* uses MCPAuth (API key), NOT FirebaseAuth.

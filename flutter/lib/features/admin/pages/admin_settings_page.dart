@@ -426,6 +426,25 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
               label: const Text('Manage API Keys'),
             ),
           ),
+
+          // ----------------------------------------------------------------
+          // Agent Sessions (TASK-049)
+          // ----------------------------------------------------------------
+          const SettingSectionHeader(title: 'AGENT SESSIONS'),
+          Text(
+            'Monitor live agent sessions and review agent-performed actions.',
+            style: HerzogText.body(),
+          ),
+          const SizedBox(height: 12),
+          Semantics(
+            button: true,
+            label: 'Navigate to agent sessions',
+            child: OutlinedButton.icon(
+              onPressed: () => context.push('/admin/agents'),
+              icon: const Icon(Icons.smart_toy_outlined),
+              label: const Text('View Agent Sessions'),
+            ),
+          ),
         ],
       ),
     );

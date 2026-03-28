@@ -49,3 +49,12 @@ func GetIsAgent(r *http.Request) bool {
 	}
 	return false
 }
+
+// GetAgentKeyID reads the agent API key ID from the request context.
+// Returns 0 for human sessions and agent JWTs that pre-date key_id claim.
+func GetAgentKeyID(r *http.Request) uint {
+	if kid, ok := r.Context().Value("agentKeyID").(uint); ok {
+		return kid
+	}
+	return 0
+}
