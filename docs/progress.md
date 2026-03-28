@@ -109,7 +109,11 @@ Each agent is trained with embedded skills in their definition files (`.claude/a
 | Feature | Status | What's Left |
 |---|---|---|
 | TestFlight distribution | Waiting on Apple Developer approval | Upload first build once approved |
-| Agent Teams validation | Alex testing in CLI | Confirm team spawns and coordinates |
+| Agent Teams validation | Validated — multi-agent team operational | 19 tasks + 4 post-launch tasks completed via agent team |
+| Phase 6: Rubric deferred items | Building (Rounds 1-4) | TASK-026 through TASK-032 |
+| Phase 7: Judge differentiators | Queued | TASK-033 through TASK-038 |
+| Phase 8: Domain innovation | Planned | TASK-039 through TASK-041 |
+| Phase 9: Demo polish | Planned | TASK-042 through TASK-043 |
 
 ## Completed — Rubric Features (QA Verified)
 
@@ -145,7 +149,7 @@ Each agent is trained with embedded skills in their definition files (`.claude/a
 |---|---|
 | ~~In-app AI agent (page nav + form filling)~~ | ~~JSON action dispatch to go_router/TextEditingController. Not started.~~ — DONE (TASK-019, QA PASSED) |
 | ~~Keyboard shortcuts~~ | ~~Flutter Shortcuts/Actions system. Not started.~~ — DONE (TASK-018 initial, TASK-021 Alt modifier, TASK-022 Alt+K chat) |
-| Playwright test suite | QA agent writes tests during hackathon. Infrastructure ready. |
+| ~~Playwright test suite~~ | ~~QA agent writes tests during hackathon. Infrastructure ready.~~ — DONE (15 spec files, 100+ test cases across all features) |
 | Claude browser agent QA | Secondary QA — exploratory validation. |
 | ADA/WCAG compliance | Built into every feature during hackathon — requirement per accessibility.md |
 

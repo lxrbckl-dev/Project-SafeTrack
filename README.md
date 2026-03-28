@@ -72,6 +72,8 @@ lsof -ti:3000 | xargs kill -9
 | **Executive** | View all data (read-only) |
 | **Admin** | Configure system settings, view audit log |
 
+> All test accounts use password **`demo1234`**. Tap any account row on the login page to auto-fill.
+
 > **Suggested walkthrough:** Start as Field Reporter to create an incident, then switch to Safety Manager to investigate it.
 
 ### Keyboard Shortcuts
