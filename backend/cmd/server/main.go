@@ -38,12 +38,16 @@ func main() {
 	mux.HandleFunc("GET /health", handlers.Health)
 	mux.HandleFunc("POST /api/dev-login", handlers.DevLogin())
 
+	// Seed default settings on startup (no-op if rows already exist)
+	handlers.SeedDefaultSettings(db)
+
 	// Authenticated routes
 	api := http.NewServeMux()
 	api.HandleFunc("POST /api/sync", handlers.Sync(db))
 	api.HandleFunc("GET /api/data", handlers.GetData(db))
 	api.HandleFunc("GET /api/audit-logs", handlers.GetAuditLogs(db)) // TODO (TASK-014): restrict to Admin + Safety Manager
 	api.HandleFunc("POST /api/chat", handlers.Chat())
+	handlers.RegisterSettingsRoutes(api, db)
 
 	mux.Handle("/api/", middleware.FirebaseAuth(api))
 

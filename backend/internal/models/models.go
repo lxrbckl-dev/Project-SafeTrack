@@ -6,5 +6,6 @@ func AllModels() []interface{} {
 	return []interface{}{
 		&Note{},
 		&AuditLog{},
+		&Setting{},
 	}
 }
