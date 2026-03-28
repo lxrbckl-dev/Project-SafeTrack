@@ -72,4 +72,13 @@ class AuthService extends ChangeNotifier {
     _displayName = null;
     notifyListeners();
   }
+
+  /// Called by [ApiClient] when a 401 Unauthorized response is received.
+  ///
+  /// Delegates to [logout], which clears credentials and notifies listeners.
+  /// Because GoRouter watches this service via `refreshListenable`, the
+  /// redirect guard will automatically navigate the user to `/login`.
+  void handleUnauthorized() {
+    logout();
+  }
 }

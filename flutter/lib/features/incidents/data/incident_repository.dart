@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
+import '../../../core/services/api_client.dart';
 import '../../../core/services/api_config.dart';
 import '../../auth/data/auth_service.dart';
 
@@ -308,14 +309,9 @@ class OshaDecisionRequest {
 /// Uses [AuthService] for JWT bearer tokens and [ApiConfig.baseUrl] for the
 /// Go backend URL.
 class IncidentRepository {
-  final AuthService _auth;
+  final ApiClient _api;
 
-  IncidentRepository(this._auth);
-
-  Map<String, String> get _headers => {
-    'Content-Type': 'application/json',
-    if (_auth.token != null) 'Authorization': 'Bearer ${_auth.token}',
-  };
+  IncidentRepository(AuthService auth) : _api = ApiClient(auth);
 
   String get _base => ApiConfig.baseUrl;
 
@@ -338,7 +334,7 @@ class IncidentRepository {
     final uri = Uri.parse(
       '$_base/api/incidents',
     ).replace(queryParameters: params);
-    final response = await http.get(uri, headers: _headers);
+    final response = await _api.get(uri);
     if (response.statusCode != 200) {
       throw Exception('Failed to load incidents: ${response.body}');
     }
@@ -350,7 +346,7 @@ class IncidentRepository {
   /// Gets a single incident by ID with injured persons and photos.
   Future<Incident> getIncident(int id) async {
     final uri = Uri.parse('$_base/api/incidents/$id');
-    final response = await http.get(uri, headers: _headers);
+    final response = await _api.get(uri);
     if (response.statusCode != 200) {
       throw Exception('Failed to load incident: ${response.body}');
     }
@@ -360,11 +356,7 @@ class IncidentRepository {
   /// Creates a new incident.
   Future<Incident> createIncident(Incident data) async {
     final uri = Uri.parse('$_base/api/incidents');
-    final response = await http.post(
-      uri,
-      headers: _headers,
-      body: jsonEncode(data.toJson()),
-    );
+    final response = await _api.post(uri, body: jsonEncode(data.toJson()));
     if (response.statusCode != 201) {
       throw Exception('Failed to create incident: ${response.body}');
     }
@@ -374,11 +366,7 @@ class IncidentRepository {
   /// Updates an existing incident.
   Future<Incident> updateIncident(int id, Incident data) async {
     final uri = Uri.parse('$_base/api/incidents/$id');
-    final response = await http.put(
-      uri,
-      headers: _headers,
-      body: jsonEncode(data.toJson()),
-    );
+    final response = await _api.put(uri, body: jsonEncode(data.toJson()));
     if (response.statusCode != 200) {
       throw Exception('Failed to update incident: ${response.body}');
     }
@@ -389,17 +377,13 @@ class IncidentRepository {
   Future<IncidentPhoto> uploadPhoto(int incidentId, XFile file) async {
     final uri = Uri.parse('$_base/api/incidents/$incidentId/photos');
     final request = http.MultipartRequest('POST', uri);
-    if (_auth.token != null) {
-      request.headers['Authorization'] = 'Bearer ${_auth.token}';
-    }
 
     final bytes = await file.readAsBytes();
     request.files.add(
       http.MultipartFile.fromBytes('file', bytes, filename: file.name),
     );
 
-    final streamedResponse = await request.send();
-    final response = await http.Response.fromStream(streamedResponse);
+    final response = await _api.sendMultipart(request);
     if (response.statusCode != 201) {
       throw Exception('Failed to upload photo: ${response.body}');
     }
@@ -411,11 +395,7 @@ class IncidentRepository {
   /// Submits OSHA determination answers for an incident.
   Future<Incident> oshaDecision(int id, OshaDecisionRequest answers) async {
     final uri = Uri.parse('$_base/api/incidents/$id/osha-determination');
-    final response = await http.post(
-      uri,
-      headers: _headers,
-      body: jsonEncode(answers.toJson()),
-    );
+    final response = await _api.post(uri, body: jsonEncode(answers.toJson()));
     if (response.statusCode != 200) {
       throw Exception('OSHA determination failed: ${response.body}');
     }
@@ -429,9 +409,8 @@ class IncidentRepository {
     String justification,
   ) async {
     final uri = Uri.parse('$_base/api/incidents/$id/osha-override');
-    final response = await http.put(
+    final response = await _api.put(
       uri,
-      headers: _headers,
       body: jsonEncode({
         'isOshaRecordable': isRecordable,
         'justification': justification,
@@ -446,7 +425,7 @@ class IncidentRepository {
   /// Closes an incident.
   Future<Incident> closeIncident(int id) async {
     final uri = Uri.parse('$_base/api/incidents/$id/close');
-    final response = await http.post(uri, headers: _headers);
+    final response = await _api.post(uri);
     if (response.statusCode != 200) {
       throw Exception('Failed to close incident: ${response.body}');
     }
@@ -456,7 +435,7 @@ class IncidentRepository {
   /// Reopens a closed incident.
   Future<Incident> reopenIncident(int id) async {
     final uri = Uri.parse('$_base/api/incidents/$id/reopen');
-    final response = await http.post(uri, headers: _headers);
+    final response = await _api.post(uri);
     if (response.statusCode != 200) {
       throw Exception('Failed to reopen incident: ${response.body}');
     }
@@ -466,9 +445,8 @@ class IncidentRepository {
   /// Transitions incident status.
   Future<Incident> transitionStatus(int id, String newStatus) async {
     final uri = Uri.parse('$_base/api/incidents/$id/status');
-    final response = await http.post(
+    final response = await _api.post(
       uri,
-      headers: _headers,
       body: jsonEncode({'status': newStatus}),
     );
     if (response.statusCode != 200) {

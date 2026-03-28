@@ -1,7 +1,6 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
-
+import '../../../core/services/api_client.dart';
 import '../../../core/services/api_config.dart';
 import '../../auth/data/auth_service.dart';
 
@@ -180,14 +179,9 @@ class VerifyResponse {
 /// Uses [AuthService] for JWT bearer tokens and [ApiConfig.baseUrl] for the
 /// Go backend URL.
 class CAPARepository {
-  final AuthService _auth;
+  final ApiClient _api;
 
-  CAPARepository(this._auth);
-
-  Map<String, String> get _headers => {
-    'Content-Type': 'application/json',
-    if (_auth.token != null) 'Authorization': 'Bearer ${_auth.token}',
-  };
+  CAPARepository(AuthService auth) : _api = ApiClient(auth);
 
   String get _base => ApiConfig.baseUrl;
 
@@ -196,7 +190,7 @@ class CAPARepository {
   /// Fetches aggregated CAPA KPIs.
   Future<CAPADashboard> getDashboard() async {
     final uri = Uri.parse('$_base/api/capas/dashboard');
-    final response = await http.get(uri, headers: _headers);
+    final response = await _api.get(uri);
     if (response.statusCode != 200) {
       throw Exception('Failed to load CAPA dashboard: ${response.body}');
     }
@@ -236,7 +230,7 @@ class CAPARepository {
     if (priority != null && priority.isNotEmpty) params['priority'] = priority;
 
     final uri = Uri.parse('$_base/api/capas').replace(queryParameters: params);
-    final response = await http.get(uri, headers: _headers);
+    final response = await _api.get(uri);
     if (response.statusCode != 200) {
       throw Exception('Failed to load CAPAs: ${response.body}');
     }
@@ -248,7 +242,7 @@ class CAPARepository {
   /// Gets a single CAPA by ID.
   Future<CAPA> getCAPA(int id) async {
     final uri = Uri.parse('$_base/api/capas/$id');
-    final response = await http.get(uri, headers: _headers);
+    final response = await _api.get(uri);
     if (response.statusCode != 200) {
       throw Exception('Failed to load CAPA: ${response.body}');
     }
@@ -267,9 +261,8 @@ class CAPARepository {
     String verificationMethod = '',
   }) async {
     final uri = Uri.parse('$_base/api/capas');
-    final response = await http.post(
+    final response = await _api.post(
       uri,
-      headers: _headers,
       body: jsonEncode({
         'investigationId': investigationId,
         'incidentId': incidentId,
@@ -310,11 +303,7 @@ class CAPARepository {
     }
     if (status != null) body['status'] = status;
 
-    final response = await http.put(
-      uri,
-      headers: _headers,
-      body: jsonEncode(body),
-    );
+    final response = await _api.put(uri, body: jsonEncode(body));
     if (response.statusCode != 200) {
       throw Exception('Failed to update CAPA: ${response.body}');
     }
@@ -330,9 +319,8 @@ class CAPARepository {
     String evidence = '',
   }) async {
     final uri = Uri.parse('$_base/api/capas/$id/complete');
-    final response = await http.post(
+    final response = await _api.post(
       uri,
-      headers: _headers,
       body: jsonEncode({'notes': notes, 'evidence': evidence}),
     );
     if (response.statusCode != 200) {
@@ -348,9 +336,8 @@ class CAPARepository {
     String notes = '',
   }) async {
     final uri = Uri.parse('$_base/api/capas/$id/verify');
-    final response = await http.post(
+    final response = await _api.post(
       uri,
-      headers: _headers,
       body: jsonEncode({'effective': effective, 'notes': notes}),
     );
     if (response.statusCode != 200) {

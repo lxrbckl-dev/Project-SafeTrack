@@ -1,7 +1,6 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
-
+import '../../../core/services/api_client.dart';
 import '../../../core/services/api_config.dart';
 import '../../auth/data/auth_service.dart';
 
@@ -164,14 +163,9 @@ class TrainingListResponse {
 /// Uses [AuthService] for JWT bearer tokens and [ApiConfig.baseUrl] for the
 /// Go backend URL.
 class TrainingRepository {
-  final AuthService _auth;
+  final ApiClient _api;
 
-  TrainingRepository(this._auth);
-
-  Map<String, String> get _headers => {
-    'Content-Type': 'application/json',
-    if (_auth.token != null) 'Authorization': 'Bearer ${_auth.token}',
-  };
+  TrainingRepository(AuthService auth) : _api = ApiClient(auth);
 
   String get _base => ApiConfig.baseUrl;
 
@@ -198,7 +192,7 @@ class TrainingRepository {
     final uri = Uri.parse(
       '$_base/api/training',
     ).replace(queryParameters: params);
-    final response = await http.get(uri, headers: _headers);
+    final response = await _api.get(uri);
     if (response.statusCode != 200) {
       throw Exception('Failed to load training: ${response.body}');
     }
@@ -212,7 +206,7 @@ class TrainingRepository {
   /// Gets a single training requirement by ID with its completion record.
   Future<TrainingDetail> getTraining(int id) async {
     final uri = Uri.parse('$_base/api/training/$id');
-    final response = await http.get(uri, headers: _headers);
+    final response = await _api.get(uri);
     if (response.statusCode != 200) {
       throw Exception('Failed to load training: ${response.body}');
     }
@@ -231,9 +225,8 @@ class TrainingRepository {
     String description = '',
   }) async {
     final uri = Uri.parse('$_base/api/training');
-    final response = await http.post(
+    final response = await _api.post(
       uri,
-      headers: _headers,
       body: jsonEncode({
         'capaId': capaId,
         'courseName': courseName,
@@ -261,9 +254,8 @@ class TrainingRepository {
     String evidence = '',
   }) async {
     final uri = Uri.parse('$_base/api/training/$id/complete');
-    final response = await http.post(
+    final response = await _api.post(
       uri,
-      headers: _headers,
       body: jsonEncode({
         'completionDate': completionDate,
         'durationHours': durationHours,

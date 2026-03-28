@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -25,6 +26,9 @@ func UploadIncidentPhoto(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
+		// Limit upload body to 10 MB to prevent resource exhaustion.
+		r.Body = http.MaxBytesReader(w, r.Body, 10<<20) // 10 MB limit
+
 		id := r.PathValue("id")
 		idUint, err := strconv.ParseUint(id, 10, 64)
 		if err != nil {
@@ -39,8 +43,14 @@ func UploadIncidentPhoto(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		// Parse multipart -- 32 MB max memory.
+		// Parse multipart -- 32 MB max memory (actual body limited to 10 MB above).
 		if err := r.ParseMultipartForm(32 << 20); err != nil {
+			// MaxBytesReader wraps the error as *http.MaxBytesError when the limit is exceeded.
+			var maxBytesErr *http.MaxBytesError
+			if errors.As(err, &maxBytesErr) {
+				http.Error(w, "file too large: maximum upload size is 10 MB", http.StatusRequestEntityTooLarge)
+				return
+			}
 			http.Error(w, "failed to parse multipart form", http.StatusBadRequest)
 			return
 		}

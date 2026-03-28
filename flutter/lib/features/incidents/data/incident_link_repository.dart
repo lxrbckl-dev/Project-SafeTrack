@@ -1,7 +1,6 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
-
+import '../../../core/services/api_client.dart';
 import '../../../core/services/api_config.dart';
 import '../../auth/data/auth_service.dart';
 
@@ -211,21 +210,16 @@ class RecurrenceMatch {
 
 /// API client for all incident-link endpoints.
 class IncidentLinkRepository {
-  final AuthService _auth;
+  final ApiClient _api;
 
-  IncidentLinkRepository(this._auth);
-
-  Map<String, String> get _headers => {
-    'Content-Type': 'application/json',
-    if (_auth.token != null) 'Authorization': 'Bearer ${_auth.token}',
-  };
+  IncidentLinkRepository(AuthService auth) : _api = ApiClient(auth);
 
   String get _base => ApiConfig.baseUrl;
 
   /// Returns all links for [incidentId], enriched with linked incident summaries.
   Future<List<IncidentLink>> getLinksForIncident(int incidentId) async {
     final uri = Uri.parse('$_base/api/incidents/$incidentId/links');
-    final response = await http.get(uri, headers: _headers);
+    final response = await _api.get(uri);
     if (response.statusCode != 200) {
       throw Exception('Failed to load incident links: ${response.body}');
     }
@@ -243,9 +237,8 @@ class IncidentLinkRepository {
     String notes = '',
   }) async {
     final uri = Uri.parse('$_base/api/incident-links');
-    final response = await http.post(
+    final response = await _api.post(
       uri,
-      headers: _headers,
       body: jsonEncode({
         'incidentId1': incidentId1,
         'incidentId2': incidentId2,
@@ -283,7 +276,7 @@ class IncidentLinkRepository {
   /// Deletes a link by its ID.
   Future<void> deleteLink(int linkId) async {
     final uri = Uri.parse('$_base/api/incident-links/$linkId');
-    final response = await http.delete(uri, headers: _headers);
+    final response = await _api.delete(uri);
     if (response.statusCode != 204) {
       throw Exception('Failed to delete incident link: ${response.body}');
     }
@@ -293,7 +286,7 @@ class IncidentLinkRepository {
   /// Returns a ranked list of matches sorted by score descending.
   Future<List<RecurrenceMatch>> checkRecurrence(int incidentId) async {
     final uri = Uri.parse('$_base/api/incidents/$incidentId/check-recurrence');
-    final response = await http.post(uri, headers: _headers);
+    final response = await _api.post(uri);
     if (response.statusCode != 200) {
       throw Exception('Failed to check recurrence: ${response.body}');
     }
@@ -311,9 +304,8 @@ class IncidentLinkRepository {
     final uri = Uri.parse(
       '$_base/api/incidents/$incidentId/dismiss-suggestion',
     );
-    final response = await http.post(
+    final response = await _api.post(
       uri,
-      headers: _headers,
       body: jsonEncode({'suggestedIncidentId': suggestedIncidentId}),
     );
     if (response.statusCode != 201 && response.statusCode != 200) {
@@ -324,7 +316,7 @@ class IncidentLinkRepository {
   /// Returns all incident clusters.
   Future<List<IncidentCluster>> getClusters() async {
     final uri = Uri.parse('$_base/api/incident-clusters');
-    final response = await http.get(uri, headers: _headers);
+    final response = await _api.get(uri);
     if (response.statusCode != 200) {
       throw Exception('Failed to load incident clusters: ${response.body}');
     }
