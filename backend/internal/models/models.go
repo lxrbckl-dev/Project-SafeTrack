@@ -20,5 +20,7 @@ func AllModels() []interface{} {
 		&IncidentLink{},
 		&Notification{},
 		&DismissedSuggestion{},
+		&TrainingRequirement{},
+		&TrainingCompletion{},
 	}
 }
