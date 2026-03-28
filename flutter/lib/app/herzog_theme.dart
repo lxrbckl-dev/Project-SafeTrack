@@ -74,8 +74,8 @@ class HerzogDarkColors {
   /// Secondary / body text on dark backgrounds (~7:1 on surface).
   static const textSecondary = Color(0xFFB0BEC5);
 
-  /// Muted / hint text (~4.5:1 on surface — meets WCAG AA).
-  static const textMuted = Color(0xFF7A909E);
+  /// Muted / hint text (~4.70:1 on surface — meets WCAG AA).
+  static const textMuted = Color(0xFF819AAA);
 
   /// Border color for cards and dividers.
   static const border = Color(0xFF2E4460);
@@ -407,9 +407,11 @@ ThemeData herzogDarkTheme() {
       ),
       dividerThickness: 1,
     ),
+    // Neutral chip defaults — status-specific colors are applied per-chip
+    // at the widget level to avoid coloring filter chips and non-status chips.
     chipTheme: ChipThemeData(
-      backgroundColor: HerzogDarkColors.successBg,
-      labelStyle: GoogleFonts.roboto(color: HerzogDarkColors.successFg),
+      backgroundColor: HerzogDarkColors.surfaceVariant,
+      labelStyle: GoogleFonts.roboto(color: HerzogDarkColors.textSecondary),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
     ),
     snackBarTheme: SnackBarThemeData(
