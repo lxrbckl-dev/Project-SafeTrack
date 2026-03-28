@@ -89,8 +89,8 @@ class _LoginPageState extends State<LoginPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Logo
-                  Image.asset('assets/logo.png', height: 48),
-                  const SizedBox(height: 24),
+                  Image.asset('assets/logo.png', height: 80),
+                  const SizedBox(height: 32),
                   // Page heading
                   Semantics(
                     header: true,
