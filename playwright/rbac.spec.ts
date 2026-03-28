@@ -15,10 +15,21 @@ const API = 'http://localhost:8001';
 
 // ---- Helpers ----
 
-/** Obtain a dev JWT for the given role. */
+const ROLE_EMAILS: Record<string, string> = {
+  field_reporter: 'reporter@safetrack.demo',
+  safety_coordinator: 'coordinator@safetrack.demo',
+  safety_manager: 'manager@safetrack.demo',
+  pm: 'pm@safetrack.demo',
+  division_manager: 'director@safetrack.demo',
+  executive: 'executive@safetrack.demo',
+  admin: 'admin@safetrack.demo',
+};
+
+/** Obtain a JWT for the given role via POST /api/login. */
 async function getToken(request: any, role: string): Promise<string> {
-  const resp = await request.post(`${API}/api/dev-login`, {
-    data: { role, displayName: `QA ${role}` },
+  const email = ROLE_EMAILS[role] ?? `${role}@safetrack.demo`;
+  const resp = await request.post(`${API}/api/login`, {
+    data: { email, password: 'demo1234' },
   });
   expect(resp.ok()).toBeTruthy();
   const body = await resp.json();
@@ -136,10 +147,10 @@ test.describe('FIX #1: RequireMinRole removed, RequireRole is sole RBAC gate', (
 // SUITE 2: PM Scoping — FIX #2 (uses GetUserProject, not GetUserID)
 // ===========================================================================
 test.describe('FIX #2: PM scoping uses project claim from JWT', () => {
-  test('dev-login for PM includes project claim in JWT', async ({ request }) => {
+  test('login for PM includes project claim in JWT', async ({ request }) => {
     try {
-      const resp = await request.post(`${API}/api/dev-login`, {
-        data: { role: 'pm', displayName: 'QA PM' },
+      const resp = await request.post(`${API}/api/login`, {
+        data: { email: 'pm@safetrack.demo', password: 'demo1234' },
       });
       expect(resp.ok()).toBeTruthy();
       const body = await resp.json();
@@ -199,10 +210,10 @@ test.describe('FIX #2: PM scoping uses project claim from JWT', () => {
 // SUITE 3: Division Manager Scoping — FIX #3 (uses GetUserDivision)
 // ===========================================================================
 test.describe('FIX #3: Division Manager scoping uses division claim from JWT', () => {
-  test('dev-login for division_manager includes division claim in JWT', async ({ request }) => {
+  test('login for division_manager includes division claim in JWT', async ({ request }) => {
     try {
-      const resp = await request.post(`${API}/api/dev-login`, {
-        data: { role: 'division_manager', displayName: 'QA DivMgr' },
+      const resp = await request.post(`${API}/api/login`, {
+        data: { email: 'director@safetrack.demo', password: 'demo1234' },
       });
       expect(resp.ok()).toBeTruthy();
       const body = await resp.json();
@@ -376,11 +387,11 @@ test.describe('Field Reporter blocked from investigation/CAPA read APIs', () => 
 // ===========================================================================
 // SUITE 6: Dev Login JWT Claims (division/project)
 // ===========================================================================
-test.describe('Dev login JWT includes division/project claims', () => {
+test.describe('Login JWT includes division/project claims', () => {
   test('pm JWT has project=Project Alpha, division empty', async ({ request }) => {
     try {
-      const resp = await request.post(`${API}/api/dev-login`, {
-        data: { role: 'pm' },
+      const resp = await request.post(`${API}/api/login`, {
+        data: { email: 'pm@safetrack.demo', password: 'demo1234' },
       });
       const body = await resp.json();
       const payload = JSON.parse(Buffer.from(body.token.split('.')[1], 'base64url').toString());
@@ -393,8 +404,8 @@ test.describe('Dev login JWT includes division/project claims', () => {
 
   test('division_manager JWT has division=Construction, project empty', async ({ request }) => {
     try {
-      const resp = await request.post(`${API}/api/dev-login`, {
-        data: { role: 'division_manager' },
+      const resp = await request.post(`${API}/api/login`, {
+        data: { email: 'director@safetrack.demo', password: 'demo1234' },
       });
       const body = await resp.json();
       const payload = JSON.parse(Buffer.from(body.token.split('.')[1], 'base64url').toString());
@@ -407,8 +418,8 @@ test.describe('Dev login JWT includes division/project claims', () => {
 
   test('executive JWT has empty division and project (sees all)', async ({ request }) => {
     try {
-      const resp = await request.post(`${API}/api/dev-login`, {
-        data: { role: 'executive' },
+      const resp = await request.post(`${API}/api/login`, {
+        data: { email: 'executive@safetrack.demo', password: 'demo1234' },
       });
       const body = await resp.json();
       const payload = JSON.parse(Buffer.from(body.token.split('.')[1], 'base64url').toString());
@@ -421,8 +432,8 @@ test.describe('Dev login JWT includes division/project claims', () => {
 
   test('safety_coordinator JWT has empty division and project', async ({ request }) => {
     try {
-      const resp = await request.post(`${API}/api/dev-login`, {
-        data: { role: 'safety_coordinator' },
+      const resp = await request.post(`${API}/api/login`, {
+        data: { email: 'coordinator@safetrack.demo', password: 'demo1234' },
       });
       const body = await resp.json();
       const payload = JSON.parse(Buffer.from(body.token.split('.')[1], 'base64url').toString());
@@ -435,8 +446,8 @@ test.describe('Dev login JWT includes division/project claims', () => {
 
   test('admin JWT has empty division and project (full access)', async ({ request }) => {
     try {
-      const resp = await request.post(`${API}/api/dev-login`, {
-        data: { role: 'admin' },
+      const resp = await request.post(`${API}/api/login`, {
+        data: { email: 'admin@safetrack.demo', password: 'demo1234' },
       });
       const body = await resp.json();
       const payload = JSON.parse(Buffer.from(body.token.split('.')[1], 'base64url').toString());
@@ -823,8 +834,7 @@ test.describe('CAPA verifier != assignee enforced', () => {
     // We verify the token sub claim matches what would be the assignee.
     try {
       const token = await getToken(request, 'safety_coordinator');
-      // dev-login sets userID = "dev-safety_coordinator"
-      // If a CAPA is assigned to "dev-safety_coordinator", verify should fail.
+      // If a CAPA is assigned to this user's ID, verify by the same user should fail.
       // Test with a non-existent CAPA — the status check fires before assignee check,
       // but the code path is verified structurally.
       const resp = await authPost(request, token, '/api/capas/999999/verify', {
@@ -1017,7 +1027,7 @@ test.describe('Safety Manager has full safety access', () => {
     try {
       const token = await getToken(request, 'safety_manager');
       const resp = await authPost(request, token, '/api/investigations', {
-        incidentId: 999999, leadInvestigatorId: 'dev-safety_coordinator',
+        incidentId: 999999, leadInvestigatorId: 'coordinator@safetrack.demo',
       });
       // 404 (incident not found) is expected — but NOT 403
       expect(resp.status()).not.toBe(403);
@@ -1102,7 +1112,7 @@ test.describe('Admin has full system access', () => {
     try {
       const token = await getToken(request, 'admin');
       const resp = await authPost(request, token, '/api/investigations', {
-        incidentId: 999999, leadInvestigatorId: 'dev-admin',
+        incidentId: 999999, leadInvestigatorId: 'admin@safetrack.demo',
       });
       // 404 expected (incident not found) — but NOT 403
       expect(resp.status()).not.toBe(403);

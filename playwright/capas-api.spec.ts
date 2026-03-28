@@ -3,7 +3,7 @@
  *
  * API-level smoke tests for TASK-008: CAPA Models + API Backend.
  * These tests call the Go backend directly via Playwright's request context,
- * using the dev-login endpoint to obtain a JWT.
+ * using the login endpoint to obtain a JWT.
  *
  * Run against the PR branch backend on port 8001:
  *   PORT=8001 go run ./cmd/server/ &
@@ -39,13 +39,23 @@ const API = process.env.API_BASE_URL ?? 'http://localhost:8001';
 // Helpers
 // ---------------------------------------------------------------------------
 
+const ROLE_EMAILS: Record<string, string> = {
+  field_reporter: 'reporter@safetrack.demo',
+  safety_coordinator: 'coordinator@safetrack.demo',
+  safety_manager: 'manager@safetrack.demo',
+  pm: 'pm@safetrack.demo',
+  division_manager: 'director@safetrack.demo',
+  executive: 'executive@safetrack.demo',
+  admin: 'admin@safetrack.demo',
+};
+
 async function getToken(
   page: import('@playwright/test').Page,
   role: string,
-  displayName?: string,
 ): Promise<string> {
-  const res = await page.request.post(`${API}/api/dev-login`, {
-    data: { role, displayName: displayName ?? `QA ${role}` },
+  const email = ROLE_EMAILS[role] ?? `${role}@safetrack.demo`;
+  const res = await page.request.post(`${API}/api/login`, {
+    data: { email, password: 'demo1234' },
   });
   expect(res.ok()).toBeTruthy();
   const body = await res.json();
@@ -57,8 +67,9 @@ async function getTokenAndUserId(
   page: import('@playwright/test').Page,
   role: string,
 ): Promise<{ token: string; userId: string }> {
-  const res = await page.request.post(`${API}/api/dev-login`, {
-    data: { role },
+  const email = ROLE_EMAILS[role] ?? `${role}@safetrack.demo`;
+  const res = await page.request.post(`${API}/api/login`, {
+    data: { email, password: 'demo1234' },
   });
   expect(res.ok()).toBeTruthy();
   const body = await res.json();
@@ -167,8 +178,10 @@ async function createCAPA(
   incidentId: number,
   investigationId: number,
   priority: string = 'Medium',
-  assignedToUserId: string = 'qa-assignee-user',
+  assignedToUserId: string = '',
 ): Promise<Record<string, unknown>> {
+  const resolvedAssignee = assignedToUserId
+    || (await getTokenAndUserId(page, 'field_reporter')).userId;
   const res = await page.request.post(`${API}/api/capas`, {
     headers: authHeaders(token),
     data: {
@@ -177,7 +190,7 @@ async function createCAPA(
       type: 'Corrective',
       category: 'Training',
       description: `QA CAPA [${priority}] — ${Date.now()}`,
-      assignedToUserId,
+      assignedToUserId: resolvedAssignee,
       priority,
       verificationMethod: 'Direct observation and record review',
     },
@@ -425,18 +438,17 @@ test('CompleteCAPA: already-complete CAPA (Verification Pending) returns 400', a
 // ---------------------------------------------------------------------------
 
 test('VerifyCAPA: rejects verifier==assignee with 403', async ({ page }) => {
-  const token = await getToken(page, 'safety_manager');
+  const { token, userId: smUserId } = await getTokenAndUserId(page, 'safety_manager');
   const { incidentId, investigationId } = await setupForCAPA(page, token);
 
-  // The dev-login for safety_manager produces userId "dev-safety_manager".
-  // Assign the CAPA to the same user.
+  // Assign the CAPA to the same user who holds the token, so verify is self-verify.
   const capa = await createCAPA(
     page,
     token,
     incidentId,
     investigationId,
     'Medium',
-    'dev-safety_manager', // same as the token holder's userId
+    smUserId, // same as the token holder's userId
   );
   const capaId = capa.id as number;
 
@@ -460,7 +472,7 @@ test('VerifyCAPA: rejects verifier==assignee with 403', async ({ page }) => {
 
 test('VerifyCAPA: effective=true → status becomes Verified Effective', async ({ page }) => {
   const smToken = await getToken(page, 'safety_manager');
-  const scToken = await getToken(page, 'safety_coordinator');
+  const { token: scToken, userId: scUserId } = await getTokenAndUserId(page, 'safety_coordinator');
 
   const { incidentId, investigationId } = await setupForCAPA(page, smToken);
 
@@ -471,7 +483,7 @@ test('VerifyCAPA: effective=true → status becomes Verified Effective', async (
     incidentId,
     investigationId,
     'High',
-    'dev-safety_coordinator',
+    scUserId,
   );
   const capaId = capa.id as number;
 
@@ -505,7 +517,7 @@ test('VerifyCAPA: effective=true → status becomes Verified Effective', async (
 
 test('VerifyCAPA: effective=false → status Verified Ineffective + nextSteps included', async ({ page }) => {
   const smToken = await getToken(page, 'safety_manager');
-  const scToken = await getToken(page, 'safety_coordinator');
+  const { token: scToken, userId: scUserId } = await getTokenAndUserId(page, 'safety_coordinator');
 
   const { incidentId, investigationId } = await setupForCAPA(page, smToken);
 
@@ -515,7 +527,7 @@ test('VerifyCAPA: effective=false → status Verified Ineffective + nextSteps in
     incidentId,
     investigationId,
     'Medium',
-    'dev-safety_coordinator',
+    scUserId,
   );
   const capaId = capa.id as number;
 
@@ -545,6 +557,7 @@ test('VerifyCAPA: effective=false → status Verified Ineffective + nextSteps in
 
 test('VerifyCAPA: cannot verify CAPA that is not Verification Pending → 400', async ({ page }) => {
   const smToken = await getToken(page, 'safety_manager');
+  const { userId: frUserId } = await getTokenAndUserId(page, 'field_reporter');
   const { incidentId, investigationId } = await setupForCAPA(page, smToken);
 
   const capa = await createCAPA(
@@ -553,7 +566,7 @@ test('VerifyCAPA: cannot verify CAPA that is not Verification Pending → 400', 
     incidentId,
     investigationId,
     'Low',
-    'dev-field_reporter',
+    frUserId,
   );
   const capaId = capa.id as number;
 
@@ -597,7 +610,7 @@ test('GET /api/capas/dashboard — returns 4 KPI fields', async ({ page }) => {
 
 test('Dashboard: effectiveness rate increases after Verified Effective CAPA', async ({ page }) => {
   const smToken = await getToken(page, 'safety_manager');
-  const scToken = await getToken(page, 'safety_coordinator');
+  const { token: scToken, userId: scUserId } = await getTokenAndUserId(page, 'safety_coordinator');
 
   // Get baseline
   const beforeRes = await page.request.get(`${API}/api/capas/dashboard`, {
@@ -613,7 +626,7 @@ test('Dashboard: effectiveness rate increases after Verified Effective CAPA', as
     incidentId,
     investigationId,
     'Medium',
-    'dev-safety_coordinator',
+    scUserId,
   );
   const capaId = capa.id as number;
 
@@ -714,7 +727,7 @@ test('CloseIncident: blocked when no CAPAs exist', async ({ page }) => {
 
 test('CloseIncident: succeeds when all CAPAs are Verified Effective', async ({ page }) => {
   const smToken = await getToken(page, 'safety_manager');
-  const scToken = await getToken(page, 'safety_coordinator');
+  const { token: scToken, userId: scUserId } = await getTokenAndUserId(page, 'safety_coordinator');
 
   const incidentId = await createIncident(page, smToken);
   const { investigationId } = await approveInvestigation(page, smToken, incidentId);
@@ -727,7 +740,7 @@ test('CloseIncident: succeeds when all CAPAs are Verified Effective', async ({ p
     incidentId,
     investigationId,
     'Medium',
-    'dev-safety_coordinator',
+    scUserId,
   );
   const capaId = capa.id as number;
 
@@ -849,7 +862,7 @@ test('Audit log: complete CAPA generates a "status_change" audit entry', async (
 
 test('Audit log: verify CAPA (effective) generates a "status_change" audit entry', async ({ page }) => {
   const smToken = await getToken(page, 'safety_manager');
-  const scToken = await getToken(page, 'safety_coordinator');
+  const { token: scToken, userId: scUserId } = await getTokenAndUserId(page, 'safety_coordinator');
   const { incidentId, investigationId } = await setupForCAPA(page, smToken);
   const capa = await createCAPA(
     page,
@@ -857,7 +870,7 @@ test('Audit log: verify CAPA (effective) generates a "status_change" audit entry
     incidentId,
     investigationId,
     'Low',
-    'dev-safety_coordinator',
+    scUserId,
   );
   const capaId = capa.id as number;
 
