@@ -60,7 +60,10 @@
       "Bash(ls -lt ~/Downloads/*.png)",
       "Bash(sips -g pixelWidth -g pixelHeight ~/Downloads/resized_2048.png)",
       "Bash(SRC=~/Downloads/resized_2048.png sips -z 32 32 \"$SRC\" --out /Users/highlander/Desktop/highlander/flutter/web/favicon.png)",
-      "Read(//Users/highlander/Desktop/highlander/**)"
+      "Read(//Users/highlander/Desktop/highlander/**)",
+      "Bash(docker-compose -f /Users/highlander/Desktop/highlander/docker-compose.yml down)",
+      "Bash(docker-compose -f /Users/highlander/Desktop/highlander/docker-compose.yml up -d)",
+      "Bash(dart analyze:*)"
     ],
     "deny": [],
     "defaultMode": "bypassPermissions",

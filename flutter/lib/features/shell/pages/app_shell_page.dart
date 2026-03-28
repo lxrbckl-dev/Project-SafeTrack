@@ -411,7 +411,18 @@ class _DesktopShell extends StatelessWidget {
           Expanded(
             child: Row(
               children: [
-                _Sidebar(navItems: navItems, currentLocation: currentLocation),
+                // Wrap _Sidebar with the onboarding key at this level so
+                // tutorial_coach_mark gets a clean render box position.
+                // Placing the key on Material inside _Sidebar caused
+                // localToGlobal() misalignment due to compositing layers.
+                SizedBox(
+                  key: OnboardingKeys.sidebar,
+                  width: _kSidebarWidth,
+                  child: _Sidebar(
+                    navItems: navItems,
+                    currentLocation: currentLocation,
+                  ),
+                ),
                 Expanded(child: child),
               ],
             ),
@@ -440,62 +451,55 @@ class _Sidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: _kSidebarWidth,
-      child: Material(
-        key: OnboardingKeys.sidebar,
-        color: HerzogColors.richBlack,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Skip-nav link (WCAG 2.4.1) — visually hidden but in tab order
-            _SkipNavLink(),
+    return Material(
+      color: HerzogColors.richBlack,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Skip-nav link (WCAG 2.4.1) — visually hidden but in tab order
+          _SkipNavLink(),
 
-            // Brand header
-            _SidebarHeader(),
+          // Brand header
+          _SidebarHeader(),
 
-            const Divider(color: HerzogColors.gold, height: 1, thickness: 3),
+          const Divider(color: HerzogColors.gold, height: 1, thickness: 3),
 
-            const SizedBox(height: 8),
+          const SizedBox(height: 8),
 
-            // Nav items
-            Expanded(
-              child: Semantics(
-                label: 'Main navigation',
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  itemCount: navItems.length,
-                  itemBuilder: (context, index) {
-                    final item = navItems[index];
-                    final isActive = _isActiveRoute(
-                      currentLocation,
-                      item.route,
-                    );
-                    // Attach the onboarding tour key to the Incidents nav item
-                    // so the tour can highlight "Report an incident from here".
-                    final itemKey = item.route == '/incidents'
-                        ? OnboardingKeys.newIncident
-                        : null;
-                    return _SidebarNavItem(
-                      key: itemKey,
-                      item: item,
-                      isActive: isActive,
-                    );
-                  },
-                ),
+          // Nav items
+          Expanded(
+            child: Semantics(
+              label: 'Main navigation',
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                itemCount: navItems.length,
+                itemBuilder: (context, index) {
+                  final item = navItems[index];
+                  final isActive = _isActiveRoute(currentLocation, item.route);
+                  // Attach the onboarding tour key to the Incidents nav item
+                  // so the tour can highlight "Report an incident from here".
+                  final itemKey = item.route == '/incidents'
+                      ? OnboardingKeys.newIncident
+                      : null;
+                  return _SidebarNavItem(
+                    key: itemKey,
+                    item: item,
+                    isActive: isActive,
+                  );
+                },
               ),
             ),
+          ),
 
-            // Dark-mode toggle (TASK-036)
-            const _DarkModeToggle(),
+          // Dark-mode toggle (TASK-036)
+          const _DarkModeToggle(),
 
-            // Restart tour button (TASK-042)
-            const _RestartTourButton(),
+          // Restart tour button (TASK-042)
+          const _RestartTourButton(),
 
-            // Shortcut discoverability hint (WCAG 2.1.4)
-            _ShortcutHint(),
-          ],
-        ),
+          // Shortcut discoverability hint (WCAG 2.1.4)
+          _ShortcutHint(),
+        ],
       ),
     );
   }

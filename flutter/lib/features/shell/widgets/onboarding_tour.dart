@@ -114,8 +114,13 @@ class _OnboardingTourState extends State<OnboardingTour> {
   @override
   void initState() {
     super.initState();
-    // Defer until the first frame so all GlobalKey targets are laid out.
-    WidgetsBinding.instance.addPostFrameCallback((_) => _checkAndShowTour());
+    // Defer until layout is fully settled. A single addPostFrameCallback fires
+    // after the first frame, but LayoutBuilder → Scaffold → Row → _Sidebar
+    // may not have final positions yet. A short delay ensures all layout
+    // passes are complete before tutorial_coach_mark reads render box positions.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 600), _checkAndShowTour);
+    });
   }
 
   Future<void> _checkAndShowTour() async {
