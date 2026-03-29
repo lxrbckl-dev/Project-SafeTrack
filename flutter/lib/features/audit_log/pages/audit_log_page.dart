@@ -139,7 +139,7 @@ class _AuditLogPageState extends State<AuditLogPage> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Tooltip(
                 message: 'Refresh audit log',
