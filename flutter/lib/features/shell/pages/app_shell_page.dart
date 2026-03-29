@@ -178,11 +178,11 @@ bool _isTextFieldFocused() {
 ///
 /// **Shortcuts:**
 /// - **Ctrl+Shift+H** → /dashboard
-/// - **Ctrl+Shift+N** → /incidents
+/// - **Ctrl+Shift+I** → /incidents
 /// - **Ctrl+Shift+V** → /investigations
 /// - **Ctrl+Shift+A** → /capas
 /// - **Ctrl+Shift+S** → /search (global search)
-/// - **Ctrl+Shift+K** or **/** → Toggle AI Chat (no-op if chat widget not present)
+/// - **Ctrl+Shift+C** or **/** → Toggle AI Chat (no-op if chat widget not present)
 /// - **Escape** → Close any open panel
 /// - **?** (Shift+/) → Show keyboard shortcuts overlay
 ///
@@ -242,7 +242,7 @@ class AppShellPage extends StatelessWidget {
 ///
 /// Ctrl+Shift+letter shortcuts do not produce text input and require no
 /// text-field guard. The `/` shortcut is still guarded via
-/// [_isTextFieldFocused] because it is a bare character key. Ctrl+Shift+K
+/// [_isTextFieldFocused] because it is a bare character key. Ctrl+Shift+C
 /// and Escape work regardless of focus state and do not conflict with browser
 /// defaults.
 class _AppShortcutsWrapper extends StatelessWidget {
@@ -262,17 +262,18 @@ class _AppShortcutsWrapper extends StatelessWidget {
         // triggering shortcuts. Ctrl+Shift is safe on all platforms.
         //
         // Some Ctrl+Shift combos conflict with Chrome DevTools:
-        //   Ctrl+Shift+I = DevTools       → remapped to N (New incident)
+        //   Ctrl+Shift+I = DevTools in older Chrome, but Flutter canvas
+        //       intercepts before the browser → safe to use as I (Incidents)
         //   Ctrl+Shift+D = Bookmark bar   → remapped to H (Home/dashboard)
-        //   Ctrl+Shift+C = Element picker  → remapped to A (Actions/CAPAs)
+        //   Ctrl+Shift+C = Element picker in older Chrome, but Flutter canvas
+        //       intercepts before the browser → safe to use as C (Chat)
         //   Ctrl+Shift+S = no conflict    → kept as S (Search)
-        //   Ctrl+Shift+K = no conflict    → kept as K (chat toggle)
         //   Ctrl+Shift+V = paste-plain in Chrome, but Flutter canvas
         //       intercepts before the browser → kept as V (investigations)
         // ---------------------------------------------------------------
         SingleActivator(LogicalKeyboardKey.keyH, control: true, shift: true):
             _NavigateDashboardIntent(),
-        SingleActivator(LogicalKeyboardKey.keyN, control: true, shift: true):
+        SingleActivator(LogicalKeyboardKey.keyI, control: true, shift: true):
             _NavigateIncidentsIntent(),
         SingleActivator(LogicalKeyboardKey.keyV, control: true, shift: true):
             _NavigateInvestigationsIntent(),
@@ -283,8 +284,8 @@ class _AppShortcutsWrapper extends StatelessWidget {
         SingleActivator(LogicalKeyboardKey.keyS, control: true, shift: true):
             _NavigateSearchIntent(),
 
-        // Chat toggle: Ctrl+Shift+K (all platforms)
-        SingleActivator(LogicalKeyboardKey.keyK, control: true, shift: true):
+        // Chat toggle: Ctrl+Shift+C (all platforms)
+        SingleActivator(LogicalKeyboardKey.keyC, control: true, shift: true):
             _ToggleChatIntent(),
 
         // Chat toggle: forward-slash (/) — single key, guarded against text fields
@@ -308,7 +309,7 @@ class _AppShortcutsWrapper extends StatelessWidget {
           ),
           _NavigateIncidentsIntent: CallbackAction<_NavigateIncidentsIntent>(
             onInvoke: (_) {
-              // Ctrl+Shift+N — modifier combo; no guard needed.
+              // Ctrl+Shift+I — modifier combo; no guard needed.
               context.go('/incidents');
               return null;
             },
@@ -339,7 +340,7 @@ class _AppShortcutsWrapper extends StatelessWidget {
             onInvoke: (_) {
               // The `/` key binding fires this intent; guard against text-field
               // focus so that typing `/` in a form field is not intercepted.
-              // Ctrl+Shift+K is a modifier combo and does not need this guard.
+              // Ctrl+Shift+C is a modifier combo and does not need this guard.
               if (_isTextFieldFocused()) return null;
               // Chat widget from TASK-017 may not be present.
               // No-op gracefully if chat is absent; chat widget self-registers

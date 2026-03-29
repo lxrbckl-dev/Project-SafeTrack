@@ -195,10 +195,10 @@ All test accounts use password **`demo1234`**.
 | Key | Action |
 |---|---|
 | `Ctrl+Shift+H` | Dashboard |
-| `Ctrl+Shift+N` | Incidents |
+| `Ctrl+Shift+I` | Incidents |
 | `Ctrl+Shift+V` | Investigations |
 | `Ctrl+Shift+A` | CAPAs |
-| `Ctrl+Shift+K` | Toggle AI chat |
+| `Ctrl+Shift+C` | Toggle AI chat |
 | `Ctrl+Shift+S` | Global search |
 | `/` | Toggle AI chat (not in text fields) |
 | `?` | Show all shortcuts |

@@ -235,7 +235,7 @@ EVAL_CASES = [
     (
         "ai",
         "What keyboard shortcut opens the AI chat?",
-        ["Ctrl+Shift+K", "/"],
+        ["Ctrl+Shift+C", "/"],
         "Should know both shortcuts",
     ),
     (

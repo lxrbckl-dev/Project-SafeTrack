@@ -53,7 +53,7 @@ class KeyboardShortcutOverlay extends StatelessWidget {
                       description: 'Go to Dashboard',
                     ),
                     _ShortcutRow(
-                      key: 'Ctrl+Shift+N',
+                      key: 'Ctrl+Shift+I',
                       description: 'Go to Incidents',
                     ),
                     _ShortcutRow(
@@ -75,7 +75,7 @@ class KeyboardShortcutOverlay extends StatelessWidget {
                   title: 'PANELS',
                   shortcuts: [
                     _ShortcutRow(
-                      key: 'Ctrl+Shift+K  /  /',
+                      key: 'Ctrl+Shift+C  /  /',
                       description: 'Toggle AI Chat',
                     ),
                     _ShortcutRow(key: 'Esc', description: 'Close open panel'),

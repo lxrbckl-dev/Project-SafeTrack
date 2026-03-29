@@ -167,7 +167,7 @@ Route protection is enforced at both the Flutter router level (redirect) and the
 
 ### AI Assistant
 - Qwen 2.5 3B language model via Ollama with wiki-as-RAG context injection
-- Chat panel toggled via Ctrl+Shift+K or `/` key
+- Chat panel toggled via Ctrl+Shift+C or `/` key
 - Page navigation commands (AI can direct user to any route)
 - Form filling commands (AI can pre-fill incident, investigation, and CAPA forms)
 - Clickable markdown URL generation with query parameter pre-fill
@@ -216,10 +216,10 @@ Supported query parameters by route:
 | Key | Action |
 |---|---|
 | Ctrl+Shift+H | Go to Dashboard |
-| Ctrl+Shift+N | Go to Incidents |
+| Ctrl+Shift+I | Go to Incidents |
 | Ctrl+Shift+V | Go to Investigations |
 | Ctrl+Shift+A | Go to CAPAs |
-| Ctrl+Shift+K | Toggle AI chat panel |
+| Ctrl+Shift+C | Toggle AI chat panel |
 | Ctrl+Shift+S | Focus global search |
 | / | Toggle AI chat (disabled when cursor is in a text field) |
 | ? | Show keyboard shortcuts overlay |
