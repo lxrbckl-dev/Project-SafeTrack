@@ -687,3 +687,15 @@ Already installed: Flutter 3.41.4, Xcode 26.3, Playwright 1.58.2
 - Warm-up goroutine confirms model is loaded before users hit the chat
 - Ollama container must be restarted after any `docker-compose down -v` since volumes (including model) are wiped
 - Added troubleshooting entry to README for "AI chat keeps going offline"
+
+---
+
+## 2026-03-29 — Morning
+
+### Environment Setup
+- Fresh session — installed Flutter 3.41.6, Go 1.26.1, gh 2.89.0 via brew + manual SDK download
+- Ran flutter pub get, dart analyze, go build to verify toolchain
+
+### Wiki-as-RAG Wiring
+- Wired wiki.md asset into AI chat: ChatRepository now loads assets/wiki.md via rootBundle on first message, caches in memory, sends as `system` field in chat API request
+- Backend ChatRequest.System field already existed — no Go changes needed

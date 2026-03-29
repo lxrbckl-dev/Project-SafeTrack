@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 
 import '../../../core/services/api_config.dart';
@@ -46,8 +47,25 @@ class ChatResult {
 class ChatRepository {
   final http.Client _client;
 
+  /// Cached wiki content loaded from the bundled asset. Loaded once on first
+  /// message and reused for every subsequent request.
+  String? _wikiCache;
+
   /// Inject [http.Client] for testability; defaults to a new instance.
   ChatRepository({http.Client? client}) : _client = client ?? http.Client();
+
+  /// Loads `assets/wiki.md` and caches it in memory. Returns the cached value
+  /// on subsequent calls.
+  Future<String> _loadWiki() async {
+    if (_wikiCache != null) return _wikiCache!;
+    try {
+      _wikiCache = await rootBundle.loadString('assets/wiki.md');
+    } on Exception {
+      // Asset missing or unreadable — degrade gracefully without wiki context.
+      _wikiCache = '';
+    }
+    return _wikiCache!;
+  }
 
   /// Sends [message] to the backend chat endpoint using [token] for auth.
   ///
@@ -62,8 +80,14 @@ class ChatRepository {
     };
 
     try {
+      final wiki = await _loadWiki();
+      final requestBody = <String, dynamic>{
+        'prompt': message,
+        if (wiki.isNotEmpty) 'system': wiki,
+      };
+
       final response = await _client
-          .post(uri, headers: headers, body: jsonEncode({'prompt': message}))
+          .post(uri, headers: headers, body: jsonEncode(requestBody))
           .timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
