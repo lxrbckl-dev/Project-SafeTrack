@@ -63,3 +63,4 @@ postgres_data/
 *.key
 *.pem
 credentials.json
+eval/__pycache__/

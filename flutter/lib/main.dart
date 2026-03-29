@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'firebase_options.dart';
 import 'app/app_router.dart';
 import 'app/herzog_theme.dart';
 import 'core/database/app_database.dart';
@@ -24,7 +22,6 @@ void main() async {
   // Enable semantics tree for Playwright accessibility testing on web.
   // Store handle to prevent GC from disposing semantics.
   SemanticsBinding.instance.ensureSemantics();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   final prefs = await SharedPreferences.getInstance();
 
   // Restore persisted auth session before building the widget tree so the

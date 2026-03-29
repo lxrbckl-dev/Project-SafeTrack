@@ -10,7 +10,8 @@ import 'role.dart';
 /// Manages authentication state for the SafeTrack app.
 ///
 /// [login] calls [POST /api/login] with email and password to obtain an
-/// HS256 JWT. In production this will be replaced by Firebase Auth; the rest
+/// HS256 JWT. The Go middleware is provider-agnostic — swapping to Azure AD
+/// or any other JWT issuer is a config change, not a code change. The rest
 /// of the app reads [token], [currentRole], etc., which remain the same
 /// regardless of auth provider.
 ///

@@ -159,7 +159,7 @@ class _DriftTestPageState extends State<DriftTestPage> {
                 return ListTile(
                   title: Text(note.content),
                   subtitle: Text(
-                    'ID: ${note.id} | ${note.synced ? "Synced to Firebase" : "Local only"}',
+                    'ID: ${note.id} | ${note.synced ? "Synced" : "Local only"}',
                   ),
                   trailing: Icon(
                     note.synced ? Icons.cloud_done : Icons.cloud_off,

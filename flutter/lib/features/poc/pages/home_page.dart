@@ -65,7 +65,7 @@ class HomePage extends StatelessWidget {
           ),
           _TestCard(
             title: 'DRIFT DATABASE',
-            subtitle: 'SQLite on mobile, WASM on web + Firebase sync',
+            subtitle: 'SQLite on mobile, WASM on web + API sync',
             icon: Icons.storage,
             onTap: () => context.push('/drift'),
             status: 'PASS',
