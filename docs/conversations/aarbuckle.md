@@ -665,3 +665,25 @@ Already installed: Flutter 3.41.4, Xcode 26.3, Playwright 1.58.2
 - Flutter borderRadius console errors still spamming — prompt sent to TPM to fix
 - AI chat cold start confirmed working after Ollama warm-up — ~60s first message, 1-3s after
 - Application restart workflow solidified: kill ports → docker up → local Go backend → Flutter launch
+
+### Critical Seed Data Bug — Diagnosed & Fixed
+- Dashboard showed all zeros — TRIR, DART, severity, divisions all empty despite 110 incidents in DB
+- Root cause: GORM's `default:true` tag on `IsDraft` field. On `db.Create()`, GORM skips `false` (Go zero value) in INSERT, so PostgreSQL applies the column default `true`. Every incident was created as a draft.
+- Sub-agents' PR #189 tried `db.Model(inc).Update("is_draft", inc.IsDraft)` — didn't work because GORM also skips zero values on Update
+- Tried raw SQL `db.Exec("UPDATE incidents SET is_draft = ? WHERE id = ?", inc.IsDraft, inc.ID)` — still didn't work because GORM mutates the struct during Create, so `inc.IsDraft` was already `true` by the time the UPDATE ran
+- **Final fix:** Save intended `IsDraft` value BEFORE `db.Create()` in a `map[uint]bool`, then bulk UPDATE via `db.Exec("UPDATE incidents SET is_draft = false WHERE id IN ?", nonDraftIDs)` using the saved map
+- Result: 103 incidents visible, 7 drafts correctly hidden, TRIR 0.84, DART 0.84, NearMiss 17.5, 4 severity categories, 6 divisions, 72 hours-worked entries — dashboard fully populated
+- Lesson learned: GORM mutates struct fields to match DB defaults on Create() — never trust struct values after Create
+
+### GitHub Issue Labeling
+- Audited all 90+ closed issues for missing/incorrect labels
+- Added `enhancement` to 68 feature/polish issues
+- Added `bug` to #10 (was unlabeled)
+- Swapped `bug` → `enhancement` on 6 mislabeled UI polish issues (#144, #150, #151, #152, #153, #164)
+- Added `documentation` to #41 and #50
+
+### Ollama Reliability
+- `OLLAMA_KEEP_ALIVE=-1` added to docker-compose but required full `docker-compose down && up` to apply (restart doesn't pick up env changes)
+- Warm-up goroutine confirms model is loaded before users hit the chat
+- Ollama container must be restarted after any `docker-compose down -v` since volumes (including model) are wiped
+- Added troubleshooting entry to README for "AI chat keeps going offline"
