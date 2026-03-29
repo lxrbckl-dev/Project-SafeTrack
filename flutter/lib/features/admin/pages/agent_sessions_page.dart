@@ -386,7 +386,7 @@ class _AgentSessionsPageState extends State<AgentSessionsPage> {
         children: [
           Icon(Icons.error_outline, size: 40, color: HerzogColors.errorRed),
           const SizedBox(height: 8),
-          Text(error, style: const TextStyle(color: HerzogColors.errorRed)),
+          Text(error, style: TextStyle(color: HerzogColors.errorRed)),
           const SizedBox(height: 8),
           FilledButton(onPressed: retry, child: const Text('Retry')),
         ],
@@ -484,12 +484,15 @@ class _SessionCard extends StatelessWidget {
                       session.keyName,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : null,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       '${session.userName} · ${_formatRole(session.userRole)}',
-                      style: Theme.of(context).textTheme.bodySmall,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: isDark ? Colors.white : null,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -517,6 +520,7 @@ class _SessionCard extends StatelessWidget {
                     _formatRelative(session.lastUsedAt),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : null,
                     ),
                   ),
                 ],
@@ -608,7 +612,9 @@ class _ActivityRow extends StatelessWidget {
                 children: [
                   Text(
                     item.message,
-                    style: Theme.of(context).textTheme.bodyMedium,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: isDark ? Colors.white : null,
+                    ),
                   ),
                   const SizedBox(height: 2),
                   Row(

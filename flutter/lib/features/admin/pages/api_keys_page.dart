@@ -191,7 +191,7 @@ class _ApiKeysPageState extends State<ApiKeysPage> {
           children: [
             Icon(Icons.error_outline, size: 48, color: HerzogColors.errorRed),
             const SizedBox(height: 16),
-            Text(_error!, style: const TextStyle(color: HerzogColors.errorRed)),
+            Text(_error!, style: TextStyle(color: HerzogColors.errorRed)),
             const SizedBox(height: 16),
             FilledButton(onPressed: _loadKeys, child: const Text('Retry')),
           ],
@@ -199,6 +199,7 @@ class _ApiKeysPageState extends State<ApiKeysPage> {
       );
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (_keys.isEmpty) {
       return Center(
         child: Column(
@@ -208,11 +209,16 @@ class _ApiKeysPageState extends State<ApiKeysPage> {
             const SizedBox(height: 16),
             Text(
               'No API keys yet',
-              style: Theme.of(context).textTheme.titleMedium,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: isDark ? Colors.white : null,
+              ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Create an API key to allow external agents to authenticate.',
+              style: TextStyle(
+                color: isDark ? Colors.white : HerzogColors.richBlack,
+              ),
             ),
             const SizedBox(height: 16),
             FilledButton.icon(
@@ -259,7 +265,9 @@ class _KeyCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      color: isRevoked ? HerzogColors.lightGray : null,
+      color: isRevoked
+          ? (isDark ? HerzogDarkColors.surfaceVariant : HerzogColors.lightGray)
+          : null,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
@@ -283,6 +291,7 @@ class _KeyCard extends StatelessWidget {
                         apiKey.name,
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : null,
                           decoration: isRevoked
                               ? TextDecoration.lineThrough
                               : null,
@@ -322,16 +331,22 @@ class _KeyCard extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     'User ID: ${apiKey.userId}',
-                    style: Theme.of(context).textTheme.bodySmall,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: isDark ? Colors.white : null,
+                    ),
                   ),
                   if (apiKey.lastUsedAt != null)
                     Text(
                       'Last used: ${_formatDate(apiKey.lastUsedAt!)}',
-                      style: Theme.of(context).textTheme.bodySmall,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: isDark ? Colors.white : null,
+                      ),
                     ),
                   Text(
                     'Created: ${_formatDate(apiKey.createdAt)}',
-                    style: Theme.of(context).textTheme.bodySmall,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: isDark ? Colors.white : null,
+                    ),
                   ),
                   if (apiKey.revokedAt != null)
                     Text(
@@ -561,12 +576,14 @@ class _ShowKeyDialogState extends State<_ShowKeyDialog> {
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
-            Container(
+            Builder(builder: (context) {
+              final isDarkKey = Theme.of(context).brightness == Brightness.dark;
+              return Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: HerzogColors.lightGray,
+                color: isDarkKey ? HerzogDarkColors.surfaceVariant : HerzogColors.lightGray,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: HerzogColors.borderGray),
+                border: Border.all(color: isDarkKey ? HerzogDarkColors.inputBorder : HerzogColors.borderGray),
               ),
               child: Row(
                 children: [
@@ -605,7 +622,8 @@ class _ShowKeyDialogState extends State<_ShowKeyDialog> {
                   ),
                 ],
               ),
-            ),
+            );
+            }),
           ],
         ),
       ),
