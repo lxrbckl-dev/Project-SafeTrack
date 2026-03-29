@@ -106,11 +106,15 @@ Route protection is enforced at both the Flutter router level (redirect) and the
 - Injured person details with medical data encryption (AES-256-GCM)
 - Query parameter pre-fill support for AI-generated deep links
 
+---
+
 ### OSHA Compliance
 - Step-by-step recordability decision tree per 29 CFR 1904
 - DART (Days Away, Restricted, Transferred) flag
 - Override with justification for edge cases
 - OSHA 300, 300A, and 301 log generation as CSV exports
+
+---
 
 ### Investigations
 - Interactive 5-Why root cause analysis with inline editing and keyboard navigation (minimum 3 levels enforced)
@@ -121,6 +125,8 @@ Route protection is enforced at both the Flutter router level (redirect) and the
 - Auto target date calculation by incident severity
 - Overdue highlighting at 3 escalation levels (L1/L2/L3)
 
+---
+
 ### CAPAs (Corrective and Preventive Actions)
 - Full lifecycle: Open, In Progress, Completed, Verification Pending, Verified Effective/Ineffective
 - Auto due dates by priority: Critical=7d, High=14d, Medium=30d, Low=60d
@@ -130,10 +136,14 @@ Route protection is enforced at both the Flutter router level (redirect) and the
 - Incident close gate: all CAPAs must be verified before incident can close
 - 4 KPI dashboard cards: open count, overdue count, avg close time, effectiveness rate
 
+---
+
 ### Training Verification
 - Training-category CAPAs auto-create training requirements
 - Completion form: date, hours, instructor, notes
 - Completion record automatically becomes CAPA evidence
+
+---
 
 ### Dashboard & Analytics
 - TRIR (Total Recordable Incident Rate) and DART KPIs with trend arrows
@@ -149,6 +159,8 @@ Route protection is enforced at both the Flutter router level (redirect) and the
 - Recent 10 incidents clickable table
 - Dashboard PDF summary report generation for management meetings
 
+---
+
 ### Incident Map & Recurrence
 - Geographic map view with severity-coded markers and filters
 - Heat map overlay for incident density
@@ -157,6 +169,8 @@ Route protection is enforced at both the Flutter router level (redirect) and the
 - Union-find cluster algorithm for grouping related incidents
 - Dismiss suggestion to hide false positives
 
+---
+
 ### Notifications & Real-Time
 - Escalation notifications at +3/+7/+14 day overdue thresholds
 - Bell badge with unread count in AppBar
@@ -164,6 +178,8 @@ Route protection is enforced at both the Flutter router level (redirect) and the
 - Email notification delivery via SMTP with user preferences (in-app, email, or both)
 - Real-time WebSocket broadcasting for instant updates
 - Live activity feed with human-readable action messages
+
+---
 
 ### AI Assistant
 - Qwen 2.5 3B language model via Ollama with wiki-as-RAG context injection
@@ -174,6 +190,8 @@ Route protection is enforced at both the Flutter router level (redirect) and the
 - Role-aware: only generates URLs for routes the user can access
 - Status indicators: online, loading, offline
 - Graceful degradation when Ollama is unavailable
+
+---
 
 ### AI Chat URL Generation
 The AI assistant generates clickable markdown URLs to help users navigate with pre-filled data:
@@ -189,6 +207,8 @@ Supported query parameters by route:
 | `/capas/new` | investigationId, type, category, priority, description |
 | `/search` | q |
 
+---
+
 ### MCP Agent Integration
 - Model Context Protocol (MCP) server at `/mcp/*` endpoints
 - API key authentication (separate from JWT user auth)
@@ -196,6 +216,8 @@ Supported query parameters by route:
 - Agent capabilities endpoint describing all available tools
 - Agent session tracking with last-used timestamps and activity feed
 - Enables Claude Desktop, Claude.ai, or any MCP-compatible client to interact with SafeTrack
+
+---
 
 ### Accessibility & Polish
 - Offline incident creation with auto-sync on reconnect and offline indicator banner
