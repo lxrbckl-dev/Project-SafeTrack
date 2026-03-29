@@ -62,6 +62,9 @@ class OnboardingKeys {
 
   /// Key for the AI chat FAB.
   static final GlobalKey chatFab = GlobalKey(debugLabel: 'onboarding_chat');
+
+  /// Key for the Help Guide sidebar button (desktop only).
+  static final GlobalKey helpGuide = GlobalKey(debugLabel: 'onboarding_help');
 }
 
 // ---------------------------------------------------------------------------
@@ -240,7 +243,7 @@ class _OnboardingTourState extends State<OnboardingTour> {
               align: ContentAlign.top,
               padding: const EdgeInsets.all(16),
               child: _TourCard(
-                step: '4 of 5',
+                step: '4 of 6',
                 title: 'AI Assistant',
                 body:
                     'Ask the AI assistant questions about SafeTrack. '
@@ -251,7 +254,31 @@ class _OnboardingTourState extends State<OnboardingTour> {
         ),
 
         // -------------------------------------------------------------------
-        // Step 5: Keyboard shortcuts hint (sidebar footer)
+        // Step 5: Help Guide (sidebar footer)
+        // -------------------------------------------------------------------
+        TargetFocus(
+          identify: 'help_guide',
+          keyTarget: OnboardingKeys.helpGuide,
+          enableOverlayTab: true,
+          shape: ShapeLightFocus.RRect,
+          radius: 6,
+          borderSide: const BorderSide(color: HerzogColors.gold, width: 2),
+          contents: [
+            TargetContent(
+              align: ContentAlign.top,
+              padding: const EdgeInsets.all(16),
+              child: _TourCard(
+                step: '5 of 6',
+                title: 'Help Guide',
+                body:
+                    'Need help? The Help Guide contains the complete user manual for SafeTrack — all pages, features, data flow, and keyboard shortcuts.',
+              ),
+            ),
+          ],
+        ),
+
+        // -------------------------------------------------------------------
+        // Step 6: Keyboard shortcuts hint (sidebar footer)
         // -------------------------------------------------------------------
         TargetFocus(
           identify: 'shortcut_hint',
@@ -265,7 +292,7 @@ class _OnboardingTourState extends State<OnboardingTour> {
               align: ContentAlign.top,
               padding: const EdgeInsets.all(16),
               child: _TourCard(
-                step: '5 of 5',
+                step: '6 of 6',
                 title: 'Keyboard Shortcuts',
                 body:
                     'Press ? to see all keyboard shortcuts. '

@@ -575,8 +575,9 @@ class _Sidebar extends StatelessWidget {
           // Dark-mode toggle (TASK-036)
           _DarkModeFooterButton(isCollapsed: isCollapsed),
 
-          // Help guide button
+          // Help guide button — key used by the onboarding tour (step 5 of 6).
           _SidebarFooterButton(
+            key: OnboardingKeys.helpGuide,
             icon: Icons.help_outline,
             label: 'HELP GUIDE',
             onTap: () => context.go('/help'),
