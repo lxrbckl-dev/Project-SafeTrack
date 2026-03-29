@@ -1,4 +1,4 @@
-<h1><img src="https://github.com/lxRbckl/highlander/blob/main/flutter/assets/icon.png?raw=true" width="36" valign="middle" />&nbsp; SafeTrack</h1>
+<h1><img src="https://github.com/lxRbckl/highlander/blob/main/flutter/assets/icon.png?raw=true" width="56" valign="middle" />&nbsp; SafeTrack</h1>
 
 Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutter app with Go backend, built using a multi-agent Claude Code team.
 
