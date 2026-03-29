@@ -746,7 +746,12 @@ class _SidebarHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
       child: Row(
         children: [
-          Image.asset('assets/icon.png', width: 52, height: 52),
+          Image.asset(
+            'assets/icon_sidebar.png',
+            width: 52,
+            height: 52,
+            filterQuality: FilterQuality.high,
+          ),
           const SizedBox(width: 10),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
