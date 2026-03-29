@@ -8,9 +8,12 @@ services:
         condition: service_healthy
     environment:
       - PORT=8000
-      - DATABASE_URL=postgres://highlander:marchpass@postgres:5432/highlander?sslmode=disable
+      - DATABASE_URL=postgres://${POSTGRES_USER:-highlander}:${POSTGRES_PASSWORD:-marchpass}@postgres:5432/${POSTGRES_DB:-highlander}?sslmode=disable
       - OLLAMA_URL=http://ollama:11434
       - SEED_DATA=true
+      # Security: set these in production. Dev defaults are used if unset.
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-}
+      - DEV_JWT_SECRET=${DEV_JWT_SECRET:-}
 
   postgres:
     image: postgres:16-alpine
@@ -19,11 +22,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=highlander
-      - POSTGRES_USER=highlander
-      - POSTGRES_PASSWORD=marchpass
+      - POSTGRES_DB=${POSTGRES_DB:-highlander}
+      - POSTGRES_USER=${POSTGRES_USER:-highlander}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-marchpass}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U highlander -d highlander"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-highlander} -d ${POSTGRES_DB:-highlander}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -46,8 +49,7 @@ services:
       - OLLAMA_HOST=http://ollama:11434
     restart: "no"
 
-  # Flutter web build args — used by Dockerfile.web at build time via --dart-define.
-  # Change these values to customize the login page contact info.
+  # Flutter web — built with configurable values via --dart-define.
   web:
     build:
       context: ./flutter
@@ -56,6 +58,7 @@ services:
         - SUPPORT_EMAIL=${SUPPORT_EMAIL:-aarbuckle@herzog.com}
         - SUPPORT_PHONE=${SUPPORT_PHONE:-1-816-273-2285}
         - SUPPORT_PHONE_TEL=${SUPPORT_PHONE_TEL:-18162732285}
+        - API_BASE_URL=${API_BASE_URL:-https://highlander.lxrbckl.com}
     ports:
       - "2780:80"
     restart: unless-stopped
