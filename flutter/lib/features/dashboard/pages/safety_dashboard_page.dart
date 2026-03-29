@@ -666,6 +666,7 @@ class _IncidentTrendChart extends StatelessWidget {
     final trend = data.incidentTrend;
 
     return Card(
+      clipBehavior: Clip.none,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -721,6 +722,9 @@ class _IncidentTrendChart extends StatelessWidget {
                         barTouchData: BarTouchData(
                           enabled: true,
                           touchTooltipData: BarTouchTooltipData(
+                            fitInsideHorizontally: true,
+                            fitInsideVertically: true,
+                            maxContentWidth: 200,
                             getTooltipColor: (_) =>
                                 HerzogColors.navyBlue.withValues(alpha: 0.9),
                             tooltipPadding: const EdgeInsets.symmetric(
