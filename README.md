@@ -305,3 +305,4 @@ curl -X POST http://localhost:8000/mcp/ \
 | DockerHub: Backend | [pap-highlander-backend](https://hub.docker.com/repository/docker/lxrbckl/pap-highlander-backend/general) | Pre-built Go backend image |
 | Project Page | [lxrbckl.github.io/highlander](https://lxrbckl.github.io/highlander) | GitHub Pages project site |
 | Live App | [highlander.lxrbckl.com](https://highlander.lxrbckl.com) | Hosted production instance |
+| Judge Q&A Session | [Prompt-a-Palooza Highlander](https://chatgpt.com/g/g-p-69c74ae034ec819195829b4e55b5936f-prompt-a-palooza-highlander/project) | Judge prompt session — team speaks to their own work |
