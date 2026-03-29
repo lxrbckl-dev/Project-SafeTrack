@@ -127,6 +127,9 @@ func main() {
 	// Agent session tracking routes (active sessions, agent-only activity feed)
 	handlers.RegisterAgentSessionRoutes(api, db)
 
+	// User list routes (searchable dropdowns on investigation form)
+	handlers.RegisterUserRoutes(api, db)
+
 	// Stress-test data seeding route (admin only)
 	handlers.RegisterSeedStressRoutes(api, db)
 

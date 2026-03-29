@@ -1,19 +1,71 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../app/herzog_theme.dart';
+import '../../../core/services/api_client.dart';
+import '../../../core/services/api_config.dart';
 import '../../../shared/widgets/voice_input_button.dart';
 import '../../auth/data/auth_service.dart';
 import '../../chat/data/form_fill_service.dart';
 import '../../incidents/data/incident_repository.dart';
 import '../data/investigation_repository.dart';
 
+/// Lightweight user model for dropdown display.
+class _UserOption {
+  final int id;
+  final String displayName;
+  final String role;
+  final String division;
+
+  const _UserOption({
+    required this.id,
+    required this.displayName,
+    required this.role,
+    required this.division,
+  });
+
+  factory _UserOption.fromJson(Map<String, dynamic> json) {
+    return _UserOption(
+      id: json['id'] as int? ?? 0,
+      displayName: json['displayName'] as String? ?? '',
+      role: json['role'] as String? ?? '',
+      division: json['division'] as String? ?? '',
+    );
+  }
+
+  /// Human-readable label for dropdown display.
+  String get label {
+    final rolePretty = _prettyRole(role);
+    return '$displayName — $rolePretty';
+  }
+
+  static String _prettyRole(String role) {
+    switch (role) {
+      case 'safety_coordinator':
+        return 'Safety Coordinator';
+      case 'safety_manager':
+        return 'Safety Manager';
+      case 'admin':
+        return 'Admin';
+      case 'field_reporter':
+        return 'Field Reporter';
+      default:
+        return role;
+    }
+  }
+}
+
 /// Form page for Safety Manager to create a new investigation from an incident.
 ///
 /// Features:
-/// - Fields: lead investigator (text), team members
+/// - Searchable incident dropdown (fetched from GET /api/incidents)
+/// - Lead investigator dropdown (fetched from GET /api/users, filtered to
+///   Safety Coordinator, Safety Manager, Admin roles)
+/// - Team members free-text field
 /// - Target completion date auto-set by severity (shown, read-only)
 /// - Route: /investigations/new?incidentId={id}
 /// - Query-parameter pre-fill (TASK-044): `leadInvestigator`
@@ -41,12 +93,21 @@ class _InvestigationFormPageState extends State<InvestigationFormPage> {
   late final InvestigationRepository _invRepo;
   late final IncidentRepository _incRepo;
   late final AuthService _auth;
+  late final ApiClient _apiClient;
 
-  final _leadCtrl = TextEditingController();
   final _teamCtrl = TextEditingController();
-  int? _incidentId;
-  Incident? _incident;
-  bool _loadingIncident = false;
+
+  // Incident dropdown state
+  List<Incident> _incidents = [];
+  bool _loadingIncidents = false;
+  int? _selectedIncidentId;
+  Incident? _selectedIncident;
+
+  // Lead investigator dropdown state
+  List<_UserOption> _investigators = [];
+  bool _loadingUsers = false;
+  String? _selectedLeadId;
+
   bool _saving = false;
   String? _error;
 
@@ -56,10 +117,14 @@ class _InvestigationFormPageState extends State<InvestigationFormPage> {
     _auth = context.read<AuthService>();
     _invRepo = InvestigationRepository(_auth);
     _incRepo = IncidentRepository(_auth);
-    _incidentId = widget.incidentId;
-    if (_incidentId != null) {
-      _loadIncident();
-    }
+    _apiClient = ApiClient(_auth);
+
+    _selectedIncidentId = widget.incidentId;
+
+    // Fetch dropdown data
+    _fetchIncidents();
+    _fetchUsers();
+
     // TASK-044: Apply URL query-parameter pre-fill before FormFillService
     // so query params take precedence (edge case #5).
     _applyQueryParams();
@@ -82,7 +147,8 @@ class _InvestigationFormPageState extends State<InvestigationFormPage> {
     // Query param present — clear pending FormFillService data.
     context.read<FormFillService>().clear();
 
-    _leadCtrl.text = leadVal;
+    // Try to use as a pre-selected lead investigator ID
+    _selectedLeadId = leadVal;
   }
 
   /// Applies any pending form fill data from [FormFillService] (AI agent
@@ -96,7 +162,7 @@ class _InvestigationFormPageState extends State<InvestigationFormPage> {
       for (final entry in fields.entries) {
         switch (entry.key) {
           case 'leadInvestigator':
-            _leadCtrl.text = entry.value;
+            _selectedLeadId = entry.value;
           case 'teamMembers':
             _teamCtrl.text = entry.value;
           // Silently skip unknown fields per spec.
@@ -110,35 +176,102 @@ class _InvestigationFormPageState extends State<InvestigationFormPage> {
     final formFillService = context.read<FormFillService>();
     formFillService.removeListener(_applyPendingFields);
     formFillService.clear();
-    _leadCtrl.dispose();
     _teamCtrl.dispose();
     super.dispose();
   }
 
-  Future<void> _loadIncident() async {
-    if (_incidentId == null) return;
-    setState(() => _loadingIncident = true);
+  /// Fetch all incidents for the searchable dropdown.
+  Future<void> _fetchIncidents() async {
+    setState(() => _loadingIncidents = true);
     try {
-      final incident = await _incRepo.getIncident(_incidentId!);
+      final response = await _incRepo.listIncidents(perPage: 200);
       if (mounted) {
         setState(() {
-          _incident = incident;
-          _loadingIncident = false;
+          _incidents = response.data;
+          _loadingIncidents = false;
+          // If we have a pre-selected incident ID, load its details
+          if (_selectedIncidentId != null) {
+            _selectedIncident = _incidents
+                .where((i) => i.id == _selectedIncidentId)
+                .firstOrNull;
+            // If not in the list, fetch individually
+            if (_selectedIncident == null) {
+              _loadIncidentById(_selectedIncidentId!);
+            }
+          }
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = 'Failed to load incident: $e';
-          _loadingIncident = false;
+          _loadingIncidents = false;
+          _error = 'Failed to load incidents: $e';
+        });
+      }
+    }
+  }
+
+  /// Fetch a single incident by ID (fallback when not in the list).
+  Future<void> _loadIncidentById(int id) async {
+    try {
+      final incident = await _incRepo.getIncident(id);
+      if (mounted) {
+        setState(() {
+          _selectedIncident = incident;
+          // Add to list if not already there
+          if (!_incidents.any((i) => i.id == id)) {
+            _incidents = [incident, ..._incidents];
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = 'Failed to load incident #$id: $e';
+        });
+      }
+    }
+  }
+
+  /// Fetch users for the lead investigator dropdown.
+  Future<void> _fetchUsers() async {
+    setState(() => _loadingUsers = true);
+    try {
+      final uri = Uri.parse('${ApiConfig.baseUrl}/api/users');
+      final response = await _apiClient.get(uri);
+      if (response.statusCode != 200) {
+        throw Exception('Failed to load users: ${response.body}');
+      }
+      final List<dynamic> data = jsonDecode(response.body) as List<dynamic>;
+      final allUsers = data
+          .map((e) => _UserOption.fromJson(e as Map<String, dynamic>))
+          .toList();
+
+      // Filter to only investigator-eligible roles
+      final eligible = allUsers.where((u) =>
+          u.role == 'safety_coordinator' ||
+          u.role == 'safety_manager' ||
+          u.role == 'admin').toList();
+
+      if (mounted) {
+        setState(() {
+          _investigators = eligible;
+          _loadingUsers = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _loadingUsers = false;
+          // Non-fatal: user can still type manually if dropdown fails
         });
       }
     }
   }
 
   String _targetDateLabel() {
-    if (_incident == null) return 'Select an incident first';
-    final severity = _incident!.severity;
+    if (_selectedIncident == null) return 'Select an incident first';
+    final severity = _selectedIncident!.severity;
     final now = DateTime.now();
 
     DateTime target;
@@ -166,13 +299,13 @@ class _InvestigationFormPageState extends State<InvestigationFormPage> {
   }
 
   Future<void> _submit() async {
-    if (_incidentId == null) {
+    if (_selectedIncidentId == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Incident ID is required')));
+      ).showSnackBar(const SnackBar(content: Text('Incident is required')));
       return;
     }
-    if (_leadCtrl.text.trim().isEmpty) {
+    if (_selectedLeadId == null || _selectedLeadId!.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Lead investigator is required')),
       );
@@ -182,8 +315,8 @@ class _InvestigationFormPageState extends State<InvestigationFormPage> {
     setState(() => _saving = true);
     try {
       final investigation = await _invRepo.createInvestigation(
-        incidentId: _incidentId!,
-        leadInvestigatorId: _leadCtrl.text.trim(),
+        incidentId: _selectedIncidentId!,
+        leadInvestigatorId: _selectedLeadId!.trim(),
         teamMembers: _teamCtrl.text.trim(),
       );
       if (mounted) {
@@ -206,8 +339,21 @@ class _InvestigationFormPageState extends State<InvestigationFormPage> {
     }
   }
 
+  /// Builds the incident label for a dropdown option.
+  String _incidentLabel(Incident inc) {
+    final id = '#${inc.id}';
+    final type = inc.type.isNotEmpty ? inc.type : 'Unknown';
+    var location = inc.location;
+    if (location.length > 30) {
+      location = '${location.substring(0, 27)}...';
+    }
+    return '$id — $type — $location';
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('NEW INVESTIGATION'),
@@ -225,66 +371,53 @@ class _InvestigationFormPageState extends State<InvestigationFormPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Builder(builder: (context) {
-                  final isDark = Theme.of(context).brightness == Brightness.dark;
-                  return Text(
-                    'ASSIGN INVESTIGATION',
-                    style: HerzogText.heading(
-                      fontSize: 20,
-                      color: isDark ? Colors.white : HerzogColors.richBlack,
-                    ),
-                  );
-                }),
+                Text(
+                  'ASSIGN INVESTIGATION',
+                  style: HerzogText.heading(
+                    fontSize: 20,
+                    color: isDark ? Colors.white : HerzogColors.richBlack,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Builder(builder: (context) {
-                  final isDark = Theme.of(context).brightness == Brightness.dark;
-                  return Text(
-                    'Assign a lead investigator and team to investigate this '
-                    'incident.',
-                    style: HerzogText.body(
-                      fontSize: 13,
-                      color: isDark ? Colors.white : HerzogColors.midGray,
-                    ),
-                  );
-                }),
+                Text(
+                  'Assign a lead investigator and team to investigate this '
+                  'incident.',
+                  style: HerzogText.body(
+                    fontSize: 13,
+                    color: isDark ? Colors.white : HerzogColors.midGray,
+                  ),
+                ),
                 const SizedBox(height: 24),
 
-                // Incident info
-                if (_incident != null) ...[
+                // Incident info card (shown when an incident is selected)
+                if (_selectedIncident != null) ...[
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Builder(builder: (context) {
-                            final isDark = Theme.of(context).brightness == Brightness.dark;
-                            return Text(
-                              'LINKED INCIDENT',
-                              style: HerzogText.heading(
-                                fontSize: 14,
-                                color: isDark ? HerzogColors.gold : HerzogColors.navyBlue,
-                              ),
-                            );
-                          }),
+                          Text(
+                            'LINKED INCIDENT',
+                            style: HerzogText.heading(
+                              fontSize: 14,
+                              color: isDark
+                                  ? HerzogColors.gold
+                                  : HerzogColors.navyBlue,
+                            ),
+                          ),
                           const SizedBox(height: 8),
-                          _infoRow('Incident ID', '#${_incident!.id}'),
-                          _infoRow('Type', _incident!.type),
-                          _infoRow('Severity', _incident!.severity),
-                          _infoRow('Location', _incident!.location),
-                          _infoRow('Status', _incident!.status),
+                          _infoRow('Incident ID', '#${_selectedIncident!.id}'),
+                          _infoRow('Type', _selectedIncident!.type),
+                          _infoRow('Severity', _selectedIncident!.severity),
+                          _infoRow('Location', _selectedIncident!.location),
+                          _infoRow('Status', _selectedIncident!.status),
                         ],
                       ),
                     ),
                   ),
                   const SizedBox(height: 16),
                 ],
-
-                if (_loadingIncident)
-                  const Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Center(child: CircularProgressIndicator()),
-                  ),
 
                 if (_error != null)
                   Container(
@@ -303,52 +436,21 @@ class _InvestigationFormPageState extends State<InvestigationFormPage> {
                     ),
                   ),
 
-                // Incident ID input (if not pre-filled)
-                if (_incidentId == null) ...[
-                  Semantics(
-                    label: 'Incident ID',
-                    textField: true,
-                    child: TextField(
-                      decoration: const InputDecoration(
-                        labelText: 'Incident ID',
-                        hintText: 'Enter the incident ID...',
-                      ),
-                      keyboardType: TextInputType.number,
-                      onSubmitted: (value) {
-                        final id = int.tryParse(value);
-                        if (id != null) {
-                          setState(() => _incidentId = id);
-                          _loadIncident();
-                        }
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-
-                // Lead investigator
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Semantics(
-                        label: 'Lead investigator',
-                        textField: true,
-                        child: TextField(
-                          controller: _leadCtrl,
-                          decoration: const InputDecoration(
-                            labelText: 'Lead Investigator *',
-                            hintText: 'Enter investigator ID or name...',
-                          ),
-                        ),
-                      ),
-                    ),
-                    VoiceInputButton(controller: _leadCtrl),
-                  ],
+                // Incident searchable dropdown
+                Semantics(
+                  label: 'Select incident',
+                  child: _buildIncidentAutocomplete(isDark),
                 ),
                 const SizedBox(height: 16),
 
-                // Team members
+                // Lead investigator dropdown
+                Semantics(
+                  label: 'Lead investigator',
+                  child: _buildLeadInvestigatorDropdown(isDark),
+                ),
+                const SizedBox(height: 16),
+
+                // Team members (free-text)
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -388,17 +490,16 @@ class _InvestigationFormPageState extends State<InvestigationFormPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Builder(builder: (context) {
-                                final isDark = Theme.of(context).brightness == Brightness.dark;
-                                return Text(
-                                  'TARGET COMPLETION DATE',
-                                  style: HerzogText.label(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                    color: isDark ? Colors.white : HerzogColors.midGray,
-                                  ),
-                                );
-                              }),
+                              Text(
+                                'TARGET COMPLETION DATE',
+                                style: HerzogText.label(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark
+                                      ? Colors.white
+                                      : HerzogColors.midGray,
+                                ),
+                              ),
                               const SizedBox(height: 4),
                               Semantics(
                                 label:
@@ -416,16 +517,13 @@ class _InvestigationFormPageState extends State<InvestigationFormPage> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Builder(builder: (context) {
-                  final isDark = Theme.of(context).brightness == Brightness.dark;
-                  return Text(
-                    'Auto-calculated based on incident severity. Not editable.',
-                    style: HerzogText.body(
-                      fontSize: 11,
-                      color: isDark ? Colors.white : HerzogColors.smoke,
-                    ),
-                  );
-                }),
+                Text(
+                  'Auto-calculated based on incident severity. Not editable.',
+                  style: HerzogText.body(
+                    fontSize: 11,
+                    color: isDark ? Colors.white : HerzogColors.smoke,
+                  ),
+                ),
                 const SizedBox(height: 24),
 
                 // Submit
@@ -454,6 +552,195 @@ class _InvestigationFormPageState extends State<InvestigationFormPage> {
           ),
         ),
       ),
+    );
+  }
+
+  /// Builds a searchable incident dropdown using [Autocomplete].
+  Widget _buildIncidentAutocomplete(bool isDark) {
+    if (_loadingIncidents) {
+      return const TextField(
+        enabled: false,
+        decoration: InputDecoration(
+          labelText: 'Incident *',
+          hintText: 'Loading incidents...',
+        ),
+      );
+    }
+
+    return Autocomplete<Incident>(
+      displayStringForOption: _incidentLabel,
+      initialValue: _selectedIncident != null
+          ? TextEditingValue(text: _incidentLabel(_selectedIncident!))
+          : null,
+      optionsBuilder: (TextEditingValue textEditingValue) {
+        if (textEditingValue.text.isEmpty) {
+          return _incidents;
+        }
+        final query = textEditingValue.text.toLowerCase();
+        return _incidents.where((inc) {
+          final label = _incidentLabel(inc).toLowerCase();
+          return label.contains(query);
+        });
+      },
+      onSelected: (Incident incident) {
+        setState(() {
+          _selectedIncidentId = incident.id;
+          _selectedIncident = incident;
+        });
+      },
+      optionsViewBuilder: (context, onSelected, options) {
+        return Align(
+          alignment: Alignment.topLeft,
+          child: Material(
+            elevation: 4,
+            color: isDark
+                ? HerzogDarkColors.surfaceVariant
+                : HerzogColors.white,
+            borderRadius: BorderRadius.circular(5),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxHeight: 250,
+                maxWidth: 568,
+              ),
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                itemCount: options.length,
+                itemBuilder: (context, index) {
+                  final incident = options.elementAt(index);
+                  return ListTile(
+                    title: Text(
+                      _incidentLabel(incident),
+                      style: TextStyle(
+                        color: isDark ? Colors.white : HerzogColors.richBlack,
+                        fontSize: 14,
+                      ),
+                    ),
+                    onTap: () => onSelected(incident),
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+      },
+      fieldViewBuilder:
+          (context, textController, focusNode, onFieldSubmitted) {
+        return TextField(
+          controller: textController,
+          focusNode: focusNode,
+          decoration: const InputDecoration(
+            labelText: 'Incident *',
+            hintText: 'Search by ID, type, or location...',
+            prefixIcon: Icon(Icons.search, size: 20),
+          ),
+          onSubmitted: (_) => onFieldSubmitted(),
+        );
+      },
+    );
+  }
+
+  /// Builds the lead investigator dropdown filtered to eligible roles.
+  Widget _buildLeadInvestigatorDropdown(bool isDark) {
+    if (_loadingUsers) {
+      return const TextField(
+        enabled: false,
+        decoration: InputDecoration(
+          labelText: 'Lead Investigator *',
+          hintText: 'Loading users...',
+        ),
+      );
+    }
+
+    if (_investigators.isEmpty) {
+      // Fallback: if users endpoint failed or returned nothing, show text field
+      return TextField(
+        decoration: const InputDecoration(
+          labelText: 'Lead Investigator *',
+          hintText: 'Enter investigator ID...',
+        ),
+        onChanged: (value) {
+          _selectedLeadId = value;
+        },
+      );
+    }
+
+    // Use Autocomplete for lead investigator to avoid deprecated
+    // DropdownButtonFormField.value and provide search/filter support.
+    final preselected = _investigators
+        .where((u) => u.id.toString() == _selectedLeadId)
+        .firstOrNull;
+
+    return Autocomplete<_UserOption>(
+      displayStringForOption: (u) => u.label,
+      initialValue: preselected != null
+          ? TextEditingValue(text: preselected.label)
+          : null,
+      optionsBuilder: (TextEditingValue textEditingValue) {
+        if (textEditingValue.text.isEmpty) {
+          return _investigators;
+        }
+        final query = textEditingValue.text.toLowerCase();
+        return _investigators.where((u) {
+          return u.label.toLowerCase().contains(query);
+        });
+      },
+      onSelected: (_UserOption user) {
+        setState(() {
+          _selectedLeadId = user.id.toString();
+        });
+      },
+      optionsViewBuilder: (context, onSelected, options) {
+        return Align(
+          alignment: Alignment.topLeft,
+          child: Material(
+            elevation: 4,
+            color: isDark
+                ? HerzogDarkColors.surfaceVariant
+                : HerzogColors.white,
+            borderRadius: BorderRadius.circular(5),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxHeight: 250,
+                maxWidth: 568,
+              ),
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                itemCount: options.length,
+                itemBuilder: (context, index) {
+                  final user = options.elementAt(index);
+                  return ListTile(
+                    title: Text(
+                      user.label,
+                      style: TextStyle(
+                        color: isDark
+                            ? Colors.white
+                            : HerzogColors.richBlack,
+                        fontSize: 14,
+                      ),
+                    ),
+                    onTap: () => onSelected(user),
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+      },
+      fieldViewBuilder:
+          (context, textController, focusNode, onFieldSubmitted) {
+        return TextField(
+          controller: textController,
+          focusNode: focusNode,
+          decoration: const InputDecoration(
+            labelText: 'Lead Investigator *',
+            hintText: 'Search by name or role...',
+            prefixIcon: Icon(Icons.person_search, size: 20),
+          ),
+          onSubmitted: (_) => onFieldSubmitted(),
+        );
+      },
     );
   }
 
