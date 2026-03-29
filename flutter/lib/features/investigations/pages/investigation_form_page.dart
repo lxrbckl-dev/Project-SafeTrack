@@ -367,9 +367,9 @@ class _InvestigationFormPageState extends State<InvestigationFormPage> {
         padding: const EdgeInsets.all(16),
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
+            constraints: const BoxConstraints(maxWidth: 700),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
                   'ASSIGN INVESTIGATION',
