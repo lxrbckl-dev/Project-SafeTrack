@@ -27,6 +27,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
 
   bool _loading = true;
   String? _error;
+  bool _saving = false;
 
   // Controllers for editable fields
   final TextEditingController _trirController = TextEditingController();
@@ -34,10 +35,6 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
 
   final TextEditingController _recurrenceLookbackController =
       TextEditingController();
-
-  bool _savingTrir = false;
-  bool _savingEscalation = false;
-  bool _savingRecurrenceLookback = false;
 
   @override
   void initState() {
@@ -94,29 +91,10 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
 
     final value = _trirController.text.trim();
     if (double.tryParse(value) == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('TRIR benchmark must be a valid number.')),
-      );
-      return;
+      throw Exception('TRIR benchmark must be a valid number.');
     }
 
-    setState(() => _savingTrir = true);
-    try {
-      await _repo.updateSetting(token, 'trir_benchmark', value);
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('TRIR benchmark saved.')));
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
-      }
-    } finally {
-      if (mounted) setState(() => _savingTrir = false);
-    }
+    await _repo.updateSetting(token, 'trir_benchmark', value);
   }
 
   Future<void> _saveEscalation() async {
@@ -124,24 +102,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
     if (token == null) return;
 
     final value = _escalationController.text.trim();
-
-    setState(() => _savingEscalation = true);
-    try {
-      await _repo.updateSetting(token, 'escalation_days', value);
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Escalation days saved.')));
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
-      }
-    } finally {
-      if (mounted) setState(() => _savingEscalation = false);
-    }
+    await _repo.updateSetting(token, 'escalation_days', value);
   }
 
   Future<void> _saveRecurrenceLookback() async {
@@ -150,30 +111,31 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
 
     final value = _recurrenceLookbackController.text.trim();
     if (int.tryParse(value) == null || int.parse(value) < 1) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Lookback window must be a positive whole number.'),
-        ),
-      );
-      return;
+      throw Exception('Lookback window must be a positive whole number.');
     }
 
-    setState(() => _savingRecurrenceLookback = true);
+    await _repo.updateSetting(token, 'recurrence_lookback_months', value);
+  }
+
+  Future<void> _saveAll() async {
+    setState(() => _saving = true);
     try {
-      await _repo.updateSetting(token, 'recurrence_lookback_months', value);
+      await _saveTrir();
+      await _saveEscalation();
+      await _saveRecurrenceLookback();
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Lookback window saved.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Settings saved successfully')),
+        );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
+        ).showSnackBar(SnackBar(content: Text('Error saving settings: $e')));
       }
     } finally {
-      if (mounted) setState(() => _savingRecurrenceLookback = false);
+      if (mounted) setState(() => _saving = false);
     }
   }
 
@@ -232,43 +194,18 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
             style: HerzogText.body(),
           ),
           const SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Semantics(
-                  label: 'TRIR benchmark value',
-                  child: TextFormField(
-                    controller: _trirController,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    decoration: const InputDecoration(
-                      labelText: 'Benchmark value',
-                      hintText: '3.0',
-                    ),
-                  ),
-                ),
+          Semantics(
+            label: 'TRIR benchmark value',
+            child: TextFormField(
+              controller: _trirController,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
               ),
-              const SizedBox(width: 12),
-              Semantics(
-                button: true,
-                label: 'Save TRIR benchmark',
-                child: ElevatedButton(
-                  onPressed: _savingTrir ? null : _saveTrir,
-                  child: _savingTrir
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: HerzogColors.white,
-                          ),
-                        )
-                      : const Text('Save'),
-                ),
+              decoration: const InputDecoration(
+                labelText: 'Benchmark value',
+                hintText: '3.0',
               ),
-            ],
+            ),
           ),
 
           // ----------------------------------------------------------------
@@ -281,40 +218,15 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
             style: HerzogText.body(),
           ),
           const SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Semantics(
-                  label: 'Escalation days JSON array',
-                  child: TextFormField(
-                    controller: _escalationController,
-                    decoration: const InputDecoration(
-                      labelText: 'Escalation days (JSON array)',
-                      hintText: '[3,7,14]',
-                    ),
-                  ),
-                ),
+          Semantics(
+            label: 'Escalation days JSON array',
+            child: TextFormField(
+              controller: _escalationController,
+              decoration: const InputDecoration(
+                labelText: 'Escalation days (JSON array)',
+                hintText: '[3,7,14]',
               ),
-              const SizedBox(width: 12),
-              Semantics(
-                button: true,
-                label: 'Save escalation days',
-                child: ElevatedButton(
-                  onPressed: _savingEscalation ? null : _saveEscalation,
-                  child: _savingEscalation
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: HerzogColors.white,
-                          ),
-                        )
-                      : const Text('Save'),
-                ),
-              ),
-            ],
+            ),
           ),
 
           // ----------------------------------------------------------------
@@ -327,43 +239,16 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
             style: HerzogText.body(),
           ),
           const SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Semantics(
-                  label: 'Lookback window in months',
-                  child: TextFormField(
-                    controller: _recurrenceLookbackController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Lookback Window (months)',
-                      hintText: '12',
-                    ),
-                  ),
-                ),
+          Semantics(
+            label: 'Lookback window in months',
+            child: TextFormField(
+              controller: _recurrenceLookbackController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Lookback Window (months)',
+                hintText: '12',
               ),
-              const SizedBox(width: 12),
-              Semantics(
-                button: true,
-                label: 'Save recurrence lookback window',
-                child: ElevatedButton(
-                  onPressed: _savingRecurrenceLookback
-                      ? null
-                      : _saveRecurrenceLookback,
-                  child: _savingRecurrenceLookback
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: HerzogColors.white,
-                          ),
-                        )
-                      : const Text('Save'),
-                ),
-              ),
-            ],
+            ),
           ),
 
           // ----------------------------------------------------------------
@@ -443,6 +328,36 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
               onPressed: () => context.push('/admin/agents'),
               icon: const Icon(Icons.smart_toy_outlined),
               label: const Text('View Agent Sessions'),
+            ),
+          ),
+
+          // ----------------------------------------------------------------
+          // Save Changes
+          // ----------------------------------------------------------------
+          Divider(color: HerzogColors.borderGray),
+          const SizedBox(height: 16),
+          Semantics(
+            label: 'Save all settings changes',
+            button: true,
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _saving ? null : _saveAll,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: HerzogColors.navyBlue,
+                  foregroundColor: Colors.white,
+                ),
+                child: _saving
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text('SAVE CHANGES'),
+              ),
             ),
           ),
         ],
