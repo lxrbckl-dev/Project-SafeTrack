@@ -31,6 +31,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # --- Node (needed for Playwright) ---
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
       # --- Go backend ---
       - uses: actions/setup-go@v5
         with:
@@ -61,17 +66,13 @@ jobs:
           flutter build web
 
       - name: Serve Flutter web
-        working-directory: flutter
+        working-directory: flutter/build/web
         run: |
-          npx serve build/web -l 3000 --single --cors &
-          sleep 3
+          python3 -m http.server 3000 &
+          sleep 2
           curl -sf http://localhost:3000
 
       # --- Playwright ---
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
       - name: Install Playwright
         run: |
           npm ci
