@@ -388,12 +388,11 @@ class _CAPADashboardPageState extends State<CAPADashboardPage> {
       );
     }
 
-    return SizedBox(
-      width: double.infinity,
-      child: SingleChildScrollView(
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: ConstrainedBox(
-        constraints: BoxConstraints(minWidth: MediaQuery.of(context).size.width - 32),
+        constraints: BoxConstraints(minWidth: constraints.maxWidth),
         child: DataTable(
         showCheckboxColumn: false,
         headingTextStyle: HerzogText.label(
