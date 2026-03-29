@@ -59,7 +59,23 @@ func SeedData(db *gorm.DB) {
 	randDate := func(monthsBack int) time.Time {
 		mo := rng.Intn(monthsBack)
 		dy := rng.Intn(28)
-		return now.AddDate(0, -mo, -dy)
+		base := now.AddDate(0, -mo, -dy)
+
+		// Weighted hour distribution to reflect realistic shift activity.
+		// 70% day shift (6am–5pm), 20% evening/swing (6pm–11pm), 10% overnight (12am–5am).
+		var hour int
+		roll := rng.Float64()
+		switch {
+		case roll < 0.70:
+			hour = 6 + rng.Intn(12) // 6–17
+		case roll < 0.90:
+			hour = 18 + rng.Intn(6) // 18–23
+		default:
+			hour = rng.Intn(6) // 0–5
+		}
+		minute := rng.Intn(60)
+
+		return time.Date(base.Year(), base.Month(), base.Day(), hour, minute, 0, 0, base.Location())
 	}
 
 	// -------------------------------------------------------------------------
