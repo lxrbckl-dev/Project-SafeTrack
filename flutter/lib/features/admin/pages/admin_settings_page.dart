@@ -141,22 +141,30 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('ADMIN SETTINGS'),
-        actions: [
-          IconButton(
-            tooltip: 'Refresh settings',
-            icon: const Icon(Icons.refresh),
-            onPressed: _loading ? null : _loadSettings,
+    return Column(
+      children: [
+        // Page-specific action buttons
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              IconButton(
+                tooltip: 'Refresh settings',
+                icon: const Icon(Icons.refresh),
+                onPressed: _loading ? null : _loadSettings,
+              ),
+            ],
           ),
-        ],
-      ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-          ? _buildErrorState()
-          : _buildContent(),
+        ),
+        Expanded(
+          child: _loading
+              ? const Center(child: CircularProgressIndicator())
+              : _error != null
+              ? _buildErrorState()
+              : _buildContent(),
+        ),
+      ],
     );
   }
 

@@ -154,40 +154,42 @@ class _IncidentListPageState extends State<IncidentListPage> {
         auth.isAtLeast(Role.fieldReporter) &&
         auth.currentRole != Role.executive;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('INCIDENTS'),
-        actions: [
-          Semantics(
-            label: 'Switch to map view',
-            button: true,
-            child: IconButton(
-              icon: const Icon(Icons.map),
-              tooltip: 'Map view',
-              onPressed: () => context.go('/incidents/map'),
-            ),
+    return Column(
+      children: [
+        // Welcome header shown to Field Reporter (their primary landing page).
+        if (auth.currentRole == Role.fieldReporter) const WelcomeHeader(),
+        // Page-specific action buttons (map view toggle)
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Semantics(
+                label: 'Switch to map view',
+                button: true,
+                child: IconButton(
+                  icon: const Icon(Icons.map),
+                  tooltip: 'Map view',
+                  onPressed: () => context.go('/incidents/map'),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Welcome header shown to Field Reporter (their primary landing page).
-          if (auth.currentRole == Role.fieldReporter) const WelcomeHeader(),
-          // Filters
-          _buildFilters(canCreate: canCreate),
-          const Divider(height: 1),
-          // Content
-          Expanded(
-            child: _loading
-                ? const Center(child: CircularProgressIndicator())
-                : _error != null && _offlineIncidents.isEmpty
-                ? _buildError()
-                : _incidents.isEmpty && _offlineIncidents.isEmpty
-                ? _buildEmpty()
-                : _buildList(),
-          ),
-        ],
-      ),
+        ),
+        // Filters
+        _buildFilters(canCreate: canCreate),
+        const Divider(height: 1),
+        // Content
+        Expanded(
+          child: _loading
+              ? const Center(child: CircularProgressIndicator())
+              : _error != null && _offlineIncidents.isEmpty
+              ? _buildError()
+              : _incidents.isEmpty && _offlineIncidents.isEmpty
+              ? _buildEmpty()
+              : _buildList(),
+        ),
+      ],
     );
   }
 

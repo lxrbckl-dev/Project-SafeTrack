@@ -14,24 +14,21 @@ class ActivityPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('RECENT ACTIVITY')),
-      body: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-              side: BorderSide(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? HerzogDarkColors.border
-                    : HerzogColors.borderGray,
-              ),
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Card(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: BorderSide(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? HerzogDarkColors.border
+                  : HerzogColors.borderGray,
             ),
-            child: const ActivityFeed(compact: false),
           ),
+          child: const ActivityFeed(compact: false),
         ),
       ),
     );
