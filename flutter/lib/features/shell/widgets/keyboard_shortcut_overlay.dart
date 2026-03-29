@@ -86,6 +86,10 @@ class KeyboardShortcutOverlay extends StatelessWidget {
                   title: 'HELP',
                   shortcuts: [
                     _ShortcutRow(key: '?', description: 'Show this dialog'),
+                    _ShortcutRow(
+                      key: 'Ctrl+Shift+G',
+                      description: 'Go to Help Guide',
+                    ),
                   ],
                 ),
                 const SizedBox(height: 20),

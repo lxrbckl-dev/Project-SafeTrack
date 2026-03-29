@@ -273,6 +273,7 @@ curl -X POST http://localhost:8000/mcp/ \
 | `Ctrl+Shift+A` | CAPAs |
 | `Ctrl+Shift+C` | Toggle AI chat |
 | `Ctrl+Shift+S` | Global search |
+| `Ctrl+Shift+G` | Help Guide |
 | `/` | Toggle AI chat (not in text fields) |
 | `?` | Show all shortcuts |
 | `Esc` | Close panels |
@@ -303,3 +304,4 @@ curl -X POST http://localhost:8000/mcp/ \
 | DockerHub: Web | [pap-highlander-web](https://hub.docker.com/repository/docker/lxrbckl/pap-highlander-web/general) | Pre-built Flutter web image |
 | DockerHub: Backend | [pap-highlander-backend](https://hub.docker.com/repository/docker/lxrbckl/pap-highlander-backend/general) | Pre-built Go backend image |
 | Project Page | [lxrbckl.github.io/highlander](https://lxrbckl.github.io/highlander) | GitHub Pages project site |
+| Live App | [highlander.lxrbckl.com](https://highlander.lxrbckl.com) | Hosted production instance |

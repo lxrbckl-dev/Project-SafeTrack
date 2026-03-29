@@ -255,6 +255,7 @@ Supported query parameters by route:
 | Ctrl+Shift+A | Go to CAPAs |
 | Ctrl+Shift+C | Toggle AI chat panel |
 | Ctrl+Shift+S | Focus global search |
+| Ctrl+Shift+G | Go to Help Guide |
 | / | Toggle AI chat (disabled when cursor is in a text field) |
 | ? | Show keyboard shortcuts overlay |
 | Esc | Close open panels |

@@ -69,6 +69,11 @@ class _ShowShortcutsIntent extends Intent {
   const _ShowShortcutsIntent();
 }
 
+/// Navigate to the Help Guide page.
+class _NavigateHelpIntent extends Intent {
+  const _NavigateHelpIntent();
+}
+
 // ---------------------------------------------------------------------------
 // A single navigation destination entry.
 // ---------------------------------------------------------------------------
@@ -297,6 +302,10 @@ class _AppShortcutsWrapper extends StatelessWidget {
         // Show shortcuts overlay: ? = Shift+Slash
         SingleActivator(LogicalKeyboardKey.slash, shift: true):
             _ShowShortcutsIntent(),
+
+        // Help Guide: Ctrl+Shift+G
+        SingleActivator(LogicalKeyboardKey.keyG, control: true, shift: true):
+            _NavigateHelpIntent(),
       },
       child: Actions(
         actions: <Type, Action<Intent>>{
@@ -361,6 +370,13 @@ class _AppShortcutsWrapper extends StatelessWidget {
             onInvoke: (_) {
               if (_isTextFieldFocused()) return null;
               KeyboardShortcutOverlay.show(context);
+              return null;
+            },
+          ),
+          _NavigateHelpIntent: CallbackAction<_NavigateHelpIntent>(
+            onInvoke: (_) {
+              // Ctrl+Shift+G — modifier combo; no guard needed.
+              context.go('/help');
               return null;
             },
           ),
