@@ -657,3 +657,11 @@ Already installed: Flutter 3.41.4, Xcode 26.3, Playwright 1.58.2
 - Remove visual hover tooltips from sidebar buttons (ADA: keep screen reader labels)
 - Fix borderRadius errors (non-uniform border + borderRadius conflict)
 - AI chat status indicators (typing dots, cold start warning, connection dot, response timing)
+- Investigation filters: add Search and Clear buttons alongside existing Enter-to-search
+
+### Ongoing Testing & Observations
+- Tested investigation list filters — discovered Enter key required with no visual affordance for searching
+- Sidebar icon keeps getting overwritten by sub-agent PRs — persistent issue requiring re-application
+- Flutter borderRadius console errors still spamming — prompt sent to TPM to fix
+- AI chat cold start confirmed working after Ollama warm-up — ~60s first message, 1-3s after
+- Application restart workflow solidified: kill ports → docker up → local Go backend → Flutter launch
