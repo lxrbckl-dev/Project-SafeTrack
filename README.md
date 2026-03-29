@@ -40,6 +40,7 @@ Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutt
 | [Connect Your AI Agent (MCP)](#connect-your-ai-agent-mcp) | Hook up Claude, GPT, or any agent |
 | [Keyboard Shortcuts](#keyboard-shortcuts) | Navigation hotkeys |
 | [Troubleshooting](#troubleshooting) | Common issues & fixes |
+| [Resources](#resources) | GitHub repo + DockerHub links |
 
 ---
 
