@@ -369,12 +369,12 @@ class _AppShortcutsWrapper extends StatelessWidget {
 
 /// Returns a page title for the shell AppBar based on the current route.
 String _pageTitle(String location) {
-  if (location.startsWith('/dashboard')) return 'SAFETY DASHBOARD';
+  if (location.startsWith('/dashboard')) return 'DASHBOARD';
   if (location.startsWith('/incidents')) return 'INCIDENTS';
   if (location.startsWith('/investigations')) return 'INVESTIGATIONS';
-  if (location.startsWith('/capas')) return 'CAPA MANAGEMENT';
+  if (location.startsWith('/capas')) return 'CAPAS';
   if (location.startsWith('/training')) return 'TRAINING';
-  if (location.startsWith('/admin')) return 'ADMIN SETTINGS';
+  if (location.startsWith('/admin')) return 'ADMIN';
   if (location.startsWith('/audit-log')) return 'AUDIT LOG';
   if (location.startsWith('/search')) return 'SEARCH';
   if (location.startsWith('/activity')) return 'ACTIVITY';
