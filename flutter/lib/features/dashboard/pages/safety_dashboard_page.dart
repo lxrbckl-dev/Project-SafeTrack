@@ -16,6 +16,9 @@ import '../widgets/welcome_header.dart';
 import '../../activity/widgets/activity_feed.dart';
 import '../../admin/data/agent_session_repository.dart';
 
+/// Uniform gap used throughout the dashboard for consistent spacing.
+const double _kDashboardGap = 16;
+
 /// Full safety dashboard replacing the placeholder.
 ///
 /// Shows KPI cards, charts (TRIR trend, incident trend stacked bar,
@@ -168,14 +171,17 @@ class _SafetyDashboardPageState extends State<SafetyDashboardPage> {
         auth.currentRole == Role.admin;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+        horizontal: _kDashboardGap,
+        vertical: _kDashboardGap / 2,
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           if (_data != null)
             _generatingPdf
                 ? const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    padding: EdgeInsets.symmetric(horizontal: _kDashboardGap),
                     child: SizedBox(
                       width: 20,
                       height: 20,
@@ -189,10 +195,12 @@ class _SafetyDashboardPageState extends State<SafetyDashboardPage> {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: HerzogColors.navyBlue,
                       side: const BorderSide(color: HerzogColors.navyBlue),
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: _kDashboardGap,
+                      ),
                     ),
                   ),
-          const SizedBox(width: 8),
+          const SizedBox(width: _kDashboardGap),
           if (canManageHours)
             IconButton(
               icon: const Icon(Icons.access_time),
@@ -249,50 +257,82 @@ class _SafetyDashboardPageState extends State<SafetyDashboardPage> {
                 // Action buttons (Export, Hours Worked, Refresh) — moved from removed AppBar.
                 _buildActionButtons(auth),
                 Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(_kDashboardGap),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       _KPICards(data: data, isWide: isWide),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: _kDashboardGap),
                       if (isWide)
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(child: _IncidentTrendChart(data: data)),
-                            const SizedBox(width: 16),
-                            Expanded(child: _TRIRTrendChart(data: data)),
+                            Expanded(
+                              child: SizedBox(
+                                height: 350,
+                                child: _IncidentTrendChart(data: data),
+                              ),
+                            ),
+                            const SizedBox(width: _kDashboardGap),
+                            Expanded(
+                              child: SizedBox(
+                                height: 350,
+                                child: _TRIRTrendChart(data: data),
+                              ),
+                            ),
                           ],
                         )
                       else ...[
-                        _IncidentTrendChart(data: data),
-                        const SizedBox(height: 24),
-                        _TRIRTrendChart(data: data),
+                        SizedBox(
+                          height: 350,
+                          child: _IncidentTrendChart(data: data),
+                        ),
+                        const SizedBox(height: _kDashboardGap),
+                        SizedBox(
+                          height: 350,
+                          child: _TRIRTrendChart(data: data),
+                        ),
                       ],
-                      const SizedBox(height: 24),
+                      const SizedBox(height: _kDashboardGap),
                       if (isWide)
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(child: _DivisionChart(data: data)),
-                            const SizedBox(width: 16),
-                            Expanded(child: _SeverityDonut(data: data)),
+                            Expanded(
+                              child: SizedBox(
+                                height: 350,
+                                child: _DivisionChart(data: data),
+                              ),
+                            ),
+                            const SizedBox(width: _kDashboardGap),
+                            Expanded(
+                              child: SizedBox(
+                                height: 350,
+                                child: _SeverityDonut(data: data),
+                              ),
+                            ),
                           ],
                         )
                       else ...[
-                        _DivisionChart(data: data),
-                        const SizedBox(height: 24),
-                        _SeverityDonut(data: data),
+                        SizedBox(
+                          height: 350,
+                          child: _DivisionChart(data: data),
+                        ),
+                        const SizedBox(height: _kDashboardGap),
+                        SizedBox(
+                          height: 350,
+                          child: _SeverityDonut(data: data),
+                        ),
                       ],
-                      const SizedBox(height: 24),
+                      const SizedBox(height: _kDashboardGap),
                       _LeadingIndicatorsCard(data: data),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: _kDashboardGap),
                       _RecentIncidentsTable(data: data),
                       // --- Advanced Analytics ---
                       if (_timeHeatmapData != null ||
                           _bodyMapData != null ||
                           _divisionRadarData != null) ...[
-                        const SizedBox(height: 32),
+                        const SizedBox(height: _kDashboardGap),
                         Semantics(
                           header: true,
                           child: Text(
@@ -300,12 +340,12 @@ class _SafetyDashboardPageState extends State<SafetyDashboardPage> {
                             style: HerzogText.heading(fontSize: 20),
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: _kDashboardGap),
                       ],
                       // Time heatmap
                       if (_timeHeatmapData != null) ...[
                         TimeHeatmapChart(data: _timeHeatmapData!),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: _kDashboardGap),
                       ],
                       // Body map and division radar side-by-side on wide screens
                       if (isWide &&
@@ -315,7 +355,7 @@ class _SafetyDashboardPageState extends State<SafetyDashboardPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(child: BodyMapChart(data: _bodyMapData!)),
-                            const SizedBox(width: 16),
+                            const SizedBox(width: _kDashboardGap),
                             Expanded(
                               child: DivisionRadarChart(
                                 data: _divisionRadarData!,
@@ -326,7 +366,7 @@ class _SafetyDashboardPageState extends State<SafetyDashboardPage> {
                       else ...[
                         if (_bodyMapData != null) ...[
                           BodyMapChart(data: _bodyMapData!),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: _kDashboardGap),
                         ],
                         if (_divisionRadarData != null)
                           DivisionRadarChart(data: _divisionRadarData!),
@@ -334,11 +374,11 @@ class _SafetyDashboardPageState extends State<SafetyDashboardPage> {
                       // --- Agent badge (Admin / Safety Manager only) ---
                       if (auth.currentRole == Role.admin ||
                           auth.currentRole == Role.safetyManager) ...[
-                        const SizedBox(height: 24),
+                        const SizedBox(height: _kDashboardGap),
                         const _AgentBadge(),
                       ],
                       // --- Recent Activity Feed ---
-                      const SizedBox(height: 32),
+                      const SizedBox(height: _kDashboardGap),
                       const _RecentActivitySection(),
                     ],
                   ),
@@ -385,7 +425,7 @@ class _RecentActivitySectionState extends State<_RecentActivitySection> {
                     style: HerzogText.heading(fontSize: 20),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: _kDashboardGap),
                 Icon(
                   _expanded ? Icons.expand_less : Icons.expand_more,
                   color: isDark
@@ -397,7 +437,7 @@ class _RecentActivitySectionState extends State<_RecentActivitySection> {
           ),
         ),
         if (_expanded) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: _kDashboardGap),
           Card(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
@@ -466,16 +506,16 @@ class _KPICards extends StatelessWidget {
       ),
     ];
 
-    // Desktop (≥900px): 4 cards per row; Mobile (<900px): 2 cards per row.
+    // Always use 4 columns so all 6 cards have identical widths.
+    // On narrow screens (< 900 px) the Wrap reflows to 2 columns naturally.
+    const int kColumns = 4;
     return LayoutBuilder(
       builder: (context, constraints) {
-        final crossAxisCount = isWide ? 4 : 2;
-        final totalSpacing = 8.0 * (crossAxisCount - 1);
         final cardWidth =
-            (constraints.maxWidth - totalSpacing) / crossAxisCount;
+            (constraints.maxWidth - _kDashboardGap * (kColumns - 1)) / kColumns;
         return Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: _kDashboardGap,
+          runSpacing: _kDashboardGap,
           children: cards
               .map((c) => SizedBox(width: cardWidth, height: 110, child: c))
               .toList(),
