@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 import '../features/auth/data/auth_service.dart';
+import '../features/shell/pages/not_found_page.dart';
 import '../features/auth/data/role.dart';
 import '../features/auth/pages/login_page.dart';
 import '../features/shell/pages/app_shell_page.dart';
@@ -49,6 +50,7 @@ GoRouter appRouter(AuthService authService) {
   return GoRouter(
     initialLocation: '/login',
     refreshListenable: authService,
+    errorBuilder: (context, state) => const NotFoundPage(),
     redirect: (context, state) {
       final loggedIn = authService.isLoggedIn;
       final role = authService.currentRole;
