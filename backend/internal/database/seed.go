@@ -720,7 +720,7 @@ func SeedData(db *gorm.DB) {
 	// -------------------------------------------------------------------------
 	injuredCount := 0
 	for _, inc := range incidents {
-		if inc.Type != "Injury" || inc.IsDraft {
+		if inc.Type != "Injury" || intendedDraft[inc.ID] {
 			continue
 		}
 		numPersons := 1 + rng.Intn(2) // 1-2 injured per incident
@@ -747,7 +747,8 @@ func SeedData(db *gorm.DB) {
 	// -------------------------------------------------------------------------
 	eligibleForInvestigation := make([]*models.Incident, 0)
 	for _, inc := range incidents {
-		if !inc.IsDraft && inc.Status != "Reported" && inc.Status != "Draft" {
+		wasDraft := intendedDraft[inc.ID]
+		if !wasDraft && inc.Status != "Reported" && inc.Status != "Draft" {
 			eligibleForInvestigation = append(eligibleForInvestigation, inc)
 		}
 	}
@@ -1094,7 +1095,7 @@ func SeedData(db *gorm.DB) {
 	// Create 5 clusters, each linking 3 incidents
 	nonDraftIncidents := make([]*models.Incident, 0)
 	for _, inc := range incidents {
-		if !inc.IsDraft {
+		if !intendedDraft[inc.ID] {
 			nonDraftIncidents = append(nonDraftIncidents, inc)
 		}
 	}
