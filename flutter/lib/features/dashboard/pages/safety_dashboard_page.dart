@@ -471,7 +471,7 @@ class _KPICards extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           children: cards
-              .map((c) => SizedBox(width: cardWidth, child: c))
+              .map((c) => SizedBox(width: cardWidth, height: 110, child: c))
               .toList(),
         );
       },
@@ -518,13 +518,29 @@ class _KPITile extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label.toUpperCase(), style: HerzogText.label()),
+              Text(
+                label.toUpperCase(),
+                style: HerzogText.label(
+                  color: isDark
+                      ? HerzogDarkColors.textMuted
+                      : HerzogColors.midGray,
+                ),
+              ),
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Text(value, style: HerzogText.heading(fontSize: 28)),
+                  Text(
+                    value,
+                    style: HerzogText.heading(
+                      fontSize: 28,
+                      color: isDark
+                          ? HerzogDarkColors.textPrimary
+                          : HerzogColors.richBlack,
+                    ),
+                  ),
                   if (trend != null) ...[
                     const SizedBox(width: 6),
                     Icon(
@@ -537,6 +553,8 @@ class _KPITile extends StatelessWidget {
                           ? HerzogColors.successGreen
                           : trend == _Trend.up
                           ? HerzogColors.errorRed
+                          : isDark
+                          ? HerzogDarkColors.textMuted
                           : HerzogColors.midGray,
                       size: 20,
                     ),
