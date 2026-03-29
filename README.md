@@ -10,7 +10,7 @@ Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutt
 >
 > **What this app does:** SafeTrack is an internal safety management system for Herzog, a North American rail and infrastructure contractor. It covers the full incident lifecycle: field reporting → investigation (interactive 5-Why analysis) → corrective/preventive actions (CAPA) → safety dashboard with TRIR/DART metrics. 7 RBAC roles control who sees what.
 >
-> **Tech stack:** Flutter/Dart frontend, Go backend (GORM + PostgreSQL), three-layer auth (demo login + Firebase Auth + Azure AD-ready), Ollama/Qwen 2.5 3B for an in-app AI assistant, Playwright for automated testing, Docker Compose for local dev.
+> **Tech stack:** Flutter/Dart frontend, Go backend (GORM + PostgreSQL), email/password auth with Azure AD-ready JWT middleware, Ollama/Qwen 2.5 3B for an in-app AI assistant, Playwright for automated testing, Docker Compose for local dev.
 >
 > **To understand the codebase, read these files in order:**
 > 1. `docs/rubric.md` — The full SRD-10 spec. This is what was built.
@@ -19,7 +19,7 @@ Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutt
 > 4. `docs/branding.md` — Herzog brand system (colors, typography, components).
 > 5. `CLAUDE.md` — Agent orchestration rules, team structure, project conventions.
 >
-> **To run it locally:** Follow the [Development Environment Setup](#development-environment-setup) then [Quick Start](#quick-start) below. Demo accounts are seeded automatically.
+> **To run it locally:** Follow [Deploy from DockerHub](#deploy-from-dockerhub) (easiest) or [Quick Start (Development)](#quick-start-development) below. Demo accounts are seeded automatically.
 
 ---
 
@@ -34,6 +34,28 @@ Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutt
 | [Demo Accounts](#demo-accounts) | 7 test accounts to explore |
 | [Keyboard Shortcuts](#keyboard-shortcuts) | Navigation hotkeys |
 | [Troubleshooting](#troubleshooting) | Common issues & fixes |
+
+---
+
+## Deploy from DockerHub
+
+Run the full app with just Docker — no repo clone, no SDKs, no build step.
+
+**Prerequisites:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed.
+
+**1. Download the compose file:**
+```bash
+curl -O https://raw.githubusercontent.com/lxRbckl/highlander/main/docker-compose.prod.yml
+```
+
+**2. Start everything:**
+```bash
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+**3. Open** `http://localhost:2780` — log in with any [demo account](#demo-accounts).
+
+> First startup pulls images and downloads the AI model (~2GB). Subsequent starts are instant. All env vars have working defaults — override via a `.env` file next to the compose file.
 
 ---
 
@@ -99,28 +121,6 @@ cd flutter && dart analyze && cd ..
 
 ---
 
-## Deploy from DockerHub
-
-Run the full app with just Docker — no repo clone, no SDKs, no build step.
-
-**Prerequisites:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed.
-
-**1. Download the compose file:**
-```bash
-curl -O https://raw.githubusercontent.com/lxRbckl/highlander/main/docker-compose.prod.yml
-```
-
-**2. Start everything:**
-```bash
-docker-compose -f docker-compose.prod.yml up -d
-```
-
-**3. Open** `http://localhost:2780` — log in with any [demo account](#demo-accounts).
-
-> First startup pulls images and downloads the AI model (~2GB). Subsequent starts are instant. All env vars have working defaults — override via a `.env` file next to the compose file.
-
----
-
 ## Quick Start (Development)
 
 **Prerequisites:** Complete the [Development Environment Setup](#development-environment-setup) above.
@@ -149,10 +149,16 @@ cd flutter && flutter run -d chrome --web-port=3000 \
 
 ## Stopping Everything
 
+**Production (DockerHub deploy):**
+```bash
+docker-compose -f docker-compose.prod.yml down
+```
+
+**Development:**
 1. Press `q` in the Flutter terminal (or `lsof -ti:3000 | xargs kill -9`)
 2. Stop Docker services: `docker-compose down`
 
-To also wipe the database and start fresh:
+**Wipe database and start fresh** (either setup):
 ```bash
 docker-compose down -v
 ```
@@ -175,7 +181,9 @@ All test accounts use password **`demo1234`**.
 
 > **Suggested walkthrough:** Start as Field Reporter to create an incident, then switch to Safety Manager to investigate it.
 
-### Keyboard Shortcuts
+---
+
+## Keyboard Shortcuts
 
 | Key | Action |
 |---|---|
@@ -208,5 +216,6 @@ All test accounts use password **`demo1234`**.
 
 ## Resources
 
+- [GitHub Repository](https://github.com/lxRbckl/highlander)
 - [DockerHub: pap-highlander-web](https://hub.docker.com/repository/docker/lxrbckl/pap-highlander-web/general)
 - [DockerHub: pap-highlander-backend](https://hub.docker.com/repository/docker/lxrbckl/pap-highlander-backend/general)
