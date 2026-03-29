@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../app/herzog_theme.dart';
 import '../../../core/services/theme_service.dart';
 import '../../../shared/widgets/offline_banner.dart';
@@ -17,6 +18,12 @@ const double _kSidebarBreakpoint = 900.0;
 
 /// Width of the sidebar in desktop layout.
 const double _kSidebarWidth = 220.0;
+
+/// Width of the sidebar when collapsed (icon-only mode).
+const double _kSidebarCollapsedWidth = 60.0;
+
+/// SharedPreferences key for persisting sidebar collapsed state.
+const String _kSidebarCollapsedKey = 'sidebar_collapsed';
 
 // ---------------------------------------------------------------------------
 // Intent definitions — one per shortcut action
@@ -381,7 +388,7 @@ String _pageTitle(String location) {
   return '';
 }
 
-class _DesktopShell extends StatelessWidget {
+class _DesktopShell extends StatefulWidget {
   final Widget child;
   final List<_NavItem> navItems;
   final String currentLocation;
@@ -393,12 +400,39 @@ class _DesktopShell extends StatelessWidget {
   });
 
   @override
+  State<_DesktopShell> createState() => _DesktopShellState();
+}
+
+class _DesktopShellState extends State<_DesktopShell> {
+  bool _isCollapsed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCollapsedState();
+  }
+
+  Future<void> _loadCollapsedState() async {
+    final prefs = await SharedPreferences.getInstance();
+    final collapsed = prefs.getBool(_kSidebarCollapsedKey) ?? false;
+    if (mounted && collapsed != _isCollapsed) {
+      setState(() => _isCollapsed = collapsed);
+    }
+  }
+
+  Future<void> _toggleCollapsed() async {
+    setState(() => _isCollapsed = !_isCollapsed);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kSidebarCollapsedKey, _isCollapsed);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       // Top AppBar carries the search icon and notification bell on desktop.
       appBar: AppBar(
         title: Text(
-          _pageTitle(currentLocation),
+          _pageTitle(widget.currentLocation),
           style: HerzogText.heading(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -436,15 +470,23 @@ class _DesktopShell extends StatelessWidget {
                 // tutorial_coach_mark gets a clean render box position.
                 // Placing the key on Material inside _Sidebar caused
                 // localToGlobal() misalignment due to compositing layers.
-                SizedBox(
+                AnimatedContainer(
                   key: OnboardingKeys.sidebar,
-                  width: _kSidebarWidth,
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeInOut,
+                  width: _isCollapsed
+                      ? _kSidebarCollapsedWidth
+                      : _kSidebarWidth,
+                  clipBehavior: Clip.hardEdge,
+                  decoration: const BoxDecoration(),
                   child: _Sidebar(
-                    navItems: navItems,
-                    currentLocation: currentLocation,
+                    navItems: widget.navItems,
+                    currentLocation: widget.currentLocation,
+                    isCollapsed: _isCollapsed,
+                    onToggleCollapsed: _toggleCollapsed,
                   ),
                 ),
-                Expanded(child: child),
+                Expanded(child: widget.child),
               ],
             ),
           ),
@@ -467,8 +509,15 @@ class _DesktopShell extends StatelessWidget {
 class _Sidebar extends StatelessWidget {
   final List<_NavItem> navItems;
   final String currentLocation;
+  final bool isCollapsed;
+  final VoidCallback onToggleCollapsed;
 
-  const _Sidebar({required this.navItems, required this.currentLocation});
+  const _Sidebar({
+    required this.navItems,
+    required this.currentLocation,
+    required this.isCollapsed,
+    required this.onToggleCollapsed,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -481,11 +530,15 @@ class _Sidebar extends StatelessWidget {
           _SkipNavLink(),
 
           // Brand header
-          _SidebarHeader(),
+          _SidebarHeader(isCollapsed: isCollapsed),
 
           const Divider(color: HerzogColors.gold, height: 1, thickness: 3),
 
-          const SizedBox(height: 8),
+          // Toggle collapse button
+          _SidebarToggleButton(
+            isCollapsed: isCollapsed,
+            onToggle: onToggleCollapsed,
+          ),
 
           // Nav items
           Expanded(
@@ -506,6 +559,7 @@ class _Sidebar extends StatelessWidget {
                     key: itemKey,
                     item: item,
                     isActive: isActive,
+                    isCollapsed: isCollapsed,
                   );
                 },
               ),
@@ -518,7 +572,7 @@ class _Sidebar extends StatelessWidget {
           ),
 
           // Dark-mode toggle (TASK-036)
-          _DarkModeFooterButton(),
+          _DarkModeFooterButton(isCollapsed: isCollapsed),
 
           // Restart tour button (TASK-042)
           _SidebarFooterButton(
@@ -526,6 +580,7 @@ class _Sidebar extends StatelessWidget {
             label: 'RESTART TOUR',
             onTap: () => OnboardingTour.restartTour(context),
             semanticLabel: 'Restart onboarding tour',
+            isCollapsed: isCollapsed,
           ),
 
           // Shortcut discoverability hint (WCAG 2.1.4)
@@ -535,6 +590,7 @@ class _Sidebar extends StatelessWidget {
             label: '? FOR SHORTCUTS',
             onTap: () => KeyboardShortcutOverlay.show(context),
             semanticLabel: 'Press ? to view keyboard shortcuts',
+            isCollapsed: isCollapsed,
           ),
 
           // Logout button (fix #156)
@@ -543,6 +599,7 @@ class _Sidebar extends StatelessWidget {
             label: 'LOGOUT',
             onTap: () => context.read<AuthService>().logout(),
             semanticLabel: 'Log out of SafeTrack',
+            isCollapsed: isCollapsed,
           ),
 
           const SizedBox(height: 12),
@@ -573,6 +630,7 @@ class _SidebarFooterButton extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
   final String semanticLabel;
+  final bool isCollapsed;
 
   const _SidebarFooterButton({
     super.key,
@@ -580,11 +638,14 @@ class _SidebarFooterButton extends StatelessWidget {
     required this.label,
     required this.onTap,
     required this.semanticLabel,
+    this.isCollapsed = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
+    final iconWidget = Icon(icon, size: 18, color: HerzogColors.smoke);
+
+    final child = Semantics(
       label: semanticLabel,
       button: true,
       child: MouseRegion(
@@ -592,25 +653,37 @@ class _SidebarFooterButton extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: Row(
-              children: [
-                Icon(icon, size: 18, color: HerzogColors.smoke),
-                const SizedBox(width: 12),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: HerzogColors.smoke,
-                    fontWeight: FontWeight.w500,
+            padding: isCollapsed
+                ? const EdgeInsets.symmetric(vertical: 10)
+                : const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            child: isCollapsed
+                ? Center(child: iconWidget)
+                : Row(
+                    children: [
+                      iconWidget,
+                      const SizedBox(width: 12),
+                      Flexible(
+                        child: Text(
+                          label,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: HerzogColors.smoke,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
           ),
         ),
       ),
     );
+
+    if (isCollapsed) {
+      return Tooltip(message: label, child: child);
+    }
+    return child;
   }
 }
 
@@ -623,12 +696,22 @@ class _SidebarFooterButton extends StatelessWidget {
 /// - Semantic toggled state (WCAG 1.3.1).
 /// - Gold icon when dark mode is active — ~8:1 contrast (WCAG AAA, 1.4.3).
 class _DarkModeFooterButton extends StatelessWidget {
+  final bool isCollapsed;
+
+  const _DarkModeFooterButton({this.isCollapsed = false});
+
   @override
   Widget build(BuildContext context) {
     final themeService = context.watch<ThemeService>();
     final isDark = themeService.isDarkMode;
+    final label = isDark ? 'LIGHT MODE' : 'DARK MODE';
+    final iconWidget = Icon(
+      isDark ? Icons.light_mode : Icons.dark_mode,
+      size: 18,
+      color: HerzogColors.smoke,
+    );
 
-    return Semantics(
+    final child = Semantics(
       label: 'Toggle dark mode',
       button: true,
       toggled: isDark,
@@ -637,29 +720,37 @@ class _DarkModeFooterButton extends StatelessWidget {
         child: InkWell(
           onTap: themeService.toggle,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: Row(
-              children: [
-                Icon(
-                  isDark ? Icons.light_mode : Icons.dark_mode,
-                  size: 18,
-                  color: HerzogColors.smoke,
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  isDark ? 'LIGHT MODE' : 'DARK MODE',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: HerzogColors.smoke,
-                    fontWeight: FontWeight.w500,
+            padding: isCollapsed
+                ? const EdgeInsets.symmetric(vertical: 10)
+                : const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            child: isCollapsed
+                ? Center(child: iconWidget)
+                : Row(
+                    children: [
+                      iconWidget,
+                      const SizedBox(width: 12),
+                      Flexible(
+                        child: Text(
+                          label,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: HerzogColors.smoke,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
           ),
         ),
       ),
     );
+
+    if (isCollapsed) {
+      return Tooltip(message: label, child: child);
+    }
+    return child;
   }
 }
 
@@ -706,9 +797,29 @@ class _SkipNavLink extends StatelessWidget {
 }
 
 /// Sidebar brand header: "SAFETRACK" in Oswald gold on black.
+///
+/// When [isCollapsed] is true, hides the text labels and centers the icon.
 class _SidebarHeader extends StatelessWidget {
+  final bool isCollapsed;
+
+  const _SidebarHeader({this.isCollapsed = false});
+
   @override
   Widget build(BuildContext context) {
+    if (isCollapsed) {
+      return Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Center(
+          child: Image.asset(
+            'assets/icon_sidebar.png',
+            width: 36,
+            height: 36,
+            filterQuality: FilterQuality.high,
+          ),
+        ),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
       child: Row(
@@ -720,23 +831,30 @@ class _SidebarHeader extends StatelessWidget {
             filterQuality: FilterQuality.high,
           ),
           const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'SAFETRACK',
-                style: HerzogText.heading(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: HerzogColors.gold,
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'SAFETRACK',
+                  style: HerzogText.heading(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: HerzogColors.gold,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                'Safety Management',
-                style: HerzogText.body(fontSize: 11, color: HerzogColors.smoke),
-              ),
-            ],
+                const SizedBox(height: 2),
+                Text(
+                  'Safety Management',
+                  style: HerzogText.body(
+                    fontSize: 11,
+                    color: HerzogColors.smoke,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -753,16 +871,18 @@ class _SidebarHeader extends StatelessWidget {
 class _SidebarNavItem extends StatelessWidget {
   final _NavItem item;
   final bool isActive;
+  final bool isCollapsed;
 
   const _SidebarNavItem({
     super.key,
     required this.item,
     required this.isActive,
+    this.isCollapsed = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
+    final itemWidget = Semantics(
       label: '${item.label} navigation',
       selected: isActive,
       button: true,
@@ -808,44 +928,104 @@ class _SidebarNavItem extends StatelessWidget {
                           ),
                         )
                       : null,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        item.icon,
-                        size: 18,
-                        color: isActive
-                            ? HerzogColors.gold
-                            : HerzogColors.smoke,
-                        semanticLabel: item.label,
-                      ),
-                      const SizedBox(width: 12),
-                      Flexible(
-                        child: Text(
-                          item.label,
-                          style: isActive
-                              ? HerzogText.body(
-                                  color: HerzogColors.gold,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13,
-                                )
-                              : HerzogText.body(
-                                  color: HerzogColors.smoke,
-                                  fontWeight: FontWeight.w400,
-                                  fontSize: 13,
-                                ),
-                          overflow: TextOverflow.ellipsis,
+                  padding: isCollapsed
+                      ? const EdgeInsets.symmetric(vertical: 12)
+                      : const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
                         ),
-                      ),
-                    ],
-                  ),
+                  child: isCollapsed
+                      ? Center(
+                          child: Icon(
+                            item.icon,
+                            size: 18,
+                            color: isActive
+                                ? HerzogColors.gold
+                                : HerzogColors.smoke,
+                            semanticLabel: item.label,
+                          ),
+                        )
+                      : Row(
+                          children: [
+                            Icon(
+                              item.icon,
+                              size: 18,
+                              color: isActive
+                                  ? HerzogColors.gold
+                                  : HerzogColors.smoke,
+                              semanticLabel: item.label,
+                            ),
+                            const SizedBox(width: 12),
+                            Flexible(
+                              child: Text(
+                                item.label,
+                                style: isActive
+                                    ? HerzogText.body(
+                                        color: HerzogColors.gold,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 13,
+                                      )
+                                    : HerzogText.body(
+                                        color: HerzogColors.smoke,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 13,
+                                      ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
                 ),
               ),
             );
           },
+        ),
+      ),
+    );
+
+    if (isCollapsed) {
+      return Tooltip(message: item.label, child: itemWidget);
+    }
+    return itemWidget;
+  }
+}
+
+/// Toggle button for collapsing/expanding the sidebar.
+///
+/// Shows a chevron icon that points left when expanded (to indicate collapsing)
+/// and right when collapsed (to indicate expanding).
+///
+/// ADA/WCAG compliance:
+/// - Semantic label describes action (WCAG 1.3.1).
+/// - Keyboard accessible via InkWell (WCAG 2.1.1).
+class _SidebarToggleButton extends StatelessWidget {
+  final bool isCollapsed;
+  final VoidCallback onToggle;
+
+  const _SidebarToggleButton({
+    required this.isCollapsed,
+    required this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: isCollapsed ? 'Expand sidebar' : 'Collapse sidebar',
+      button: true,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: InkWell(
+          onTap: onToggle,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Center(
+              child: Icon(
+                isCollapsed ? Icons.chevron_right : Icons.chevron_left,
+                size: 20,
+                color: HerzogColors.smoke,
+              ),
+            ),
+          ),
         ),
       ),
     );
