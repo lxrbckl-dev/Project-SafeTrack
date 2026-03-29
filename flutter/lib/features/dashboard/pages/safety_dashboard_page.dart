@@ -161,7 +161,7 @@ class _SafetyDashboardPageState extends State<SafetyDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    return _buildBody();
+    return _buildBody(context);
   }
 
   /// Builds the dashboard action buttons (Export, Hours Worked, Refresh).
@@ -217,7 +217,8 @@ class _SafetyDashboardPageState extends State<SafetyDashboardPage> {
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -228,7 +229,7 @@ class _SafetyDashboardPageState extends State<SafetyDashboardPage> {
           children: [
             Text(
               'Failed to load dashboard',
-              style: HerzogText.heading(fontSize: 18),
+              style: HerzogText.heading(fontSize: 18, color: isDark ? Colors.white : HerzogColors.richBlack),
             ),
             const SizedBox(height: 8),
             Text(_error!, style: HerzogText.body(color: HerzogColors.errorRed)),
@@ -247,6 +248,7 @@ class _SafetyDashboardPageState extends State<SafetyDashboardPage> {
         builder: (context, constraints) {
           final isWide = constraints.maxWidth >= 900;
           final auth = context.watch<AuthService>();
+          final isDarkLayout = Theme.of(context).brightness == Brightness.dark;
           return SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             child: Column(
@@ -337,7 +339,7 @@ class _SafetyDashboardPageState extends State<SafetyDashboardPage> {
                           header: true,
                           child: Text(
                             'ADVANCED ANALYTICS',
-                            style: HerzogText.heading(fontSize: 20),
+                            style: HerzogText.heading(fontSize: 20, color: isDarkLayout ? Colors.white : HerzogColors.richBlack),
                           ),
                         ),
                         const SizedBox(height: _kDashboardGap),
@@ -422,7 +424,7 @@ class _RecentActivitySectionState extends State<_RecentActivitySection> {
                   header: true,
                   child: Text(
                     'RECENT ACTIVITY',
-                    style: HerzogText.heading(fontSize: 20),
+                    style: HerzogText.heading(fontSize: 20, color: isDark ? Colors.white : HerzogColors.richBlack),
                   ),
                 ),
                 const SizedBox(width: _kDashboardGap),
@@ -675,7 +677,7 @@ class _IncidentTrendChart extends StatelessWidget {
           children: [
             Text(
               'INCIDENT TREND (12 MONTHS)',
-              style: HerzogText.heading(fontSize: 16),
+              style: HerzogText.heading(fontSize: 16, color: isDark ? Colors.white : HerzogColors.richBlack),
             ),
             const SizedBox(height: 2),
             Text(
@@ -702,7 +704,7 @@ class _IncidentTrendChart extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 6),
-                    Text(_typeLabels[i], style: HerzogText.body(fontSize: 12)),
+                    Text(_typeLabels[i], style: HerzogText.body(fontSize: 12, color: isDark ? Colors.white : HerzogColors.midGray)),
                   ],
                 );
               }),
@@ -916,19 +918,19 @@ class _TRIRTrendChart extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('TRIR TREND', style: HerzogText.heading(fontSize: 16)),
+            Text('TRIR TREND', style: HerzogText.heading(fontSize: 16, color: isDark ? Colors.white : HerzogColors.richBlack)),
             const SizedBox(height: 4),
             Row(
               children: [
                 Container(width: 20, height: 2, color: HerzogColors.navyBlue),
                 const SizedBox(width: 4),
-                Text('TRIR', style: HerzogText.body(fontSize: 11)),
+                Text('TRIR', style: HerzogText.body(fontSize: 11, color: isDark ? Colors.white : HerzogColors.midGray)),
                 const SizedBox(width: 16),
                 _dashedLine(),
                 const SizedBox(width: 4),
                 Text(
                   'Benchmark (${benchmark.toStringAsFixed(1)})',
-                  style: HerzogText.body(fontSize: 11),
+                  style: HerzogText.body(fontSize: 11, color: isDark ? Colors.white : HerzogColors.midGray),
                 ),
               ],
             ),
@@ -1085,7 +1087,7 @@ class _DivisionChart extends StatelessWidget {
           children: [
             Text(
               'INCIDENTS BY DIVISION',
-              style: HerzogText.heading(fontSize: 16),
+              style: HerzogText.heading(fontSize: 16, color: isDark ? Colors.white : HerzogColors.richBlack),
             ),
             const SizedBox(height: 12),
             Expanded(
@@ -1211,7 +1213,7 @@ class _SeverityDonut extends StatelessWidget {
           children: [
             Text(
               'SEVERITY DISTRIBUTION',
-              style: HerzogText.heading(fontSize: 16),
+              style: HerzogText.heading(fontSize: 16, color: isDark ? Colors.white : HerzogColors.richBlack),
             ),
             const SizedBox(height: 12),
             SizedBox(
@@ -1274,7 +1276,7 @@ class _SeverityDonut extends StatelessWidget {
                                   const SizedBox(width: 6),
                                   Text(
                                     '${sevs[i].severity} (${sevs[i].count})',
-                                    style: HerzogText.body(fontSize: 12),
+                                    style: HerzogText.body(fontSize: 12, color: isDark ? Colors.white : HerzogColors.midGray),
                                   ),
                                 ],
                               ),
@@ -1300,6 +1302,7 @@ class _LeadingIndicatorsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final li = data.leadingIndicators;
 
     return Card(
@@ -1308,7 +1311,7 @@ class _LeadingIndicatorsCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('LEADING INDICATORS', style: HerzogText.heading(fontSize: 16)),
+            Text('LEADING INDICATORS', style: HerzogText.heading(fontSize: 16, color: isDark ? Colors.white : HerzogColors.richBlack)),
             const SizedBox(height: 12),
             _IndicatorRow(
               label: 'Near Miss Reporting Rate',
@@ -1410,7 +1413,7 @@ class _RecentIncidentsTable extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('RECENT INCIDENTS', style: HerzogText.heading(fontSize: 16)),
+            Text('RECENT INCIDENTS', style: HerzogText.heading(fontSize: 16, color: isDark ? Colors.white : HerzogColors.richBlack)),
             const SizedBox(height: 12),
             incidents.isEmpty
                 ? Text(
@@ -1540,6 +1543,7 @@ class _MonthYearPickerDialogState extends State<_MonthYearPickerDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final now = DateTime.now();
     // Allow years from 3 years ago up to current year.
     final years = List.generate(4, (i) => now.year - 3 + i);
@@ -1549,7 +1553,7 @@ class _MonthYearPickerDialogState extends State<_MonthYearPickerDialog> {
         header: true,
         child: Text(
           'Select Report Month',
-          style: HerzogText.heading(fontSize: 18),
+          style: HerzogText.heading(fontSize: 18, color: isDark ? Colors.white : HerzogColors.richBlack),
         ),
       ),
       content: SizedBox(
