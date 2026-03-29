@@ -115,7 +115,9 @@ class _TrainingListPageState extends State<TrainingListPage> {
                   ),
                   selected: isSelected,
                   selectedColor: HerzogColors.navyBlue,
-                  backgroundColor: HerzogColors.lightGray,
+                  backgroundColor: isDark
+                      ? HerzogDarkColors.surfaceVariant
+                      : HerzogColors.lightGray,
                   checkmarkColor: HerzogColors.white,
                   onSelected: (_) {
                     setState(() => _statusFilter = status);
