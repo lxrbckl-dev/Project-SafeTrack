@@ -59,6 +59,7 @@ services:
         - SUPPORT_PHONE=${SUPPORT_PHONE:-1-816-273-2285}
         - SUPPORT_PHONE_TEL=${SUPPORT_PHONE_TEL:-18162732285}
         - API_BASE_URL=${API_BASE_URL:-http://localhost:8000}
+        - NOT_FOUND_GIF_URL=${NOT_FOUND_GIF_URL:-}
     ports:
       - "2780:80"
     restart: unless-stopped

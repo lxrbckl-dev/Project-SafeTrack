@@ -5,6 +5,7 @@ ARG SUPPORT_EMAIL=aarbuckle@herzog.com
 ARG SUPPORT_PHONE=1-816-273-2285
 ARG SUPPORT_PHONE_TEL=18162732285
 ARG API_BASE_URL=https://highlander.lxrbckl.com
+ARG NOT_FOUND_GIF_URL=
 
 WORKDIR /app
 COPY . .
@@ -14,7 +15,8 @@ RUN flutter pub get && \
       --dart-define=SUPPORT_EMAIL=$SUPPORT_EMAIL \
       --dart-define=SUPPORT_PHONE=$SUPPORT_PHONE \
       --dart-define=SUPPORT_PHONE_TEL=$SUPPORT_PHONE_TEL \
-      --dart-define=API_BASE_URL=$API_BASE_URL
+      --dart-define=API_BASE_URL=$API_BASE_URL \
+      --dart-define=NOT_FOUND_GIF_URL=$NOT_FOUND_GIF_URL
 
 FROM nginx:alpine
 COPY --from=builder /app/build/web /usr/share/nginx/html

@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../app/herzog_theme.dart';
 
+/// Configurable via `--dart-define` at build time or docker-compose build args.
+const String _notFoundGifUrl = String.fromEnvironment(
+  'NOT_FOUND_GIF_URL',
+  defaultValue: '',
+);
+
 /// 404 Not Found page shown when a route cannot be matched.
 ///
 /// Displays a centered layout with:
@@ -32,18 +38,31 @@ class NotFoundPage extends StatelessWidget {
                   maxWidth: 400,
                   maxHeight: 400,
                 ),
-                child: Image.asset(
-                  'assets/404.gif',
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) {
-                    // Fallback icon when the GIF is not available.
-                    return const Icon(
-                      Icons.error_outline,
-                      size: 120,
-                      color: HerzogColors.midGray,
-                    );
-                  },
-                ),
+                child: _notFoundGifUrl.isNotEmpty
+                    ? Image.network(
+                        _notFoundGifUrl,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          // Fallback icon when the network GIF is not available.
+                          return const Icon(
+                            Icons.error_outline,
+                            size: 120,
+                            color: HerzogColors.midGray,
+                          );
+                        },
+                      )
+                    : Image.asset(
+                        'assets/404.gif',
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          // Fallback icon when the GIF asset is not available.
+                          return const Icon(
+                            Icons.error_outline,
+                            size: 120,
+                            color: HerzogColors.midGray,
+                          );
+                        },
+                      ),
               ),
             ),
 
