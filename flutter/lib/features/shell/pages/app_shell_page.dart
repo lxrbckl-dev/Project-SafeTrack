@@ -575,6 +575,15 @@ class _Sidebar extends StatelessWidget {
           // Dark-mode toggle (TASK-036)
           _DarkModeFooterButton(isCollapsed: isCollapsed),
 
+          // Help guide button
+          _SidebarFooterButton(
+            icon: Icons.help_outline,
+            label: 'HELP GUIDE',
+            onTap: () => context.go('/help'),
+            semanticLabel: 'Open help guide',
+            isCollapsed: isCollapsed,
+          ),
+
           // Restart tour button (TASK-042)
           _SidebarFooterButton(
             icon: Icons.school,

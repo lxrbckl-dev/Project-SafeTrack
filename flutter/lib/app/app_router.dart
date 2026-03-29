@@ -29,6 +29,7 @@ import '../features/search/pages/search_results_page.dart';
 import '../features/training/pages/training_list_page.dart';
 import '../features/training/pages/training_detail_page.dart';
 import '../features/activity/pages/activity_page.dart';
+import '../features/help/pages/help_page.dart';
 
 /// Builds the [GoRouter] with auth redirect and shell routing.
 ///
@@ -411,6 +412,13 @@ GoRouter appRouter(AuthService authService) {
             name: 'activity',
             pageBuilder: (context, state) => const NoTransitionPage(
               child: ActivityPage(),
+            ),
+          ),
+          GoRoute(
+            path: '/help',
+            name: 'help',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: HelpPage(),
             ),
           ),
         ],
