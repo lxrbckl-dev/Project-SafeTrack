@@ -239,7 +239,7 @@ class _IncidentListPageState extends State<IncidentListPage> {
                 labelText: 'Division',
                 labelStyle: HerzogText.label(
                   fontSize: 11,
-                  color: isDark ? HerzogDarkColors.textMuted : null,
+                  color: isDark ? HerzogDarkColors.textMuted : HerzogColors.midGray,
                 ),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 12,
@@ -277,7 +277,7 @@ class _IncidentListPageState extends State<IncidentListPage> {
               ),
               style: HerzogText.body(
                 fontSize: 13,
-                color: isDark ? HerzogDarkColors.textPrimary : null,
+                color: isDark ? HerzogDarkColors.textPrimary : HerzogColors.darkGray,
               ),
               onSubmitted: (v) {
                 setState(() => _divisionFilter = v.isEmpty ? null : v);
@@ -311,6 +311,7 @@ class _IncidentListPageState extends State<IncidentListPage> {
   }
 
   Widget _buildError() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -323,12 +324,17 @@ class _IncidentListPageState extends State<IncidentListPage> {
           const SizedBox(height: 12),
           Text(
             'Failed to load incidents',
-            style: HerzogText.heading(fontSize: 18),
+            style: HerzogText.heading(
+              fontSize: 18,
+              color: isDark ? HerzogDarkColors.textPrimary : HerzogColors.richBlack,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             _error ?? '',
-            style: HerzogText.body(color: HerzogColors.midGray),
+            style: HerzogText.body(
+              color: isDark ? HerzogDarkColors.textSecondary : HerzogColors.midGray,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
@@ -343,6 +349,7 @@ class _IncidentListPageState extends State<IncidentListPage> {
   }
 
   Widget _buildEmpty() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -350,20 +357,24 @@ class _IncidentListPageState extends State<IncidentListPage> {
           Icon(
             Icons.assignment,
             size: 64,
-            color: HerzogColors.smoke.withValues(alpha: 0.5),
+            color: isDark
+                ? HerzogDarkColors.textMuted.withValues(alpha: 0.5)
+                : HerzogColors.smoke.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
             'No incidents found',
             style: HerzogText.heading(
               fontSize: 18,
-              color: HerzogColors.midGray,
+              color: isDark ? HerzogDarkColors.textSecondary : HerzogColors.midGray,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Adjust your filters or create a new incident report.',
-            style: HerzogText.body(color: HerzogColors.smoke),
+            style: HerzogText.body(
+              color: isDark ? HerzogDarkColors.textMuted : HerzogColors.smoke,
+            ),
           ),
         ],
       ),
@@ -604,6 +615,7 @@ class _OfflineIncidentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final dateStr = incident.date != null
         ? DateFormat('MM/dd/yyyy').format(incident.date!)
         : 'No date';
@@ -655,7 +667,7 @@ class _OfflineIncidentCard extends StatelessWidget {
                                   style: HerzogText.body(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
-                                    color: HerzogColors.richBlack,
+                                    color: isDark ? HerzogDarkColors.textPrimary : HerzogColors.richBlack,
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -702,7 +714,7 @@ class _OfflineIncidentCard extends StatelessWidget {
                             '$dateStr  |  ${incident.location.isNotEmpty ? incident.location : "No location"}',
                             style: HerzogText.body(
                               fontSize: 12,
-                              color: HerzogColors.midGray,
+                              color: isDark ? HerzogDarkColors.textSecondary : HerzogColors.midGray,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -791,7 +803,7 @@ class _FilterDropdown extends StatelessWidget {
         labelText: label,
         labelStyle: HerzogText.label(
           fontSize: 11,
-          color: isDark ? HerzogDarkColors.textMuted : null,
+          color: isDark ? HerzogDarkColors.textMuted : HerzogColors.midGray,
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 12,
@@ -830,7 +842,7 @@ class _FilterDropdown extends StatelessWidget {
             'All',
             style: HerzogText.body(
               fontSize: 13,
-              color: isDark ? HerzogDarkColors.textPrimary : null,
+              color: isDark ? HerzogDarkColors.textPrimary : HerzogColors.darkGray,
             ),
           ),
         ),
