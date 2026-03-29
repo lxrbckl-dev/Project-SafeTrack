@@ -580,6 +580,7 @@ func SeedData(db *gorm.DB) {
 	// -------------------------------------------------------------------------
 	numIncidents := 110
 	incidents := make([]*models.Incident, 0, numIncidents)
+	intendedDraft := make(map[uint]bool) // saves intended IsDraft before GORM mutates it
 
 	for i := 0; i < numIncidents; i++ {
 		incType := weightedPick(incidentTypes, typeWeights)
@@ -689,20 +690,30 @@ func SeedData(db *gorm.DB) {
 	}
 
 	for _, inc := range incidents {
+		wantDraft := inc.IsDraft // save before GORM mutates it
 		if err := db.Create(inc).Error; err != nil {
 			log.Printf("Seed: failed to create incident: %v", err)
 		}
-		// GORM skips bool zero-values on INSERT when the column has a
-		// default:true tag.  Explicitly set is_draft to the intended value
-		// so the DB column matches what we need.  Without this, every
-		// incident gets is_draft=true from the DB default, and the
-		// ListIncidents WHERE (is_draft = false OR reporter_id = ?) filter
-		// hides them all.  (Bug #188)
-		if err := db.Model(inc).Update("is_draft", inc.IsDraft).Error; err != nil {
-			log.Printf("Seed: failed to update is_draft for incident %d: %v", inc.ID, err)
-		}
+		intendedDraft[inc.ID] = wantDraft
 	}
 	log.Printf("Seed: created %d incidents", len(incidents))
+
+	// Bulk fix: GORM ignores false bool on INSERT when column has default:true,
+	// AND mutates the struct so IsDraft becomes true after Create. Use the
+	// saved intendedDraft map to determine which should be false.
+	var nonDraftIDs []uint
+	for _, inc := range incidents {
+		if intended, ok := intendedDraft[inc.ID]; ok && !intended {
+			nonDraftIDs = append(nonDraftIDs, inc.ID)
+		}
+	}
+	if len(nonDraftIDs) > 0 {
+		if err := db.Exec("UPDATE incidents SET is_draft = false WHERE id IN ?", nonDraftIDs).Error; err != nil {
+			log.Printf("Seed: failed to bulk-fix is_draft: %v", err)
+		} else {
+			log.Printf("Seed: fixed is_draft=false for %d incidents", len(nonDraftIDs))
+		}
+	}
 
 	// -------------------------------------------------------------------------
 	// Injured Persons — for Injury-type incidents that are not drafts
