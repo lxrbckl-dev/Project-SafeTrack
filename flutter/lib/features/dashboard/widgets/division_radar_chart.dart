@@ -25,6 +25,8 @@ class DivisionRadarChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     if (data.isEmpty) {
       return Card(
         child: Padding(
@@ -40,7 +42,7 @@ class DivisionRadarChart extends StatelessWidget {
               Center(
                 child: Text(
                   'No division data available',
-                  style: HerzogText.body(color: HerzogColors.smoke),
+                  style: HerzogText.body(color: isDark ? HerzogDarkColors.textMuted : HerzogColors.smoke),
                 ),
               ),
               const SizedBox(height: 40),
@@ -67,7 +69,7 @@ class DivisionRadarChart extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               'Multi-metric radar across divisions',
-              style: HerzogText.body(fontSize: 12, color: HerzogColors.smoke),
+              style: HerzogText.body(fontSize: 12, color: isDark ? HerzogDarkColors.textMuted : HerzogColors.smoke),
             ),
             const SizedBox(height: 12),
             SizedBox(
@@ -108,8 +110,8 @@ class DivisionRadarChart extends StatelessWidget {
                     }).toList(),
                     radarBackgroundColor: Colors.transparent,
                     borderData: FlBorderData(show: false),
-                    radarBorderData: const BorderSide(
-                      color: HerzogColors.borderGray,
+                    radarBorderData: BorderSide(
+                      color: isDark ? HerzogDarkColors.border : HerzogColors.borderGray,
                     ),
                     titlePositionPercentageOffset: 0.2,
                     titleTextStyle: HerzogText.body(fontSize: 11),
@@ -119,10 +121,10 @@ class DivisionRadarChart extends StatelessWidget {
                     tickCount: 4,
                     ticksTextStyle: HerzogText.body(
                       fontSize: 9,
-                      color: HerzogColors.smoke,
+                      color: isDark ? HerzogDarkColors.textMuted : HerzogColors.smoke,
                     ),
-                    tickBorderData: const BorderSide(
-                      color: HerzogColors.borderGray,
+                    tickBorderData: BorderSide(
+                      color: isDark ? HerzogDarkColors.border : HerzogColors.borderGray,
                     ),
                   ),
                 ),

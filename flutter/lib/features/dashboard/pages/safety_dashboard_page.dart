@@ -663,6 +663,7 @@ class _IncidentTrendChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final trend = data.incidentTrend;
 
     return Card(
@@ -681,7 +682,7 @@ class _IncidentTrendChart extends StatelessWidget {
               'Stacked by incident type',
               style: HerzogText.body(
                 fontSize: 12,
-                color: HerzogColors.midGray,
+                color: isDark ? HerzogDarkColors.textSecondary : HerzogColors.midGray,
               ),
             ),
             const SizedBox(height: 8),
@@ -713,7 +714,7 @@ class _IncidentTrendChart extends StatelessWidget {
                   ? Center(
                       child: Text(
                         'No data',
-                        style: HerzogText.body(color: HerzogColors.smoke),
+                        style: HerzogText.body(color: isDark ? HerzogDarkColors.textMuted : HerzogColors.smoke),
                       ),
                     )
                   : BarChart(
@@ -781,7 +782,7 @@ class _IncidentTrendChart extends StatelessWidget {
                               'Incident Count',
                               style: HerzogText.body(
                                 fontSize: 10,
-                                color: HerzogColors.midGray,
+                                color: isDark ? HerzogDarkColors.textSecondary : HerzogColors.midGray,
                               ),
                             ),
                             axisNameSize: 18,
@@ -790,7 +791,10 @@ class _IncidentTrendChart extends StatelessWidget {
                               reservedSize: 28,
                               getTitlesWidget: (v, _) => Text(
                                 v.toInt().toString(),
-                                style: HerzogText.body(fontSize: 10),
+                                style: HerzogText.body(
+                                  fontSize: 10,
+                                  color: isDark ? HerzogDarkColors.textSecondary : HerzogColors.darkGray,
+                                ),
                               ),
                             ),
                           ),
@@ -799,7 +803,7 @@ class _IncidentTrendChart extends StatelessWidget {
                               'Month',
                               style: HerzogText.body(
                                 fontSize: 10,
-                                color: HerzogColors.midGray,
+                                color: isDark ? HerzogDarkColors.textSecondary : HerzogColors.midGray,
                               ),
                             ),
                             axisNameSize: 18,
@@ -819,7 +823,10 @@ class _IncidentTrendChart extends StatelessWidget {
                                   padding: const EdgeInsets.only(top: 4),
                                   child: Text(
                                     label,
-                                    style: HerzogText.body(fontSize: 9),
+                                    style: HerzogText.body(
+                                      fontSize: 9,
+                                      color: isDark ? HerzogDarkColors.textSecondary : HerzogColors.darkGray,
+                                    ),
                                   ),
                                 );
                               },
@@ -891,6 +898,7 @@ class _TRIRTrendChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final trend = data.trirTrend;
     final benchmark = data.trirBenchmark;
 
@@ -931,7 +939,7 @@ class _TRIRTrendChart extends StatelessWidget {
                   ? Center(
                       child: Text(
                         'No data',
-                        style: HerzogText.body(color: HerzogColors.smoke),
+                        style: HerzogText.body(color: isDark ? HerzogDarkColors.textMuted : HerzogColors.smoke),
                       ),
                     )
                   : LineChart(
@@ -945,7 +953,10 @@ class _TRIRTrendChart extends StatelessWidget {
                               reservedSize: 32,
                               getTitlesWidget: (v, _) => Text(
                                 v.toStringAsFixed(1),
-                                style: HerzogText.body(fontSize: 10),
+                                style: HerzogText.body(
+                                  fontSize: 10,
+                                  color: isDark ? HerzogDarkColors.textSecondary : HerzogColors.darkGray,
+                                ),
                               ),
                             ),
                           ),
@@ -965,7 +976,10 @@ class _TRIRTrendChart extends StatelessWidget {
                                     label.length >= 7
                                         ? label.substring(5)
                                         : label,
-                                    style: HerzogText.body(fontSize: 9),
+                                    style: HerzogText.body(
+                                      fontSize: 9,
+                                      color: isDark ? HerzogDarkColors.textSecondary : HerzogColors.darkGray,
+                                    ),
                                   ),
                                 );
                               },
@@ -1059,6 +1073,7 @@ class _DivisionChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final divs = data.incidentsByDivision;
 
     return Card(
@@ -1078,7 +1093,7 @@ class _DivisionChart extends StatelessWidget {
                   ? Center(
                       child: Text(
                         'No data',
-                        style: HerzogText.body(color: HerzogColors.smoke),
+                        style: HerzogText.body(color: isDark ? HerzogDarkColors.textMuted : HerzogColors.smoke),
                       ),
                     )
                   : BarChart(
@@ -1107,7 +1122,10 @@ class _DivisionChart extends StatelessWidget {
                               reservedSize: 28,
                               getTitlesWidget: (v, _) => Text(
                                 v.toInt().toString(),
-                                style: HerzogText.body(fontSize: 10),
+                                style: HerzogText.body(
+                                  fontSize: 10,
+                                  color: isDark ? HerzogDarkColors.textSecondary : HerzogColors.darkGray,
+                                ),
                               ),
                             ),
                           ),
@@ -1126,7 +1144,10 @@ class _DivisionChart extends StatelessWidget {
                                     label.length > 8
                                         ? '${label.substring(0, 8)}..'
                                         : label,
-                                    style: HerzogText.body(fontSize: 9),
+                                    style: HerzogText.body(
+                                      fontSize: 9,
+                                      color: isDark ? HerzogDarkColors.textSecondary : HerzogColors.darkGray,
+                                    ),
                                   ),
                                 );
                               },
@@ -1178,6 +1199,7 @@ class _SeverityDonut extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final sevs = data.severityDistribution;
     final total = sevs.fold<int>(0, (s, e) => s + e.count);
 
@@ -1198,7 +1220,7 @@ class _SeverityDonut extends StatelessWidget {
                   ? Center(
                       child: Text(
                         'No data',
-                        style: HerzogText.body(color: HerzogColors.smoke),
+                        style: HerzogText.body(color: isDark ? HerzogDarkColors.textMuted : HerzogColors.smoke),
                       ),
                     )
                   : Row(
@@ -1330,6 +1352,7 @@ class _IndicatorRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final progress = target > 0 ? (actual / target).clamp(0.0, 1.0) : 0.0;
     final color = progress >= 0.9
         ? HerzogColors.successGreen
@@ -1359,7 +1382,7 @@ class _IndicatorRow extends StatelessWidget {
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 8,
-              backgroundColor: HerzogColors.lightGray,
+              backgroundColor: isDark ? HerzogDarkColors.surfaceVariant : HerzogColors.lightGray,
               valueColor: AlwaysStoppedAnimation(color),
             ),
           ),
@@ -1378,6 +1401,7 @@ class _RecentIncidentsTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final incidents = data.recentIncidents;
 
     return Card(
@@ -1391,7 +1415,7 @@ class _RecentIncidentsTable extends StatelessWidget {
             incidents.isEmpty
                 ? Text(
                     'No incidents yet',
-                    style: HerzogText.body(color: HerzogColors.smoke),
+                    style: HerzogText.body(color: isDark ? HerzogDarkColors.textMuted : HerzogColors.smoke),
                   )
                 : LayoutBuilder(
                     builder: (context, constraints) {
@@ -1634,19 +1658,20 @@ class _AgentBadgeState extends State<_AgentBadge> {
   Widget build(BuildContext context) {
     if (!_loaded) return const SizedBox.shrink();
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final hasAgents = _count > 0;
     final label = hasAgents
         ? '$_count agent${_count == 1 ? '' : 's'} active'
         : 'No active agents';
     final bgColor = hasAgents
-        ? HerzogColors.successLight
-        : HerzogColors.lightGray;
+        ? (isDark ? HerzogDarkColors.successBg : HerzogColors.successLight)
+        : (isDark ? HerzogDarkColors.surface : HerzogColors.lightGray);
     final fgColor = hasAgents
-        ? HerzogColors.successGreen
-        : HerzogColors.midGray;
+        ? (isDark ? HerzogDarkColors.successFg : HerzogColors.successGreen)
+        : (isDark ? HerzogDarkColors.textMuted : HerzogColors.midGray);
     final borderColor = hasAgents
-        ? HerzogColors.successGreen
-        : HerzogColors.borderGray;
+        ? (isDark ? HerzogDarkColors.successFg : HerzogColors.successGreen)
+        : (isDark ? HerzogDarkColors.border : HerzogColors.borderGray);
 
     return Semantics(
       button: true,

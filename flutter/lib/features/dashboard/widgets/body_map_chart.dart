@@ -23,14 +23,15 @@ class _BodyMapChartState extends State<BodyMapChart> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final data = List<BodyPartCount>.from(widget.data)
       ..sort((a, b) => b.count.compareTo(a.count));
 
     return Card(
-      color: HerzogColors.white,
+      color: isDark ? HerzogDarkColors.surface : HerzogColors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
-        side: const BorderSide(color: HerzogColors.borderGray),
+        side: BorderSide(color: isDark ? HerzogDarkColors.border : HerzogColors.borderGray),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -43,14 +44,14 @@ class _BodyMapChartState extends State<BodyMapChart> {
             // ── Subtitle ─────────────────────────────────────────────────
             Text(
               'Injury count by body part (last 12 months)',
-              style: HerzogText.body(fontSize: 12, color: HerzogColors.smoke),
+              style: HerzogText.body(fontSize: 12, color: isDark ? HerzogDarkColors.textMuted : HerzogColors.smoke),
             ),
             const SizedBox(height: 8),
             // ── Summary line ─────────────────────────────────────────────
             if (data.isNotEmpty) _buildSummary(data),
             const SizedBox(height: 12),
             // ── Chart / empty state ───────────────────────────────────────
-            data.isEmpty ? _buildEmpty() : _buildChart(data),
+            data.isEmpty ? _buildEmpty(isDark) : _buildChart(data, isDark),
           ],
         ),
       ),
@@ -91,7 +92,7 @@ class _BodyMapChartState extends State<BodyMapChart> {
 
   // ── Chart ──────────────────────────────────────────────────────────────────
 
-  Widget _buildChart(List<BodyPartCount> sorted) {
+  Widget _buildChart(List<BodyPartCount> sorted, bool isDark) {
     final maxCount = sorted.first.count;
     final truncated = sorted.length > _defaultMax;
     final visible = (!truncated || _expanded)
@@ -101,13 +102,13 @@ class _BodyMapChartState extends State<BodyMapChart> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ...visible.map((entry) => _buildBar(entry, maxCount)),
+        ...visible.map((entry) => _buildBar(entry, maxCount, isDark)),
         if (truncated) _buildViewAll(sorted.length),
       ],
     );
   }
 
-  Widget _buildBar(BodyPartCount entry, int maxCount) {
+  Widget _buildBar(BodyPartCount entry, int maxCount, bool isDark) {
     final fraction = maxCount > 0 ? entry.count / maxCount : 0.0;
 
     // Optional gradient: high-count bars shade toward errorRed.
@@ -150,7 +151,7 @@ class _BodyMapChartState extends State<BodyMapChart> {
                       Container(
                         height: 14,
                         decoration: BoxDecoration(
-                          color: HerzogColors.borderGray,
+                          color: isDark ? HerzogDarkColors.surfaceVariant : HerzogColors.borderGray,
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
@@ -178,7 +179,7 @@ class _BodyMapChartState extends State<BodyMapChart> {
                 style: HerzogText.body(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: HerzogColors.richBlack,
+                  color: isDark ? HerzogDarkColors.textPrimary : HerzogColors.richBlack,
                 ),
               ),
             ),
@@ -209,13 +210,13 @@ class _BodyMapChartState extends State<BodyMapChart> {
 
   // ── Empty state ────────────────────────────────────────────────────────────
 
-  Widget _buildEmpty() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 32),
+  Widget _buildEmpty(bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 32),
       child: Center(
         child: Text(
           'No injury data recorded',
-          style: TextStyle(color: HerzogColors.smoke, fontSize: 14),
+          style: TextStyle(color: isDark ? HerzogDarkColors.textMuted : HerzogColors.smoke, fontSize: 14),
         ),
       ),
     );

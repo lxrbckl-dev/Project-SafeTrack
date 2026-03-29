@@ -36,6 +36,7 @@ class _TimeHeatmapChartState extends State<TimeHeatmapChart> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final data = widget.data;
 
     // Build a lookup: grid[hour][dayIndex] = count
@@ -68,7 +69,7 @@ class _TimeHeatmapChartState extends State<TimeHeatmapChart> {
             const SizedBox(height: 4),
             Text(
               'Incidents by hour of day and day of week (last 12 months)',
-              style: HerzogText.body(fontSize: 12, color: HerzogColors.smoke),
+              style: HerzogText.body(fontSize: 12, color: isDark ? HerzogDarkColors.textMuted : HerzogColors.smoke),
             ),
             if (_hoveredCell != null) ...[
               const SizedBox(height: 4),
@@ -85,16 +86,16 @@ class _TimeHeatmapChartState extends State<TimeHeatmapChart> {
               ),
             ],
             const SizedBox(height: 12),
-            _buildGrid(grid, maxCount),
+            _buildGrid(grid, maxCount, isDark),
             const SizedBox(height: 12),
-            _buildColorScale(),
+            _buildColorScale(isDark),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildGrid(Map<int, Map<int, int>> grid, int maxCount) {
+  Widget _buildGrid(Map<int, Map<int, int>> grid, int maxCount, bool isDark) {
     const cellHeight = 22.0;
     const cellSpacing = 2.0;
     const dayLabelWidth = 34.0;
@@ -164,7 +165,7 @@ class _TimeHeatmapChartState extends State<TimeHeatmapChart> {
                         final count = grid[hour]?[dayIdx] ?? 0;
                         final intensity = maxCount > 0 ? count / maxCount : 0.0;
                         final color = count == 0
-                            ? HerzogColors.lightGray
+                            ? (isDark ? HerzogDarkColors.surfaceVariant : HerzogColors.lightGray)
                             : _intensityColor(intensity);
 
                         return Container(
@@ -196,7 +197,7 @@ class _TimeHeatmapChartState extends State<TimeHeatmapChart> {
                                     color: color,
                                     borderRadius: BorderRadius.circular(3),
                                     border: Border.all(
-                                      color: HerzogColors.borderGray,
+                                      color: isDark ? HerzogDarkColors.border : HerzogColors.borderGray,
                                       width: 0.5,
                                     ),
                                   ),
@@ -209,7 +210,7 @@ class _TimeHeatmapChartState extends State<TimeHeatmapChart> {
                                             fontWeight: FontWeight.w600,
                                             color: intensity > 0.5
                                                 ? HerzogColors.white
-                                                : HerzogColors.richBlack,
+                                                : (isDark ? HerzogDarkColors.textPrimary : HerzogColors.richBlack),
                                           ),
                                         )
                                       : null,
@@ -240,23 +241,25 @@ class _TimeHeatmapChartState extends State<TimeHeatmapChart> {
     return innerGrid;
   }
 
-  Widget _buildColorScale() {
+  Widget _buildColorScale(bool isDark) {
     return Semantics(
       label:
           'Color scale: light indicates few incidents, '
           'dark red indicates many incidents',
       child: Row(
         children: [
-          Text('0', style: HerzogText.body(fontSize: 11)),
+          Text('0', style: isDark
+              ? HerzogText.body(fontSize: 11, color: HerzogDarkColors.textSecondary)
+              : HerzogText.body(fontSize: 11)),
           const SizedBox(width: 6),
           Expanded(
             child: Container(
               height: 10,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(5),
-                gradient: const LinearGradient(
+                gradient: LinearGradient(
                   colors: [
-                    HerzogColors.lightGray,
+                    isDark ? HerzogDarkColors.surfaceVariant : HerzogColors.lightGray,
                     HerzogColors.successGreen,
                     HerzogColors.warningAmber,
                     HerzogColors.errorRed,
@@ -266,7 +269,9 @@ class _TimeHeatmapChartState extends State<TimeHeatmapChart> {
             ),
           ),
           const SizedBox(width: 6),
-          Text('High', style: HerzogText.body(fontSize: 11)),
+          Text('High', style: isDark
+              ? HerzogText.body(fontSize: 11, color: HerzogDarkColors.textSecondary)
+              : HerzogText.body(fontSize: 11)),
         ],
       ),
     );
