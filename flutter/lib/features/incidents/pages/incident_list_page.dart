@@ -286,6 +286,27 @@ class _IncidentListPageState extends State<IncidentListPage> {
               },
             ),
           ),
+          const SizedBox(width: 12),
+          // Clear filters button
+          SizedBox(
+            height: 48,
+            child: Semantics(
+              label: 'Clear all filters',
+              button: true,
+              child: TextButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _statusFilter = '';
+                    _typeFilter = '';
+                    _divisionFilter = '';
+                  });
+                  _loadIncidents();
+                },
+                icon: const Icon(Icons.filter_alt_off, size: 18),
+                label: const Text('Clear'),
+              ),
+            ),
+          ),
           const Spacer(),
           // New Incident button
           if (canCreate)
