@@ -39,25 +39,30 @@ Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutt
 
 **Prerequisites:** [Docker Desktop](https://www.docker.com/products/docker-desktop/), [Flutter](https://flutter.dev/docs/get-started/install), [Go](https://go.dev/dl/)
 
-**1. Start backend** (Go API + PostgreSQL + Ollama):
+**1. Start PostgreSQL and Ollama** (database + AI model):
 ```bash
-docker-compose up -d
+docker-compose up -d postgres ollama ollama-pull
 ```
 
-**2. Seed demo data** (first time only):
-```bash
-cd backend && SEED_DATA=true go run ./cmd/server/; cd ..
-```
-> The server will exit with "address already in use" — that's expected since Docker is already running it.
+> This starts only the database and AI services. The Go backend runs locally in the next step so you always have the latest code.
 
-**3. Start the app:**
+> **Note:** If you previously ran `docker-compose up -d` (which also starts a `backend` container on port 8000), stop it first: `docker-compose stop backend`
+
+**2. Start the Go API** with seed data (leave this terminal running):
+```bash
+cd backend && SEED_DATA=true go run ./cmd/server/
+```
+
+> The API starts on port 8000. `SEED_DATA=true` populates 7 demo accounts and sample incidents/investigations/CAPAs on first run (idempotent — skipped if data already exists).
+
+**3. Start the Flutter app** (open a second terminal):
 ```bash
 cd flutter && flutter run -d chrome --web-port=3000 \
   --web-header=Cross-Origin-Opener-Policy=same-origin \
-  --web-header=Cross-Origin-Embedder-Policy=require-corp; cd ..
+  --web-header=Cross-Origin-Embedder-Policy=require-corp
 ```
 
-**4. Open** `http://localhost:3000` — pick a role and explore.
+**4. Open** `http://localhost:3000` — log in with any demo account and explore.
 
 > AI chat is enabled automatically — the Qwen 2.5 7B model pulls on first startup (~4 min download). The first chat message after startup takes ~60s while the model loads into memory. Subsequent messages are fast (1-3s).
 
@@ -65,6 +70,9 @@ cd flutter && flutter run -d chrome --web-port=3000 \
 
 ## Stopping Everything
 
+1. Press `Ctrl+C` in the Go backend terminal
+2. Press `q` in the Flutter terminal (or `lsof -ti:3000 | xargs kill -9`)
+3. Stop Docker services:
 ```bash
 docker-compose down
 ```
@@ -72,11 +80,6 @@ docker-compose down
 To also wipe the database and start fresh:
 ```bash
 docker-compose down -v
-```
-
-If the Flutter dev server is still running, press `q` in its terminal or:
-```bash
-lsof -ti:3000 | xargs kill -9
 ```
 
 ---
