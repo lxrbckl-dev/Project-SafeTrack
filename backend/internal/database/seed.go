@@ -692,6 +692,15 @@ func SeedData(db *gorm.DB) {
 		if err := db.Create(inc).Error; err != nil {
 			log.Printf("Seed: failed to create incident: %v", err)
 		}
+		// GORM skips bool zero-values on INSERT when the column has a
+		// default:true tag.  Explicitly set is_draft to the intended value
+		// so the DB column matches what we need.  Without this, every
+		// incident gets is_draft=true from the DB default, and the
+		// ListIncidents WHERE (is_draft = false OR reporter_id = ?) filter
+		// hides them all.  (Bug #188)
+		if err := db.Model(inc).Update("is_draft", inc.IsDraft).Error; err != nil {
+			log.Printf("Seed: failed to update is_draft for incident %d: %v", inc.ID, err)
+		}
 	}
 	log.Printf("Seed: created %d incidents", len(incidents))
 
@@ -1273,4 +1282,21 @@ func SeedData(db *gorm.DB) {
 	log.Println("Seed: demo data populated successfully")
 	log.Printf("Seed: Summary — %d incidents, %d injured persons, %d investigations, %d five-whys, %d contributing factors, %d witness statements, %d CAPAs, %d links, %d notifications, %d audit logs",
 		len(incidents), injuredCount, len(investigations), fiveWhyCount, cfCount, wsCount, len(capas), linkCount, notifCount, len(auditLogs))
+
+	// -------------------------------------------------------------------------
+	// Verification — query actual DB counts to confirm data is visible (#188)
+	// -------------------------------------------------------------------------
+	var dbIncidents, dbVisible, dbDrafts, dbInjured, dbInvestigations, dbCapas, dbFiveWhys, dbFactors, dbWitnesses, dbHours int64
+	db.Model(&models.Incident{}).Count(&dbIncidents)
+	db.Model(&models.Incident{}).Where("is_draft = false").Count(&dbVisible)
+	db.Model(&models.Incident{}).Where("is_draft = true").Count(&dbDrafts)
+	db.Model(&models.InjuredPerson{}).Count(&dbInjured)
+	db.Model(&models.Investigation{}).Count(&dbInvestigations)
+	db.Model(&models.CAPA{}).Count(&dbCapas)
+	db.Model(&models.FiveWhy{}).Count(&dbFiveWhys)
+	db.Model(&models.ContributingFactor{}).Count(&dbFactors)
+	db.Model(&models.WitnessStatement{}).Count(&dbWitnesses)
+	db.Model(&models.HoursWorked{}).Count(&dbHours)
+	log.Printf("Seed: DB verification — %d incidents (%d visible, %d drafts), %d injured persons, %d investigations, %d CAPAs, %d five-whys, %d contributing factors, %d witness statements, %d hours-worked entries",
+		dbIncidents, dbVisible, dbDrafts, dbInjured, dbInvestigations, dbCapas, dbFiveWhys, dbFactors, dbWitnesses, dbHours)
 }
