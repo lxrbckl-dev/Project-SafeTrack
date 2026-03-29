@@ -39,7 +39,7 @@ class _BodyMapChartState extends State<BodyMapChart> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Title ────────────────────────────────────────────────────
-            Text('BODY PART INJURIES', style: HerzogText.heading(fontSize: 16)),
+            Text('BODY PART INJURIES', style: HerzogText.heading(fontSize: 16, color: isDark ? Colors.white : HerzogColors.richBlack)),
             const SizedBox(height: 4),
             // ── Subtitle ─────────────────────────────────────────────────
             Text(
@@ -63,25 +63,26 @@ class _BodyMapChartState extends State<BodyMapChart> {
   Widget _buildSummary(List<BodyPartCount> sorted) {
     if (sorted.isEmpty) return const SizedBox.shrink();
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final top1 = sorted[0];
     final hasSecond = sorted.length > 1;
     final top2 = hasSecond ? sorted[1] : null;
 
     return Text.rich(
       TextSpan(
-        style: HerzogText.body(fontSize: 13),
+        style: HerzogText.body(fontSize: 13, color: isDark ? Colors.white : HerzogColors.midGray),
         children: [
           const TextSpan(text: 'Most affected: '),
           TextSpan(
             text: top1.bodyPart,
-            style: HerzogText.body(fontSize: 13, fontWeight: FontWeight.w700),
+            style: HerzogText.body(fontSize: 13, fontWeight: FontWeight.w700, color: isDark ? Colors.white : HerzogColors.richBlack),
           ),
           TextSpan(text: ' (${top1.count})'),
           if (top2 != null) ...[
             const TextSpan(text: ', '),
             TextSpan(
               text: top2.bodyPart,
-              style: HerzogText.body(fontSize: 13, fontWeight: FontWeight.w700),
+              style: HerzogText.body(fontSize: 13, fontWeight: FontWeight.w700, color: isDark ? Colors.white : HerzogColors.richBlack),
             ),
             TextSpan(text: ' (${top2.count})'),
           ],
@@ -134,7 +135,7 @@ class _BodyMapChartState extends State<BodyMapChart> {
               width: 100,
               child: Text(
                 entry.bodyPart,
-                style: HerzogText.body(fontSize: 12),
+                style: HerzogText.body(fontSize: 12, color: isDark ? Colors.white : HerzogColors.midGray),
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
               ),

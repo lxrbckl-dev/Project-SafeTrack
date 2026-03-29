@@ -64,7 +64,7 @@ class _TimeHeatmapChartState extends State<TimeHeatmapChart> {
           children: [
             Text(
               'INCIDENT TIME HEATMAP',
-              style: HerzogText.heading(fontSize: 16),
+              style: HerzogText.heading(fontSize: 16, color: isDark ? Colors.white : HerzogColors.richBlack),
             ),
             const SizedBox(height: 4),
             Text(
@@ -81,6 +81,7 @@ class _TimeHeatmapChartState extends State<TimeHeatmapChart> {
                   style: HerzogText.body(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white : HerzogColors.richBlack,
                   ),
                 ),
               ),
@@ -133,7 +134,7 @@ class _TimeHeatmapChartState extends State<TimeHeatmapChart> {
                       child: Center(
                         child: Text(
                           _formatHourShort(hour),
-                          style: HerzogText.label(fontSize: 9),
+                          style: HerzogText.label(fontSize: 9, color: isDark ? Colors.white : HerzogColors.midGray),
                         ),
                       ),
                     );
@@ -155,7 +156,7 @@ class _TimeHeatmapChartState extends State<TimeHeatmapChart> {
                         width: dayLabelWidth,
                         child: Text(
                           _dayNames[dayIdx],
-                          style: HerzogText.body(fontSize: 10),
+                          style: HerzogText.body(fontSize: 10, color: isDark ? Colors.white : HerzogColors.midGray),
                           textAlign: TextAlign.right,
                         ),
                       ),

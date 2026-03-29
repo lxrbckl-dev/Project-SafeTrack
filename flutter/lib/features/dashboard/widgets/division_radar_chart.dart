@@ -36,7 +36,7 @@ class DivisionRadarChart extends StatelessWidget {
             children: [
               Text(
                 'DIVISION COMPARISON',
-                style: HerzogText.heading(fontSize: 16),
+                style: HerzogText.heading(fontSize: 16, color: isDark ? Colors.white : HerzogColors.richBlack),
               ),
               const SizedBox(height: 40),
               Center(
@@ -64,7 +64,7 @@ class DivisionRadarChart extends StatelessWidget {
           children: [
             Text(
               'DIVISION COMPARISON',
-              style: HerzogText.heading(fontSize: 16),
+              style: HerzogText.heading(fontSize: 16, color: isDark ? Colors.white : HerzogColors.richBlack),
             ),
             const SizedBox(height: 4),
             Text(
@@ -114,7 +114,7 @@ class DivisionRadarChart extends StatelessWidget {
                       color: isDark ? HerzogDarkColors.border : HerzogColors.borderGray,
                     ),
                     titlePositionPercentageOffset: 0.2,
-                    titleTextStyle: HerzogText.body(fontSize: 11),
+                    titleTextStyle: HerzogText.body(fontSize: 11, color: isDark ? Colors.white : HerzogColors.midGray),
                     getTitle: (index, _) {
                       return RadarChartTitle(text: _metricLabels[index]);
                     },
@@ -159,7 +159,7 @@ class DivisionRadarChart extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 4),
-                      Text(div.division, style: HerzogText.body(fontSize: 12)),
+                      Text(div.division, style: HerzogText.body(fontSize: 12, color: isDark ? Colors.white : HerzogColors.midGray)),
                     ],
                   ),
                 );
