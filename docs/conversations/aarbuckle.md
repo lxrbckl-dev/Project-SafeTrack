@@ -612,3 +612,48 @@ Already installed: Flutter 3.41.4, Xcode 26.3, Playwright 1.58.2
 - 65 edge cases predicted and addressed before implementation
 - Zero broken builds on main across the entire project
 - SafeTrack is now MCP-enabled — external AI agents (Claude Desktop, OpenClaw) can authenticate via API keys and execute role-scoped actions
+
+## 2026-03-28 — Afternoon/Evening (Continued)
+
+### UI Polish & Login Page
+- Removed test accounts card from login page — judges enter credentials manually from README
+- Iterated on login page layout: centered form, adjusted spacing between logo and fields
+- Attempted AI-generated logo integration: 622px source was too low quality at small sizes
+- Regenerated icon at 2048x2048 — dramatically better quality
+- Created pre-rendered 104px @2x sidebar icon (`icon_sidebar.png`) with `FilterQuality.high` for crisp rendering
+- Removed logo.png from app — using icon + text instead of full logo image
+- Sub-agents kept overwriting our sidebar icon fix — had to re-apply `icon_sidebar.png` and re-add to pubspec multiple times
+- Added forgot password (mailto: aarbuckle@herzog.com) and support contact (1-816-273-2285) to login page via url_launcher
+- Sub-agents fixed clickable links issue on forgot password/phone/email
+- Removed debug banner (`debugShowCheckedModeBanner: false`)
+
+### Documentation Cleanup (Major Sweep)
+- Found and fixed stale "dev login" references across 8 files: progress.md, presentation.md, overview.md, rubric.md, qa.md, swe-1.md, swe-2.md, README.md
+- Added full test account emails to README (was missing — only had roles, no emails)
+- Fixed 3 doc mismatches found by audit: missing Ctrl+Shift+S shortcut in README, stale tap-to-autofill wiki refs, outdated login page comments
+- Noted keyboard shortcuts changed from Alt+ to Ctrl+Shift+ by sub-agents (likely to avoid browser Alt conflicts)
+- progress.md: marked Admin settings, Medical encryption, RBAC, Draft visibility as DONE (were still listed as Not Started)
+
+### Ollama Cold Start Fix
+- Diagnosed AI chat timeout — Ollama unloads model after 5 min idle, cold start takes ~60s
+- Added `OLLAMA_KEEP_ALIVE=-1` to docker-compose.yml — model never unloads
+- Added warm-up goroutine in main.go — fires background request to Ollama on server start
+- Increased chat handler HTTP timeout to 90 seconds (was Go default/unlimited)
+- Updated README: accurate cold start timing, separate troubleshooting for timeout vs offline
+
+### Recurring Issues
+- Docker backend container runs old image — had to repeatedly `docker-compose stop backend` and run Go locally
+- Sub-agents overwrite our manual fixes (sidebar icon, pubspec assets) — need to re-apply after their PRs merge
+- `icon_sidebar.png` kept getting dropped from pubspec.yaml by sub-agent PRs
+- Stale worktrees from sub-agents keep appearing in VS Code source control
+
+### Prompts Sent to TPM (This Session)
+- Remove debug banner
+- Increase sidebar icon size to 52px
+- Fix Leading Indicators ratio spacing ("0.0ratio" → "0.0 ratio")
+- Ollama offline graceful degradation (friendly message instead of blank)
+- Forgot password + support contact on login page
+- Fix clickable links (url_launcher_web)
+- Remove visual hover tooltips from sidebar buttons (ADA: keep screen reader labels)
+- Fix borderRadius errors (non-uniform border + borderRadius conflict)
+- AI chat status indicators (typing dots, cold start warning, connection dot, response timing)
