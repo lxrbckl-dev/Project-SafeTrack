@@ -116,6 +116,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -126,7 +127,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
             'Search',
             style: HerzogText.heading(
               fontSize: 24,
-              color: HerzogColors.richBlack,
+              color: isDark ? Colors.white : HerzogColors.richBlack,
             ),
           ),
           const SizedBox(height: 16),
@@ -161,7 +162,9 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                     : null,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: HerzogColors.inputBorder),
+                  borderSide: BorderSide(
+                    color: isDark ? HerzogDarkColors.inputBorder : HerzogColors.inputBorder,
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -171,9 +174,11 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                   ),
                 ),
                 filled: true,
-                fillColor: HerzogColors.white,
+                fillColor: isDark ? HerzogDarkColors.surfaceVariant : HerzogColors.white,
               ),
-              style: HerzogText.body(color: HerzogColors.richBlack),
+              style: HerzogText.body(
+                color: isDark ? Colors.white : HerzogColors.richBlack,
+              ),
             ),
           ),
           const SizedBox(height: 16),
@@ -186,6 +191,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   }
 
   Widget _buildResultsArea() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (_loading) {
       return const Center(
         child: Column(
@@ -220,7 +226,9 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
             const SizedBox(height: 8),
             Text(
               _error!,
-              style: HerzogText.body(color: HerzogColors.midGray),
+              style: HerzogText.body(
+                color: isDark ? Colors.white : HerzogColors.midGray,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
@@ -247,12 +255,18 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
             const SizedBox(height: 12),
             Text(
               'Search across all records',
-              style: HerzogText.body(fontSize: 16, color: HerzogColors.midGray),
+              style: HerzogText.body(
+                fontSize: 16,
+                color: isDark ? Colors.white : HerzogColors.midGray,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
               'Type a query above to search incidents, investigations, and CAPAs',
-              style: HerzogText.body(fontSize: 13, color: HerzogColors.smoke),
+              style: HerzogText.body(
+                fontSize: 13,
+                color: isDark ? Colors.white : HerzogColors.smoke,
+              ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -271,13 +285,16 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
               'No results found',
               style: HerzogText.heading(
                 fontSize: 16,
-                color: HerzogColors.midGray,
+                color: isDark ? Colors.white : HerzogColors.midGray,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               'Try different keywords or check your spelling',
-              style: HerzogText.body(fontSize: 13, color: HerzogColors.smoke),
+              style: HerzogText.body(
+                fontSize: 13,
+                color: isDark ? Colors.white : HerzogColors.smoke,
+              ),
             ),
           ],
         ),
@@ -300,7 +317,10 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
           padding: const EdgeInsets.only(bottom: 12),
           child: Text(
             '${_results.length} result${_results.length == 1 ? '' : 's'} found',
-            style: HerzogText.body(fontSize: 13, color: HerzogColors.midGray),
+            style: HerzogText.body(
+              fontSize: 13,
+              color: isDark ? Colors.white : HerzogColors.midGray,
+            ),
           ),
         ),
         if (incidents.isNotEmpty)
@@ -389,6 +409,7 @@ class _ResultRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Semantics(
       label: '${result.title}: ${result.snippet}',
       button: true,
@@ -397,7 +418,9 @@ class _ResultRow extends StatelessWidget {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
-          side: const BorderSide(color: HerzogColors.borderGray),
+          side: BorderSide(
+            color: isDark ? HerzogDarkColors.inputBorder : HerzogColors.borderGray,
+          ),
         ),
         child: InkWell(
           onTap: onTap,
@@ -414,7 +437,7 @@ class _ResultRow extends StatelessWidget {
                         result.title,
                         style: HerzogText.body(
                           fontWeight: FontWeight.w600,
-                          color: HerzogColors.richBlack,
+                          color: isDark ? Colors.white : HerzogColors.richBlack,
                           fontSize: 14,
                         ),
                         maxLines: 1,
@@ -425,7 +448,7 @@ class _ResultRow extends StatelessWidget {
                         Text(
                           result.snippet,
                           style: HerzogText.body(
-                            color: HerzogColors.darkGray,
+                            color: isDark ? Colors.white : HerzogColors.darkGray,
                             fontSize: 12,
                           ),
                           maxLines: 2,

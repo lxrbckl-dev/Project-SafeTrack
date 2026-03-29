@@ -254,6 +254,7 @@ class _KeyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isRevoked = !apiKey.isActive;
 
     return Card(
@@ -315,7 +316,7 @@ class _KeyCard extends StatelessWidget {
                     'Prefix: ${apiKey.keyPrefix}...',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       fontFamily: 'monospace',
-                      color: HerzogColors.midGray,
+                      color: isDark ? Colors.white : HerzogColors.midGray,
                     ),
                   ),
                   const SizedBox(height: 2),

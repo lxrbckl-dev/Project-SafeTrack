@@ -61,10 +61,15 @@ class _WitnessStatementCardsState extends State<WitnessStatementCards> {
                         color: HerzogColors.smoke.withValues(alpha: 0.5),
                       ),
                       const SizedBox(height: 12),
-                      Text(
-                        'No witness statements yet',
-                        style: HerzogText.body(color: HerzogColors.midGray),
-                      ),
+                      Builder(builder: (context) {
+                        final isDark = Theme.of(context).brightness == Brightness.dark;
+                        return Text(
+                          'No witness statements yet',
+                          style: HerzogText.body(
+                            color: isDark ? Colors.white : HerzogColors.midGray,
+                          ),
+                        );
+                      }),
                     ],
                   ),
                 ),
@@ -232,13 +237,16 @@ class _WitnessCardState extends State<_WitnessCard> {
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(
-                      _editing ? 'Editing Statement' : w.witnessName,
-                      style: HerzogText.heading(
-                        fontSize: 14,
-                        color: HerzogColors.navyBlue,
-                      ),
-                    ),
+                    child: Builder(builder: (context) {
+                      final isDark = Theme.of(context).brightness == Brightness.dark;
+                      return Text(
+                        _editing ? 'Editing Statement' : w.witnessName,
+                        style: HerzogText.heading(
+                          fontSize: 14,
+                          color: isDark ? HerzogColors.gold : HerzogColors.navyBlue,
+                        ),
+                      );
+                    }),
                   ),
                   if (widget.editable && !_editing)
                     IconButton(
@@ -292,16 +300,28 @@ class _WitnessCardState extends State<_WitnessCard> {
                 _infoRow('Employer', w.witnessEmployer),
                 _infoRow('Phone', w.witnessPhone),
                 const SizedBox(height: 8),
-                Text(
-                  'STATEMENT',
-                  style: HerzogText.label(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: HerzogColors.midGray,
-                  ),
-                ),
+                Builder(builder: (context) {
+                  final isDark = Theme.of(context).brightness == Brightness.dark;
+                  return Text(
+                    'STATEMENT',
+                    style: HerzogText.label(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white : HerzogColors.midGray,
+                    ),
+                  );
+                }),
                 const SizedBox(height: 4),
-                Text(w.statementText, style: HerzogText.body(fontSize: 13)),
+                Builder(builder: (context) {
+                  final isDark = Theme.of(context).brightness == Brightness.dark;
+                  return Text(
+                    w.statementText,
+                    style: HerzogText.body(
+                      fontSize: 13,
+                      color: isDark ? Colors.white : HerzogColors.richBlack,
+                    ),
+                  );
+                }),
                 const SizedBox(height: 8),
                 _infoRow('Collection Date', dateStr),
                 _infoRow('Collected By', w.collectorName),
@@ -315,6 +335,7 @@ class _WitnessCardState extends State<_WitnessCard> {
 
   Widget _infoRow(String label, String value) {
     if (value.isEmpty) return const SizedBox.shrink();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
@@ -326,11 +347,19 @@ class _WitnessCardState extends State<_WitnessCard> {
               style: HerzogText.label(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: HerzogColors.midGray,
+                color: isDark ? Colors.white : HerzogColors.midGray,
               ),
             ),
           ),
-          Expanded(child: Text(value, style: HerzogText.body(fontSize: 13))),
+          Expanded(
+            child: Text(
+              value,
+              style: HerzogText.body(
+                fontSize: 13,
+                color: isDark ? Colors.white : HerzogColors.richBlack,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -430,13 +459,16 @@ class _AddWitnessFormState extends State<_AddWitnessForm> {
           children: [
             Row(
               children: [
-                Text(
-                  'NEW WITNESS STATEMENT',
-                  style: HerzogText.heading(
-                    fontSize: 14,
-                    color: HerzogColors.navyBlue,
-                  ),
-                ),
+                Builder(builder: (context) {
+                  final isDark = Theme.of(context).brightness == Brightness.dark;
+                  return Text(
+                    'NEW WITNESS STATEMENT',
+                    style: HerzogText.heading(
+                      fontSize: 14,
+                      color: isDark ? HerzogColors.gold : HerzogColors.navyBlue,
+                    ),
+                  );
+                }),
                 const Spacer(),
                 IconButton(
                   icon: const Icon(

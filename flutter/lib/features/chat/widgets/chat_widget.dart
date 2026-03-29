@@ -296,26 +296,29 @@ class _ChatPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Semantics(
       label: 'AI assistant chat panel',
       child: Material(
         elevation: 8,
         borderRadius: BorderRadius.circular(12),
-        color: HerzogColors.white,
+        color: isDark ? HerzogDarkColors.surfaceVariant : HerzogColors.white,
         child: Container(
           width: 340,
           height: 440,
           decoration: BoxDecoration(
-            border: Border.all(color: HerzogColors.borderGray),
+            border: Border.all(
+              color: isDark ? HerzogDarkColors.inputBorder : HerzogColors.borderGray,
+            ),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
             children: [
               _PanelHeader(aiStatus: aiStatus),
-              const Divider(
+              Divider(
                 height: 1,
                 thickness: 1,
-                color: HerzogColors.borderGray,
+                color: isDark ? HerzogDarkColors.inputBorder : HerzogColors.borderGray,
               ),
               // Cold-start warning banner
               if (showColdStartWarning) const _ColdStartBanner(),
@@ -330,10 +333,10 @@ class _ChatPanel extends StatelessWidget {
                   ),
                 ),
               ),
-              const Divider(
+              Divider(
                 height: 1,
                 thickness: 1,
-                color: HerzogColors.borderGray,
+                color: isDark ? HerzogDarkColors.inputBorder : HerzogColors.borderGray,
               ),
               _InputBar(
                 controller: inputController,
@@ -686,6 +689,7 @@ class _MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isUser = message.isUser;
     final isOffline = message.isOffline;
 
@@ -754,7 +758,7 @@ class _MessageBubble extends StatelessWidget {
                             text: message.text,
                             baseStyle: HerzogText.body(
                               fontSize: 13,
-                              color: HerzogColors.darkGray,
+                              color: isDark ? Colors.white : HerzogColors.darkGray,
                             ),
                           ),
                   ),
@@ -1042,14 +1046,17 @@ class _ActionButtons extends StatelessWidget {
                     : Icons.arrow_forward,
                 size: 14,
               ),
-              label: Text(
-                action.buttonLabel,
-                style: HerzogText.body(
-                  fontSize: 11,
-                  color: HerzogColors.navyBlue,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              label: Builder(builder: (context) {
+                final isDark = Theme.of(context).brightness == Brightness.dark;
+                return Text(
+                  action.buttonLabel,
+                  style: HerzogText.body(
+                    fontSize: 11,
+                    color: isDark ? HerzogColors.gold : HerzogColors.navyBlue,
+                    fontWeight: FontWeight.w600,
+                  ),
+                );
+              }),
               style: OutlinedButton.styleFrom(
                 foregroundColor: HerzogColors.navyBlue,
                 side: const BorderSide(color: HerzogColors.navyBlue),

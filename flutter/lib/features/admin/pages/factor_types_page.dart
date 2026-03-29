@@ -203,13 +203,16 @@ class _FactorTypesPageState extends State<FactorTypesPage> {
   }
 
   Widget _buildErrorState() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.error_outline, size: 48, color: HerzogColors.errorRed),
           const SizedBox(height: 12),
-          Text('Failed to load factor types', style: HerzogText.body()),
+          Text('Failed to load factor types', style: HerzogText.body(
+            color: isDark ? Colors.white : HerzogColors.richBlack,
+          )),
           const SizedBox(height: 8),
           ElevatedButton.icon(
             onPressed: _loadFactorTypes,
@@ -281,8 +284,11 @@ class _FactorTypesPageState extends State<FactorTypesPage> {
       );
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return ListTile(
-      title: Text(_factorTypes[index], style: HerzogText.body()),
+      title: Text(_factorTypes[index], style: HerzogText.body(
+        color: isDark ? Colors.white : HerzogColors.richBlack,
+      )),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -318,8 +324,9 @@ class _FactorTypesPageState extends State<FactorTypesPage> {
   }
 
   Widget _buildAddRow() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      color: HerzogColors.lightGray,
+      color: isDark ? HerzogDarkColors.surfaceVariant : HerzogColors.lightGray,
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
       child: Row(
         children: [

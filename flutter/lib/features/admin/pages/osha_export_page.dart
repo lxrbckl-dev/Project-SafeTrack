@@ -213,6 +213,7 @@ class _OshaExportPageState extends State<OshaExportPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final currentYear = DateTime.now().year;
     final years = List.generate(5, (i) => currentYear - i);
 
@@ -233,7 +234,9 @@ class _OshaExportPageState extends State<OshaExportPage> {
             const SettingSectionHeader(title: 'REPORTING YEAR'),
             Text(
               'Select the calendar year for OSHA 300 and 300A exports.',
-              style: HerzogText.body(),
+              style: HerzogText.body(
+                color: isDark ? Colors.white : HerzogColors.richBlack,
+              ),
             ),
             const SizedBox(height: 12),
             Semantics(
@@ -261,7 +264,9 @@ class _OshaExportPageState extends State<OshaExportPage> {
               'Log of Work-Related Injuries and Illnesses. '
               'One row per injured person for each OSHA-recordable incident '
               'in $_selectedYear.',
-              style: HerzogText.body(),
+              style: HerzogText.body(
+                color: isDark ? Colors.white : HerzogColors.richBlack,
+              ),
             ),
             const SizedBox(height: 12),
             Semantics(
@@ -290,7 +295,9 @@ class _OshaExportPageState extends State<OshaExportPage> {
             Text(
               'Annual Summary of Work-Related Injuries and Illnesses. '
               'Aggregated totals for $_selectedYear.',
-              style: HerzogText.body(),
+              style: HerzogText.body(
+                color: isDark ? Colors.white : HerzogColors.richBlack,
+              ),
             ),
             const SizedBox(height: 12),
             Semantics(
@@ -321,7 +328,9 @@ class _OshaExportPageState extends State<OshaExportPage> {
             Text(
               'Individual Injury and Illness Incident Report. '
               'Select an OSHA-recordable incident to generate its Form 301.',
-              style: HerzogText.body(),
+              style: HerzogText.body(
+                color: isDark ? Colors.white : HerzogColors.richBlack,
+              ),
             ),
             const SizedBox(height: 12),
             if (_loadingIncidents)
@@ -333,7 +342,7 @@ class _OshaExportPageState extends State<OshaExportPage> {
                   'No OSHA-recordable incidents found. '
                   'Mark an incident as OSHA recordable to generate a Form 301.',
                   style: HerzogText.body().copyWith(
-                    color: HerzogColors.midGray,
+                    color: isDark ? Colors.white : HerzogColors.midGray,
                   ),
                 ),
               )

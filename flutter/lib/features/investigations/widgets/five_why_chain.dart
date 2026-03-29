@@ -389,6 +389,7 @@ class _FiveWhyLevelState extends State<_FiveWhyLevel> {
     int maxLines = 1,
     bool isLast = false,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (!_editing) {
       // Display mode
       return Semantics(
@@ -401,7 +402,7 @@ class _FiveWhyLevelState extends State<_FiveWhyLevel> {
               style: HerzogText.label(
                 fontSize: 10,
                 fontWeight: FontWeight.w700,
-                color: HerzogColors.midGray,
+                color: isDark ? Colors.white : HerzogColors.midGray,
               ),
             ),
             const SizedBox(height: 4),
@@ -410,8 +411,8 @@ class _FiveWhyLevelState extends State<_FiveWhyLevel> {
               style: HerzogText.body(
                 fontSize: 14,
                 color: value.isEmpty
-                    ? HerzogColors.smoke
-                    : HerzogColors.darkGray,
+                    ? (isDark ? Colors.white : HerzogColors.smoke)
+                    : (isDark ? Colors.white : HerzogColors.darkGray),
               ),
             ),
           ],
@@ -455,7 +456,7 @@ class _FiveWhyLevelState extends State<_FiveWhyLevel> {
             labelText: label,
             labelStyle: HerzogText.label(
               fontSize: 12,
-              color: HerzogColors.midGray,
+              color: isDark ? Colors.white : HerzogColors.midGray,
             ),
           ),
         ),

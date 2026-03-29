@@ -23,8 +23,9 @@ class NotFoundPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: HerzogColors.offWhite,
+      backgroundColor: isDark ? null : HerzogColors.offWhite,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -74,7 +75,7 @@ class NotFoundPage extends StatelessWidget {
               style: HerzogText.heading(
                 fontSize: 32,
                 fontWeight: FontWeight.w700,
-                color: HerzogColors.richBlack,
+                color: isDark ? Colors.white : HerzogColors.richBlack,
               ),
             ),
 
@@ -83,7 +84,10 @@ class NotFoundPage extends StatelessWidget {
             // Subtitle — Roboto, midGray
             Text(
               "The page you're looking for doesn't exist.",
-              style: HerzogText.body(fontSize: 16, color: HerzogColors.midGray),
+              style: HerzogText.body(
+                fontSize: 16,
+                color: isDark ? Colors.white : HerzogColors.midGray,
+              ),
             ),
 
             const SizedBox(height: 32),

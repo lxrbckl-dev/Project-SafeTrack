@@ -287,6 +287,7 @@ class _OshaDeterminationPageState extends State<OshaDeterminationPage> {
   }
 
   Widget _buildError() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -299,12 +300,17 @@ class _OshaDeterminationPageState extends State<OshaDeterminationPage> {
           const SizedBox(height: 12),
           Text(
             'Failed to load incident',
-            style: HerzogText.heading(fontSize: 18),
+            style: HerzogText.heading(
+              fontSize: 18,
+              color: isDark ? Colors.white : HerzogColors.richBlack,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             _error ?? '',
-            style: HerzogText.body(color: HerzogColors.midGray),
+            style: HerzogText.body(
+              color: isDark ? Colors.white : HerzogColors.midGray,
+            ),
           ),
           const SizedBox(height: 16),
           ElevatedButton.icon(
@@ -327,15 +333,18 @@ class _OshaDeterminationPageState extends State<OshaDeterminationPage> {
             StatusBadge(status: incident.status),
             const SizedBox(width: 12),
             Expanded(
-              child: Text(
-                '${incident.type} - ${incident.location}',
-                style: HerzogText.body(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: HerzogColors.richBlack,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
+              child: Builder(builder: (context) {
+                final isDark = Theme.of(context).brightness == Brightness.dark;
+                return Text(
+                  '${incident.type} - ${incident.location}',
+                  style: HerzogText.body(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white : HerzogColors.richBlack,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                );
+              }),
             ),
             if (incident.isOshaRecordable != null)
               Container(
@@ -367,6 +376,7 @@ class _OshaDeterminationPageState extends State<OshaDeterminationPage> {
   }
 
   Widget _buildWizardStep() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final question = _questions[_currentStep];
     final progress = (_currentStep + 1) / _questions.length;
 
@@ -383,7 +393,7 @@ class _OshaDeterminationPageState extends State<OshaDeterminationPage> {
                   'Question ${_currentStep + 1} of ${_questions.length}',
                   style: HerzogText.label(
                     fontSize: 12,
-                    color: HerzogColors.midGray,
+                    color: isDark ? Colors.white : HerzogColors.midGray,
                   ),
                 ),
                 const Spacer(),
@@ -392,7 +402,7 @@ class _OshaDeterminationPageState extends State<OshaDeterminationPage> {
                   style: HerzogText.body(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: HerzogColors.navyBlue,
+                    color: isDark ? HerzogColors.gold : HerzogColors.navyBlue,
                   ),
                 ),
               ],
@@ -418,7 +428,7 @@ class _OshaDeterminationPageState extends State<OshaDeterminationPage> {
               style: HerzogText.heading(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
-                color: HerzogColors.richBlack,
+                color: isDark ? Colors.white : HerzogColors.richBlack,
               ),
             ),
 
@@ -573,6 +583,7 @@ class _OshaDeterminationPageState extends State<OshaDeterminationPage> {
   }
 
   Widget _buildAnswerSummary() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: _answers.entries.map((entry) {
@@ -596,7 +607,7 @@ class _OshaDeterminationPageState extends State<OshaDeterminationPage> {
                   _questions[idx],
                   style: HerzogText.body(
                     fontSize: 13,
-                    color: HerzogColors.darkGray,
+                    color: isDark ? Colors.white : HerzogColors.darkGray,
                   ),
                 ),
               ),
@@ -624,21 +635,24 @@ class _OshaDeterminationPageState extends State<OshaDeterminationPage> {
         Semantics(
           label: 'Override OSHA determination',
           toggled: _showOverride,
-          child: CheckboxListTile(
-            title: Text(
-              'Override Determination',
-              style: HerzogText.body(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: HerzogColors.darkGray,
+          child: Builder(builder: (context) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            return CheckboxListTile(
+              title: Text(
+                'Override Determination',
+                style: HerzogText.body(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white : HerzogColors.darkGray,
+                ),
               ),
-            ),
-            value: _showOverride,
-            onChanged: (v) => setState(() => _showOverride = v ?? false),
-            activeColor: HerzogColors.navyBlue,
-            contentPadding: EdgeInsets.zero,
-            controlAffinity: ListTileControlAffinity.leading,
-          ),
+              value: _showOverride,
+              onChanged: (v) => setState(() => _showOverride = v ?? false),
+              activeColor: HerzogColors.navyBlue,
+              contentPadding: EdgeInsets.zero,
+              controlAffinity: ListTileControlAffinity.leading,
+            );
+          }),
         ),
         if (_showOverride) ...[
           const SizedBox(height: 12),

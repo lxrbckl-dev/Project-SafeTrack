@@ -149,6 +149,7 @@ class _ContributingFactorsPanelState extends State<ContributingFactorsPanel> {
   }
 
   Widget _buildFactorCard(ContributingFactor factor) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Semantics(
       label:
           '${factor.factorType} factor${factor.isPrimary ? ", primary" : ""}',
@@ -188,14 +189,17 @@ class _ContributingFactorsPanelState extends State<ContributingFactorsPanel> {
                       factor.factorType,
                       style: HerzogText.heading(
                         fontSize: 14,
-                        color: HerzogColors.navyBlue,
+                        color: isDark ? HerzogColors.gold : HerzogColors.navyBlue,
                       ),
                     ),
                     if (factor.factorDescription.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Text(
                         factor.factorDescription,
-                        style: HerzogText.body(fontSize: 13),
+                        style: HerzogText.body(
+                          fontSize: 13,
+                          color: isDark ? Colors.white : HerzogColors.richBlack,
+                        ),
                       ),
                     ],
                   ],
@@ -226,13 +230,16 @@ class _ContributingFactorsPanelState extends State<ContributingFactorsPanel> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'ADD CONTRIBUTING FACTOR',
-              style: HerzogText.heading(
-                fontSize: 14,
-                color: HerzogColors.navyBlue,
-              ),
-            ),
+            Builder(builder: (context) {
+              final isDark = Theme.of(context).brightness == Brightness.dark;
+              return Text(
+                'ADD CONTRIBUTING FACTOR',
+                style: HerzogText.heading(
+                  fontSize: 14,
+                  color: isDark ? HerzogColors.gold : HerzogColors.navyBlue,
+                ),
+              );
+            }),
             const SizedBox(height: 12),
 
             // Factor type dropdown

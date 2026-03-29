@@ -240,13 +240,16 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
   }
 
   Widget _buildErrorState() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.error_outline, size: 48, color: HerzogColors.errorRed),
           const SizedBox(height: 12),
-          Text('Failed to load settings', style: HerzogText.body()),
+          Text('Failed to load settings', style: HerzogText.body(
+            color: isDark ? Colors.white : HerzogColors.richBlack,
+          )),
           const SizedBox(height: 8),
           ElevatedButton.icon(
             onPressed: _loadSettings,
@@ -259,6 +262,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
   }
 
   Widget _buildContent() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -270,7 +274,9 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
           const SettingSectionHeader(title: 'TRIR BENCHMARK'),
           Text(
             'Target Total Recordable Incident Rate used on the dashboard.',
-            style: HerzogText.body(),
+            style: HerzogText.body(
+              color: isDark ? Colors.white : HerzogColors.richBlack,
+            ),
           ),
           const SizedBox(height: 12),
           Semantics(
@@ -294,7 +300,9 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
           Text(
             'Comma-separated days after which an incident is escalated '
             '(JSON array, e.g. [3,7,14]).',
-            style: HerzogText.body(),
+            style: HerzogText.body(
+              color: isDark ? Colors.white : HerzogColors.richBlack,
+            ),
           ),
           const SizedBox(height: 12),
           Semantics(
@@ -315,7 +323,9 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
           Text(
             'Number of months to look back when scanning for recurring '
             'incidents.',
-            style: HerzogText.body(),
+            style: HerzogText.body(
+              color: isDark ? Colors.white : HerzogColors.richBlack,
+            ),
           ),
           const SizedBox(height: 12),
           Semantics(
@@ -336,7 +346,9 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
           const SettingSectionHeader(title: 'CONTRIBUTING FACTOR TYPES'),
           Text(
             'Manage the factor types available during incident investigations.',
-            style: HerzogText.body(),
+            style: HerzogText.body(
+              color: isDark ? Colors.white : HerzogColors.richBlack,
+            ),
           ),
           const SizedBox(height: 12),
           Semantics(
@@ -356,7 +368,9 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
           Text(
             'Download OSHA Forms 300, 300A, and 301 as CSV files for '
             'regulatory reporting.',
-            style: HerzogText.body(),
+            style: HerzogText.body(
+              color: isDark ? Colors.white : HerzogColors.richBlack,
+            ),
           ),
           const SizedBox(height: 12),
           Semantics(
@@ -378,7 +392,9 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
           Text(
             'Manage API keys for external agents. Keys allow automated systems '
             'to authenticate and interact with the application.',
-            style: HerzogText.body(),
+            style: HerzogText.body(
+              color: isDark ? Colors.white : HerzogColors.richBlack,
+            ),
           ),
           const SizedBox(height: 12),
           Semantics(
@@ -397,7 +413,9 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
           const SettingSectionHeader(title: 'AGENT SESSIONS'),
           Text(
             'Monitor live agent sessions and review agent-performed actions.',
-            style: HerzogText.body(),
+            style: HerzogText.body(
+              color: isDark ? Colors.white : HerzogColors.richBlack,
+            ),
           ),
           const SizedBox(height: 12),
           Semantics(
@@ -418,7 +436,9 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
             'Generate bulk test data for dashboards, charts, and workflow '
             'validation. This is idempotent — running it again has no effect '
             'if data already exists.',
-            style: HerzogText.body(),
+            style: HerzogText.body(
+              color: isDark ? Colors.white : HerzogColors.richBlack,
+            ),
           ),
           const SizedBox(height: 12),
           Semantics(
@@ -444,7 +464,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
           // ----------------------------------------------------------------
           // Save Changes
           // ----------------------------------------------------------------
-          Divider(color: HerzogColors.borderGray),
+          Divider(color: isDark ? HerzogDarkColors.inputBorder : HerzogColors.borderGray),
           const SizedBox(height: 16),
           Semantics(
             label: 'Save all settings changes',

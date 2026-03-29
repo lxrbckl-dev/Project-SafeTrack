@@ -76,16 +76,23 @@ class _TrainingListPageState extends State<TrainingListPage> {
   }
 
   Widget _buildFilterBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: HerzogColors.borderGray)),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(
+          color: isDark ? HerzogDarkColors.inputBorder : HerzogColors.borderGray,
+        )),
       ),
       child: Row(
         children: [
           Text(
             'Filter: ',
-            style: HerzogText.label(fontSize: 12, fontWeight: FontWeight.w600),
+            style: HerzogText.label(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white : HerzogColors.richBlack,
+            ),
           ),
           const SizedBox(width: 8),
           ..._statusOptions.map((status) {
@@ -103,7 +110,7 @@ class _TrainingListPageState extends State<TrainingListPage> {
                       fontSize: 12,
                       color: isSelected
                           ? HerzogColors.white
-                          : HerzogColors.darkGray,
+                          : (isDark ? Colors.white : HerzogColors.darkGray),
                     ),
                   ),
                   selected: isSelected,
@@ -121,7 +128,10 @@ class _TrainingListPageState extends State<TrainingListPage> {
           const Spacer(),
           Text(
             '$_total total',
-            style: HerzogText.body(fontSize: 12, color: HerzogColors.midGray),
+            style: HerzogText.body(
+              fontSize: 12,
+              color: isDark ? Colors.white : HerzogColors.midGray,
+            ),
           ),
         ],
       ),
@@ -129,6 +139,7 @@ class _TrainingListPageState extends State<TrainingListPage> {
   }
 
   Widget _buildBody() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -145,12 +156,17 @@ class _TrainingListPageState extends State<TrainingListPage> {
             const SizedBox(height: 12),
             Text(
               'Failed to load training requirements',
-              style: HerzogText.heading(fontSize: 18),
+              style: HerzogText.heading(
+                fontSize: 18,
+                color: isDark ? Colors.white : HerzogColors.richBlack,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               _error ?? '',
-              style: HerzogText.body(color: HerzogColors.midGray),
+              style: HerzogText.body(
+                color: isDark ? Colors.white : HerzogColors.midGray,
+              ),
             ),
             const SizedBox(height: 16),
             ElevatedButton.icon(
@@ -176,12 +192,18 @@ class _TrainingListPageState extends State<TrainingListPage> {
             const SizedBox(height: 12),
             Text(
               'No training requirements found',
-              style: HerzogText.heading(fontSize: 18),
+              style: HerzogText.heading(
+                fontSize: 18,
+                color: isDark ? Colors.white : HerzogColors.richBlack,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               'Training requirements are auto-created when a Training-category CAPA is created.',
-              style: HerzogText.body(fontSize: 13, color: HerzogColors.midGray),
+              style: HerzogText.body(
+                fontSize: 13,
+                color: isDark ? Colors.white : HerzogColors.midGray,
+              ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -200,6 +222,7 @@ class _TrainingListPageState extends State<TrainingListPage> {
   }
 
   Widget _buildTrainingCard(TrainingRequirement training) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final dateFmt = DateFormat('MM/dd/yyyy');
     final isPending = training.status == 'Pending';
     final isOverdue =
@@ -259,14 +282,17 @@ class _TrainingListPageState extends State<TrainingListPage> {
                     children: [
                       Text(
                         training.courseName,
-                        style: HerzogText.heading(fontSize: 15),
+                        style: HerzogText.heading(
+                          fontSize: 15,
+                          color: isDark ? Colors.white : HerzogColors.richBlack,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'CAPA #${training.capaId} | Assigned to: ${training.assignedToUserId}',
                         style: HerzogText.body(
                           fontSize: 12,
-                          color: HerzogColors.midGray,
+                          color: isDark ? Colors.white : HerzogColors.midGray,
                         ),
                       ),
                       if (training.dueDate != null) ...[
@@ -277,7 +303,7 @@ class _TrainingListPageState extends State<TrainingListPage> {
                             fontSize: 12,
                             color: isOverdue
                                 ? HerzogColors.errorRed
-                                : HerzogColors.midGray,
+                                : (isDark ? Colors.white : HerzogColors.midGray),
                             fontWeight: isOverdue
                                 ? FontWeight.w600
                                 : FontWeight.w400,

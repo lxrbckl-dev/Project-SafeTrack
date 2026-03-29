@@ -128,6 +128,7 @@ class _CAPADetailPageState extends State<CAPADetailPage> {
   }
 
   Widget _buildError() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -138,11 +139,16 @@ class _CAPADetailPageState extends State<CAPADetailPage> {
             color: HerzogColors.errorRed,
           ),
           const SizedBox(height: 12),
-          Text('Failed to load CAPA', style: HerzogText.heading(fontSize: 18)),
+          Text('Failed to load CAPA', style: HerzogText.heading(
+            fontSize: 18,
+            color: isDark ? Colors.white : HerzogColors.richBlack,
+          )),
           const SizedBox(height: 8),
           Text(
             _error ?? '',
-            style: HerzogText.body(color: HerzogColors.midGray),
+            style: HerzogText.body(
+              color: isDark ? Colors.white : HerzogColors.midGray,
+            ),
           ),
           const SizedBox(height: 16),
           ElevatedButton.icon(
@@ -523,6 +529,7 @@ class _CAPADetailPageState extends State<CAPADetailPage> {
   // ---- Helpers ----
 
   Widget _sectionTitle(String title) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Column(
@@ -533,7 +540,7 @@ class _CAPADetailPageState extends State<CAPADetailPage> {
             style: HerzogText.heading(
               fontSize: 14,
               fontWeight: FontWeight.w700,
-              color: HerzogColors.richBlack,
+              color: isDark ? Colors.white : HerzogColors.richBlack,
             ),
           ),
           const SizedBox(height: 2),
@@ -545,6 +552,7 @@ class _CAPADetailPageState extends State<CAPADetailPage> {
 
   Widget _detailRow(String label, String value) {
     if (value.isEmpty) return const SizedBox.shrink();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -557,7 +565,7 @@ class _CAPADetailPageState extends State<CAPADetailPage> {
               style: HerzogText.label(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: HerzogColors.midGray,
+                color: isDark ? Colors.white : HerzogColors.midGray,
               ),
             ),
           ),
@@ -566,7 +574,7 @@ class _CAPADetailPageState extends State<CAPADetailPage> {
               value,
               style: HerzogText.body(
                 fontSize: 14,
-                color: HerzogColors.darkGray,
+                color: isDark ? Colors.white : HerzogColors.darkGray,
               ),
             ),
           ),
@@ -600,8 +608,12 @@ class _CompletionDialogState extends State<_CompletionDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return AlertDialog(
-      title: Text('Complete CAPA', style: HerzogText.heading(fontSize: 18)),
+      title: Text('Complete CAPA', style: HerzogText.heading(
+        fontSize: 18,
+        color: isDark ? Colors.white : HerzogColors.richBlack,
+      )),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 420),
         child: Column(
@@ -609,7 +621,10 @@ class _CompletionDialogState extends State<_CompletionDialog> {
           children: [
             Text(
               'Provide completion notes and evidence for this CAPA.',
-              style: HerzogText.body(fontSize: 13, color: HerzogColors.midGray),
+              style: HerzogText.body(
+                fontSize: 13,
+                color: isDark ? Colors.white : HerzogColors.midGray,
+              ),
             ),
             const SizedBox(height: 16),
             TextField(
@@ -637,7 +652,9 @@ class _CompletionDialogState extends State<_CompletionDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: Text(
             'Cancel',
-            style: HerzogText.body(color: HerzogColors.midGray),
+            style: HerzogText.body(
+              color: isDark ? Colors.white : HerzogColors.midGray,
+            ),
           ),
         ),
         ElevatedButton(
@@ -675,10 +692,14 @@ class _VerifyDialogState extends State<_VerifyDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return AlertDialog(
       title: Text(
         'Verify CAPA Effectiveness',
-        style: HerzogText.heading(fontSize: 18),
+        style: HerzogText.heading(
+          fontSize: 18,
+          color: isDark ? Colors.white : HerzogColors.richBlack,
+        ),
       ),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 420),
@@ -688,7 +709,10 @@ class _VerifyDialogState extends State<_VerifyDialog> {
           children: [
             Text(
               'Was this CAPA effective in addressing the root cause?',
-              style: HerzogText.body(fontSize: 13, color: HerzogColors.midGray),
+              style: HerzogText.body(
+                fontSize: 13,
+                color: isDark ? Colors.white : HerzogColors.midGray,
+              ),
             ),
             const SizedBox(height: 16),
             // Effective toggle
@@ -761,7 +785,9 @@ class _VerifyDialogState extends State<_VerifyDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: Text(
             'Cancel',
-            style: HerzogText.body(color: HerzogColors.midGray),
+            style: HerzogText.body(
+              color: isDark ? Colors.white : HerzogColors.midGray,
+            ),
           ),
         ),
         ElevatedButton(

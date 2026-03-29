@@ -4,6 +4,25 @@
 
 ---
 
+## Phase Reference
+
+| Phase | Name | Tasks | Status |
+|---|---|---|---|
+| [Phase 0](#phase-0-foundation) | Foundation | TASK-001, 002, 003 | Complete |
+| [Phase 1](#phase-1-incident-reporting) | Incident Reporting | TASK-004, 005 | Complete |
+| [Phase 2](#phase-2-investigation--capa) | Investigation + CAPA | TASK-006, 007, 008, 009 | Complete |
+| [Phase 3](#phase-3-dashboard-recurrence-audit-notifications) | Dashboard, Recurrence, Audit, Notifications | TASK-010, 011, 012, 013 | Complete |
+| [Phase 4](#phase-4-hardening--polish) | Hardening + Polish | TASK-014, 015, 016 | Complete |
+| [Phase 5](#phase-5-differentiators-if-time-permits) | Differentiators | TASK-017, 018, 019 | Complete |
+| [Phase 6](#phase-6-future-roadmap) | Future Roadmap | TASK-023, 026, 027, 028, 029, 030, 031, 032 | Complete |
+| [Phase 7](#phase-7-judge-differentiators) | Judge Differentiators | TASK-033, 034, 035, 036, 037, 038 | Complete |
+| [Phase 8](#phase-8-domain-innovation) | Domain Innovation | TASK-039, 040, 041 | Complete |
+| [Phase 9](#phase-9-demo-polish) | Demo Polish | TASK-042, 043 | Complete |
+| [Phase 10](#phase-10-ai-powered-navigation) | AI-Powered Navigation | TASK-044, 045 | Complete |
+| [Phase 11](#phase-11-mcp-agent-integration) | MCP Agent Integration | TASK-046, 047, 048, 049 | Complete |
+
+---
+
 ## Phase 0: Foundation
 
 ### TASK-001: Dev Login + Role Provider

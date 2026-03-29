@@ -167,6 +167,7 @@ class _AuditLogPageState extends State<AuditLogPage> {
   }
 
   Widget _buildContent() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (_loading && _pageData == null) {
       return const Center(
         child: CircularProgressIndicator(color: HerzogColors.navyBlue),
@@ -209,7 +210,9 @@ class _AuditLogPageState extends State<AuditLogPage> {
             const SizedBox(height: 16),
             Text(
               'No audit log entries found',
-              style: HerzogText.body(color: HerzogColors.midGray),
+              style: HerzogText.body(
+                color: isDark ? Colors.white : HerzogColors.midGray,
+              ),
             ),
             if (_filter != const repo.AuditLogFilter()) ...[
               const SizedBox(height: 8),
@@ -375,6 +378,7 @@ class _AuditLogPageState extends State<AuditLogPage> {
   }
 
   Widget _detailRow(String label, String value) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 2),
       child: Row(
@@ -382,9 +386,15 @@ class _AuditLogPageState extends State<AuditLogPage> {
         children: [
           SizedBox(
             width: 60,
-            child: Text(label, style: HerzogText.label(fontSize: 10)),
+            child: Text(label, style: HerzogText.label(
+              fontSize: 10,
+              color: isDark ? Colors.white : HerzogColors.richBlack,
+            )),
           ),
-          Expanded(child: Text(value, style: HerzogText.body(fontSize: 13))),
+          Expanded(child: Text(value, style: HerzogText.body(
+            fontSize: 13,
+            color: isDark ? Colors.white : HerzogColors.richBlack,
+          ))),
         ],
       ),
     );
@@ -405,6 +415,7 @@ class _AuditLogPageState extends State<AuditLogPage> {
   }
 
   Widget _buildTableRow(repo.AuditLogEntry entry) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isExpanded = _expandedRows.contains(entry.id);
     final actionColor = _actionColor(entry.action);
     final hasDiff = entry.before.isNotEmpty || entry.after.isNotEmpty;
@@ -445,7 +456,10 @@ class _AuditLogPageState extends State<AuditLogPage> {
                       width: 150,
                       child: Text(
                         _timestampFormat.format(entry.timestamp),
-                        style: HerzogText.body(fontSize: 12),
+                        style: HerzogText.body(
+                          fontSize: 12,
+                          color: isDark ? Colors.white : HerzogColors.richBlack,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -460,7 +474,10 @@ class _AuditLogPageState extends State<AuditLogPage> {
                               Expanded(
                                 child: Text(
                                   entry.userId,
-                                  style: HerzogText.body(fontSize: 12),
+                                  style: HerzogText.body(
+                                    fontSize: 12,
+                                    color: isDark ? Colors.white : HerzogColors.richBlack,
+                                  ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
@@ -498,7 +515,7 @@ class _AuditLogPageState extends State<AuditLogPage> {
                             entry.roleDisplay,
                             style: HerzogText.body(
                               fontSize: 11,
-                              color: HerzogColors.midGray,
+                              color: isDark ? Colors.white : HerzogColors.midGray,
                             ),
                           ),
                         ],
@@ -543,7 +560,10 @@ class _AuditLogPageState extends State<AuditLogPage> {
                       width: 110,
                       child: Text(
                         '${entry.entityType} #${entry.entityId}',
-                        style: HerzogText.body(fontSize: 12),
+                        style: HerzogText.body(
+                          fontSize: 12,
+                          color: isDark ? Colors.white : HerzogColors.richBlack,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -554,7 +574,7 @@ class _AuditLogPageState extends State<AuditLogPage> {
                         style: HerzogText.body(
                           fontSize: 12,
                           color: entry.notes.isNotEmpty
-                              ? HerzogColors.darkGray
+                              ? (isDark ? Colors.white : HerzogColors.darkGray)
                               : HerzogColors.smoke,
                         ),
                         overflow: TextOverflow.ellipsis,

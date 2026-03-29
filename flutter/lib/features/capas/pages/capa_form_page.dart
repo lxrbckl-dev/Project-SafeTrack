@@ -312,6 +312,7 @@ class _CAPAFormPageState extends State<CAPAFormPage> {
   }
 
   Widget _buildLoadError() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -324,12 +325,17 @@ class _CAPAFormPageState extends State<CAPAFormPage> {
           const SizedBox(height: 12),
           Text(
             'Failed to load investigation',
-            style: HerzogText.heading(fontSize: 18),
+            style: HerzogText.heading(
+              fontSize: 18,
+              color: isDark ? Colors.white : HerzogColors.richBlack,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             _loadError ?? '',
-            style: HerzogText.body(color: HerzogColors.midGray),
+            style: HerzogText.body(
+              color: isDark ? Colors.white : HerzogColors.midGray,
+            ),
           ),
           const SizedBox(height: 16),
           ElevatedButton.icon(
@@ -343,6 +349,7 @@ class _CAPAFormPageState extends State<CAPAFormPage> {
   }
 
   Widget _buildForm() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final dateFmt = DateFormat('MM/dd/yyyy');
 
     return SingleChildScrollView(
@@ -365,7 +372,10 @@ class _CAPAFormPageState extends State<CAPAFormPage> {
                         children: [
                           Text(
                             'LINKED INVESTIGATION',
-                            style: HerzogText.label(fontSize: 11),
+                            style: HerzogText.label(
+                              fontSize: 11,
+                              color: isDark ? Colors.white : HerzogColors.richBlack,
+                            ),
                           ),
                           const SizedBox(height: 4),
                           Text(
@@ -374,6 +384,7 @@ class _CAPAFormPageState extends State<CAPAFormPage> {
                             style: HerzogText.body(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.white : HerzogColors.richBlack,
                             ),
                           ),
                           Text(
@@ -381,7 +392,7 @@ class _CAPAFormPageState extends State<CAPAFormPage> {
                             'Status: ${_investigation!.status}',
                             style: HerzogText.body(
                               fontSize: 12,
-                              color: HerzogColors.midGray,
+                              color: isDark ? Colors.white : HerzogColors.midGray,
                             ),
                           ),
                         ],
@@ -392,7 +403,10 @@ class _CAPAFormPageState extends State<CAPAFormPage> {
                 ],
 
                 // Type
-                Text('CAPA Type', style: HerzogText.label(fontSize: 11)),
+                Text('CAPA Type', style: HerzogText.label(
+                  fontSize: 11,
+                  color: isDark ? Colors.white : HerzogColors.richBlack,
+                )),
                 const SizedBox(height: 4),
                 DropdownButtonFormField<String>(
                   initialValue: _type,
@@ -409,7 +423,10 @@ class _CAPAFormPageState extends State<CAPAFormPage> {
                 const SizedBox(height: 16),
 
                 // Category
-                Text('Category', style: HerzogText.label(fontSize: 11)),
+                Text('Category', style: HerzogText.label(
+                  fontSize: 11,
+                  color: isDark ? Colors.white : HerzogColors.richBlack,
+                )),
                 const SizedBox(height: 4),
                 DropdownButtonFormField<String>(
                   initialValue: _category,
@@ -426,7 +443,10 @@ class _CAPAFormPageState extends State<CAPAFormPage> {
                 const SizedBox(height: 16),
 
                 // Description
-                Text('Description', style: HerzogText.label(fontSize: 11)),
+                Text('Description', style: HerzogText.label(
+                  fontSize: 11,
+                  color: isDark ? Colors.white : HerzogColors.richBlack,
+                )),
                 const SizedBox(height: 4),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -451,7 +471,10 @@ class _CAPAFormPageState extends State<CAPAFormPage> {
                 // Assigned To
                 Text(
                   'Assigned To (User ID)',
-                  style: HerzogText.label(fontSize: 11),
+                  style: HerzogText.label(
+                    fontSize: 11,
+                    color: isDark ? Colors.white : HerzogColors.richBlack,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 TextFormField(
@@ -465,7 +488,10 @@ class _CAPAFormPageState extends State<CAPAFormPage> {
                 const SizedBox(height: 16),
 
                 // Priority
-                Text('Priority', style: HerzogText.label(fontSize: 11)),
+                Text('Priority', style: HerzogText.label(
+                  fontSize: 11,
+                  color: isDark ? Colors.white : HerzogColors.richBlack,
+                )),
                 const SizedBox(height: 4),
                 DropdownButtonFormField<String>(
                   initialValue: _priority,
@@ -482,7 +508,10 @@ class _CAPAFormPageState extends State<CAPAFormPage> {
                 // Due Date (read-only, auto-calculated)
                 Text(
                   'Due Date (auto-calculated)',
-                  style: HerzogText.label(fontSize: 11),
+                  style: HerzogText.label(
+                    fontSize: 11,
+                    color: isDark ? Colors.white : HerzogColors.richBlack,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 TextFormField(
@@ -503,7 +532,10 @@ class _CAPAFormPageState extends State<CAPAFormPage> {
                 // Verification Method
                 Text(
                   'Verification Method',
-                  style: HerzogText.label(fontSize: 11),
+                  style: HerzogText.label(
+                    fontSize: 11,
+                    color: isDark ? Colors.white : HerzogColors.richBlack,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 TextFormField(

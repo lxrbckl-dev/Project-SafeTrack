@@ -110,6 +110,7 @@ class _CAPADashboardPageState extends State<CAPADashboardPage> {
   }
 
   Widget _buildError() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -122,12 +123,17 @@ class _CAPADashboardPageState extends State<CAPADashboardPage> {
           const SizedBox(height: 12),
           Text(
             'Failed to load CAPA data',
-            style: HerzogText.heading(fontSize: 18),
+            style: HerzogText.heading(
+              fontSize: 18,
+              color: isDark ? Colors.white : HerzogColors.richBlack,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             _error ?? '',
-            style: HerzogText.body(color: HerzogColors.midGray),
+            style: HerzogText.body(
+              color: isDark ? Colors.white : HerzogColors.midGray,
+            ),
           ),
           const SizedBox(height: 16),
           ElevatedButton.icon(
@@ -181,6 +187,7 @@ class _CAPADashboardPageState extends State<CAPADashboardPage> {
   }
 
   Widget _kpiCard(String title, String value, IconData icon, Color color) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SizedBox(
       width: 200,
       child: Semantics(
@@ -207,7 +214,7 @@ class _CAPADashboardPageState extends State<CAPADashboardPage> {
                   title.toUpperCase(),
                   style: HerzogText.label(
                     fontSize: 10,
-                    color: HerzogColors.midGray,
+                    color: isDark ? Colors.white : HerzogColors.midGray,
                   ),
                 ),
               ],
@@ -221,12 +228,16 @@ class _CAPADashboardPageState extends State<CAPADashboardPage> {
   // ---- Filters ----
 
   Widget _buildFilters() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Wrap(
       spacing: 12,
       runSpacing: 8,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        Text('FILTERS', style: HerzogText.label(fontSize: 11)),
+        Text('FILTERS', style: HerzogText.label(
+          fontSize: 11,
+          color: isDark ? Colors.white : HerzogColors.richBlack,
+        )),
         _filterDropdown(
           label: 'Status',
           value: _statusFilter,
@@ -283,7 +294,7 @@ class _CAPADashboardPageState extends State<CAPADashboardPage> {
               fontSize: 12,
               color: _overdueFilter
                   ? HerzogColors.white
-                  : HerzogColors.darkGray,
+                  : (isDark ? Colors.white : HerzogColors.darkGray),
             ),
           ),
           selected: _overdueFilter,
@@ -304,6 +315,7 @@ class _CAPADashboardPageState extends State<CAPADashboardPage> {
     required List<String> items,
     required ValueChanged<String?> onChanged,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SizedBox(
       width: 180,
       child: DropdownButtonFormField<String>(
@@ -313,7 +325,11 @@ class _CAPADashboardPageState extends State<CAPADashboardPage> {
           labelStyle: HerzogText.label(fontSize: 11),
           isDense: true,
         ),
-        style: HerzogText.body(fontSize: 13),
+        dropdownColor: isDark ? HerzogDarkColors.surfaceVariant : HerzogColors.white,
+        style: HerzogText.body(
+          fontSize: 13,
+          color: isDark ? Colors.white : HerzogColors.richBlack,
+        ),
         items: items
             .map(
               (e) => DropdownMenuItem(
@@ -330,6 +346,7 @@ class _CAPADashboardPageState extends State<CAPADashboardPage> {
   // ---- CAPA Table ----
 
   Widget _buildCAPATable() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final capas = _listResponse!.data;
 
     if (capas.isEmpty) {
@@ -348,7 +365,7 @@ class _CAPADashboardPageState extends State<CAPADashboardPage> {
                 'No CAPAs found',
                 style: HerzogText.heading(
                   fontSize: 16,
-                  color: HerzogColors.midGray,
+                  color: isDark ? Colors.white : HerzogColors.midGray,
                 ),
               ),
               if (_canCreate) ...[
@@ -357,7 +374,7 @@ class _CAPADashboardPageState extends State<CAPADashboardPage> {
                   'CAPAs are created from approved investigations.',
                   style: HerzogText.body(
                     fontSize: 13,
-                    color: HerzogColors.smoke,
+                    color: isDark ? Colors.white : HerzogColors.smoke,
                   ),
                 ),
               ],
@@ -371,6 +388,15 @@ class _CAPADashboardPageState extends State<CAPADashboardPage> {
       scrollDirection: Axis.horizontal,
       child: DataTable(
         showCheckboxColumn: false,
+        headingTextStyle: HerzogText.label(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: isDark ? Colors.white : HerzogColors.richBlack,
+        ),
+        dataTextStyle: HerzogText.body(
+          fontSize: 13,
+          color: isDark ? Colors.white : HerzogColors.richBlack,
+        ),
         columns: const [
           DataColumn(label: Text('ID')),
           DataColumn(label: Text('TYPE')),

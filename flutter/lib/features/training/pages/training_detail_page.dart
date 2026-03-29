@@ -96,6 +96,7 @@ class _TrainingDetailPageState extends State<TrainingDetailPage> {
   }
 
   Widget _buildError() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -108,12 +109,17 @@ class _TrainingDetailPageState extends State<TrainingDetailPage> {
           const SizedBox(height: 12),
           Text(
             'Failed to load training requirement',
-            style: HerzogText.heading(fontSize: 18),
+            style: HerzogText.heading(
+              fontSize: 18,
+              color: isDark ? Colors.white : HerzogColors.richBlack,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             _error ?? '',
-            style: HerzogText.body(color: HerzogColors.midGray),
+            style: HerzogText.body(
+              color: isDark ? Colors.white : HerzogColors.midGray,
+            ),
           ),
           const SizedBox(height: 16),
           ElevatedButton.icon(
@@ -310,6 +316,7 @@ class _TrainingDetailPageState extends State<TrainingDetailPage> {
   // ---- Helpers ----
 
   Widget _sectionTitle(String title) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Column(
@@ -320,7 +327,7 @@ class _TrainingDetailPageState extends State<TrainingDetailPage> {
             style: HerzogText.heading(
               fontSize: 14,
               fontWeight: FontWeight.w700,
-              color: HerzogColors.richBlack,
+              color: isDark ? Colors.white : HerzogColors.richBlack,
             ),
           ),
           const SizedBox(height: 2),
@@ -332,6 +339,7 @@ class _TrainingDetailPageState extends State<TrainingDetailPage> {
 
   Widget _detailRow(String label, String value) {
     if (value.isEmpty) return const SizedBox.shrink();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -344,7 +352,7 @@ class _TrainingDetailPageState extends State<TrainingDetailPage> {
               style: HerzogText.label(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: HerzogColors.midGray,
+                color: isDark ? Colors.white : HerzogColors.midGray,
               ),
             ),
           ),
@@ -353,7 +361,7 @@ class _TrainingDetailPageState extends State<TrainingDetailPage> {
               value,
               style: HerzogText.body(
                 fontSize: 14,
-                color: HerzogColors.darkGray,
+                color: isDark ? Colors.white : HerzogColors.darkGray,
               ),
             ),
           ),
@@ -395,10 +403,14 @@ class _CompletionDialogState extends State<_CompletionDialog> {
   Widget build(BuildContext context) {
     final dateFmt = DateFormat('MM/dd/yyyy');
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return AlertDialog(
       title: Text(
         'Record Training Completion',
-        style: HerzogText.heading(fontSize: 18),
+        style: HerzogText.heading(
+          fontSize: 18,
+          color: isDark ? Colors.white : HerzogColors.richBlack,
+        ),
       ),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 440),
@@ -412,7 +424,7 @@ class _CompletionDialogState extends State<_CompletionDialog> {
                   'Enter training completion details.',
                   style: HerzogText.body(
                     fontSize: 13,
-                    color: HerzogColors.midGray,
+                    color: isDark ? Colors.white : HerzogColors.midGray,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -501,7 +513,9 @@ class _CompletionDialogState extends State<_CompletionDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: Text(
             'Cancel',
-            style: HerzogText.body(color: HerzogColors.midGray),
+            style: HerzogText.body(
+              color: isDark ? Colors.white : HerzogColors.midGray,
+            ),
           ),
         ),
         ElevatedButton(

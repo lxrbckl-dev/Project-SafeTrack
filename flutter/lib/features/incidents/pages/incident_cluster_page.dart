@@ -88,6 +88,7 @@ class _IncidentClusterPageState extends State<IncidentClusterPage> {
   }
 
   Widget _buildError() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -100,12 +101,17 @@ class _IncidentClusterPageState extends State<IncidentClusterPage> {
           const SizedBox(height: 12),
           Text(
             'Failed to load clusters',
-            style: HerzogText.heading(fontSize: 18),
+            style: HerzogText.heading(
+              fontSize: 18,
+              color: isDark ? Colors.white : HerzogColors.richBlack,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             _error ?? '',
-            style: HerzogText.body(color: HerzogColors.midGray),
+            style: HerzogText.body(
+              color: isDark ? Colors.white : HerzogColors.midGray,
+            ),
           ),
           const SizedBox(height: 16),
           ElevatedButton.icon(
@@ -129,13 +135,27 @@ class _IncidentClusterPageState extends State<IncidentClusterPage> {
             color: HerzogColors.smoke.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
-          Text('No clusters yet', style: HerzogText.heading(fontSize: 22)),
+          Builder(builder: (context) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            return Text(
+              'No clusters yet',
+              style: HerzogText.heading(
+                fontSize: 22,
+                color: isDark ? Colors.white : HerzogColors.richBlack,
+              ),
+            );
+          }),
           const SizedBox(height: 8),
-          Text(
-            'Link incidents from an incident\'s Recurrence tab to build clusters.',
-            style: HerzogText.body(color: HerzogColors.midGray),
-            textAlign: TextAlign.center,
-          ),
+          Builder(builder: (context) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            return Text(
+              'Link incidents from an incident\'s Recurrence tab to build clusters.',
+              style: HerzogText.body(
+                color: isDark ? Colors.white : HerzogColors.midGray,
+              ),
+              textAlign: TextAlign.center,
+            );
+          }),
         ],
       ),
     );
@@ -155,6 +175,7 @@ class _IncidentClusterPageState extends State<IncidentClusterPage> {
   }
 
   Widget _buildClusterCard(IncidentCluster cluster, int clusterNumber) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     // Sort threads by count descending for display.
     final threads = [...cluster.commonThreads]
       ..sort((a, b) => b.count.compareTo(a.count));
@@ -194,13 +215,16 @@ class _IncidentClusterPageState extends State<IncidentClusterPage> {
                     children: [
                       Text(
                         'Cluster $clusterNumber',
-                        style: HerzogText.heading(fontSize: 16),
+                        style: HerzogText.heading(
+                          fontSize: 16,
+                          color: isDark ? Colors.white : HerzogColors.richBlack,
+                        ),
                       ),
                       Text(
                         '${cluster.incidents.length} incident${cluster.incidents.length == 1 ? '' : 's'}',
                         style: HerzogText.body(
                           fontSize: 12,
-                          color: HerzogColors.midGray,
+                          color: isDark ? Colors.white : HerzogColors.midGray,
                         ),
                       ),
                     ],
@@ -219,7 +243,7 @@ class _IncidentClusterPageState extends State<IncidentClusterPage> {
                 style: HerzogText.label(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
-                  color: HerzogColors.midGray,
+                  color: isDark ? Colors.white : HerzogColors.midGray,
                 ),
               ),
               const SizedBox(height: 6),
@@ -265,7 +289,7 @@ class _IncidentClusterPageState extends State<IncidentClusterPage> {
               style: HerzogText.label(
                 fontSize: 10,
                 fontWeight: FontWeight.w700,
-                color: HerzogColors.midGray,
+                color: isDark ? Colors.white : HerzogColors.midGray,
               ),
             ),
             const SizedBox(height: 8),
@@ -288,9 +312,9 @@ class _IncidentClusterPageState extends State<IncidentClusterPage> {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: HerzogColors.lightGray,
+                        color: isDark ? HerzogDarkColors.surfaceVariant : HerzogColors.lightGray,
                         borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: HerzogColors.borderGray),
+                        border: Border.all(color: isDark ? HerzogDarkColors.inputBorder : HerzogColors.borderGray),
                       ),
                       child: Row(
                         children: [
@@ -309,13 +333,14 @@ class _IncidentClusterPageState extends State<IncidentClusterPage> {
                                   style: HerzogText.body(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,
+                                    color: isDark ? Colors.white : HerzogColors.richBlack,
                                   ),
                                 ),
                                 Text(
                                   '${inc.location}  •  ${inc.division}',
                                   style: HerzogText.body(
                                     fontSize: 11,
-                                    color: HerzogColors.midGray,
+                                    color: isDark ? Colors.white : HerzogColors.midGray,
                                   ),
                                 ),
                               ],

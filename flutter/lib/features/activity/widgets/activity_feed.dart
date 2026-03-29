@@ -115,7 +115,9 @@ class _ActivityFeedState extends State<ActivityFeed> {
           children: [
             Text(
               'Failed to load activity',
-              style: HerzogText.body(color: HerzogColors.errorRed),
+              style: HerzogText.body(
+                color: HerzogColors.errorRed,
+              ),
             ),
             const SizedBox(height: 8),
             TextButton(onPressed: _fetchActivity, child: const Text('Retry')),
@@ -125,17 +127,21 @@ class _ActivityFeedState extends State<ActivityFeed> {
     }
 
     if (_items.isEmpty) {
+      final isDark = Theme.of(context).brightness == Brightness.dark;
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Text(
             'No recent activity',
-            style: HerzogText.body(color: HerzogColors.midGray),
+            style: HerzogText.body(
+              color: isDark ? Colors.white : HerzogColors.midGray,
+            ),
           ),
         ),
       );
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final displayItems = widget.compact
         ? _items.take(widget.maxItems).toList()
         : _items;
@@ -156,7 +162,9 @@ class _ActivityFeedState extends State<ActivityFeed> {
                 onPressed: () => context.push('/activity'),
                 child: Text(
                   'View all activity',
-                  style: HerzogText.label(color: HerzogColors.navyBlue),
+                  style: HerzogText.label(
+                    color: isDark ? HerzogColors.gold : HerzogColors.navyBlue,
+                  ),
                 ),
               ),
             ),

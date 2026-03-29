@@ -119,6 +119,7 @@ class _NotificationPreferencesPageState
   }
 
   Widget _buildBody() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -138,13 +139,16 @@ class _NotificationPreferencesPageState
               'Failed to load preferences',
               style: HerzogText.body(
                 fontSize: 16,
-                color: HerzogColors.richBlack,
+                color: isDark ? Colors.white : HerzogColors.richBlack,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               _error!,
-              style: HerzogText.body(fontSize: 12, color: HerzogColors.midGray),
+              style: HerzogText.body(
+                fontSize: 12,
+                color: isDark ? Colors.white : HerzogColors.midGray,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
@@ -168,13 +172,16 @@ class _NotificationPreferencesPageState
             style: HerzogText.heading(
               fontSize: 20,
               fontWeight: FontWeight.w600,
-              color: HerzogColors.richBlack,
+              color: isDark ? Colors.white : HerzogColors.richBlack,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Choose how SafeTrack delivers escalation alerts, overdue reminders, and review requests.',
-            style: HerzogText.body(fontSize: 14, color: HerzogColors.darkGray),
+            style: HerzogText.body(
+              fontSize: 14,
+              color: isDark ? Colors.white : HerzogColors.darkGray,
+            ),
           ),
           const SizedBox(height: 24),
 
@@ -287,6 +294,7 @@ class _PreferenceOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isSelected = value == groupValue;
 
     return Semantics(
@@ -300,12 +308,12 @@ class _PreferenceOption extends StatelessWidget {
           decoration: BoxDecoration(
             color: isSelected
                 ? HerzogColors.navyBlue.withValues(alpha: 0.06)
-                : HerzogColors.white,
+                : (isDark ? HerzogDarkColors.surfaceVariant : HerzogColors.white),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: isSelected
                   ? HerzogColors.navyBlue
-                  : HerzogColors.borderGray,
+                  : (isDark ? HerzogDarkColors.inputBorder : HerzogColors.borderGray),
               width: isSelected ? 2 : 1,
             ),
           ),
@@ -330,8 +338,8 @@ class _PreferenceOption extends StatelessWidget {
                             ? FontWeight.w600
                             : FontWeight.w400,
                         color: isSelected
-                            ? HerzogColors.navyBlue
-                            : HerzogColors.richBlack,
+                            ? (isDark ? HerzogColors.gold : HerzogColors.navyBlue)
+                            : (isDark ? Colors.white : HerzogColors.richBlack),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -339,7 +347,7 @@ class _PreferenceOption extends StatelessWidget {
                       description,
                       style: HerzogText.body(
                         fontSize: 12,
-                        color: HerzogColors.darkGray,
+                        color: isDark ? Colors.white : HerzogColors.darkGray,
                       ),
                     ),
                   ],

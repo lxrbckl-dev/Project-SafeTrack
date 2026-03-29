@@ -391,6 +391,7 @@ class _IncidentMapPageState extends State<IncidentMapPage> {
   }
 
   Widget _legendDot(Color color, String label) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -400,12 +401,19 @@ class _IncidentMapPageState extends State<IncidentMapPage> {
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 4),
-        Text(label, style: HerzogText.body(fontSize: 11)),
+        Text(
+          label,
+          style: HerzogText.body(
+            fontSize: 11,
+            color: isDark ? Colors.white : HerzogColors.richBlack,
+          ),
+        ),
       ],
     );
   }
 
   Widget _buildError() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -418,12 +426,17 @@ class _IncidentMapPageState extends State<IncidentMapPage> {
           const SizedBox(height: 12),
           Text(
             'Failed to load incidents',
-            style: HerzogText.heading(fontSize: 18),
+            style: HerzogText.heading(
+              fontSize: 18,
+              color: isDark ? Colors.white : HerzogColors.richBlack,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             _error ?? '',
-            style: HerzogText.body(color: HerzogColors.midGray),
+            style: HerzogText.body(
+              color: isDark ? Colors.white : HerzogColors.midGray,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
@@ -581,7 +594,12 @@ class _IncidentMapPageState extends State<IncidentMapPage> {
               const SizedBox(width: 8),
               Text(
                 '($noCoords no GPS)',
-                style: HerzogText.body(fontSize: 11, color: HerzogColors.smoke),
+                style: HerzogText.body(
+                  fontSize: 11,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : HerzogColors.smoke,
+                ),
               ),
             ],
           ],
@@ -651,22 +669,28 @@ class _IncidentPopupCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          incident.type.isNotEmpty ? incident.type : 'Untitled',
-                          style: HerzogText.body(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: HerzogColors.richBlack,
-                          ),
-                        ),
+                        Builder(builder: (context) {
+                          final isDark = Theme.of(context).brightness == Brightness.dark;
+                          return Text(
+                            incident.type.isNotEmpty ? incident.type : 'Untitled',
+                            style: HerzogText.body(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.white : HerzogColors.richBlack,
+                            ),
+                          );
+                        }),
                         const SizedBox(height: 2),
-                        Text(
-                          dateStr,
-                          style: HerzogText.body(
-                            fontSize: 12,
-                            color: HerzogColors.midGray,
-                          ),
-                        ),
+                        Builder(builder: (context) {
+                          final isDark = Theme.of(context).brightness == Brightness.dark;
+                          return Text(
+                            dateStr,
+                            style: HerzogText.body(
+                              fontSize: 12,
+                              color: isDark ? Colors.white : HerzogColors.midGray,
+                            ),
+                          );
+                        }),
                       ],
                     ),
                   ),
@@ -720,15 +744,18 @@ class _IncidentPopupCard extends StatelessWidget {
               // Description snippet
               if (incident.description.isNotEmpty) ...[
                 const SizedBox(height: 10),
-                Text(
-                  incident.description,
-                  style: HerzogText.body(
-                    fontSize: 13,
-                    color: HerzogColors.darkGray,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                Builder(builder: (context) {
+                  final isDark = Theme.of(context).brightness == Brightness.dark;
+                  return Text(
+                    incident.description,
+                    style: HerzogText.body(
+                      fontSize: 13,
+                      color: isDark ? Colors.white : HerzogColors.darkGray,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  );
+                }),
               ],
               // Location
               if (incident.location.isNotEmpty) ...[
@@ -742,15 +769,18 @@ class _IncidentPopupCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Expanded(
-                      child: Text(
-                        incident.location,
-                        style: HerzogText.body(
-                          fontSize: 12,
-                          color: HerzogColors.smoke,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                      child: Builder(builder: (context) {
+                        final isDark = Theme.of(context).brightness == Brightness.dark;
+                        return Text(
+                          incident.location,
+                          style: HerzogText.body(
+                            fontSize: 12,
+                            color: isDark ? Colors.white : HerzogColors.smoke,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        );
+                      }),
                     ),
                   ],
                 ),
@@ -811,8 +841,15 @@ class _MapFilterDropdown extends StatelessWidget {
             vertical: 8,
           ),
         ),
-        style: HerzogText.body(fontSize: 13, color: HerzogColors.darkGray),
-        dropdownColor: HerzogColors.white,
+        style: HerzogText.body(
+          fontSize: 13,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white
+              : HerzogColors.darkGray,
+        ),
+        dropdownColor: Theme.of(context).brightness == Brightness.dark
+            ? HerzogDarkColors.surfaceVariant
+            : HerzogColors.white,
         items: [
           DropdownMenuItem<String>(
             value: null,

@@ -881,6 +881,7 @@ class _IncidentFormPageState extends State<IncidentFormPage> {
   }
 
   Widget _sectionHeader(String title) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -889,7 +890,7 @@ class _IncidentFormPageState extends State<IncidentFormPage> {
           style: HerzogText.heading(
             fontSize: 16,
             fontWeight: FontWeight.w700,
-            color: HerzogColors.richBlack,
+            color: isDark ? Colors.white : HerzogColors.richBlack,
           ),
         ),
         const SizedBox(height: 4),
@@ -899,6 +900,7 @@ class _IncidentFormPageState extends State<IncidentFormPage> {
   }
 
   Widget _buildPhotoSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -914,9 +916,9 @@ class _IncidentFormPageState extends State<IncidentFormPage> {
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: HerzogColors.lightGray,
+                      color: isDark ? HerzogDarkColors.surfaceVariant : HerzogColors.lightGray,
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: HerzogColors.borderGray),
+                      border: Border.all(color: isDark ? HerzogDarkColors.inputBorder : HerzogColors.borderGray),
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -933,7 +935,7 @@ class _IncidentFormPageState extends State<IncidentFormPage> {
                               : entry.value.name,
                           style: HerzogText.body(
                             fontSize: 9,
-                            color: HerzogColors.midGray,
+                            color: isDark ? Colors.white : HerzogColors.midGray,
                           ),
                           textAlign: TextAlign.center,
                         ),

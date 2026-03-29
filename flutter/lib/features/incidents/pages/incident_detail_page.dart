@@ -397,6 +397,7 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
   }
 
   Widget _buildError() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -409,12 +410,17 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
           const SizedBox(height: 12),
           Text(
             'Failed to load incident',
-            style: HerzogText.heading(fontSize: 18),
+            style: HerzogText.heading(
+              fontSize: 18,
+              color: isDark ? Colors.white : HerzogColors.richBlack,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             _error ?? '',
-            style: HerzogText.body(color: HerzogColors.midGray),
+            style: HerzogText.body(
+              color: isDark ? Colors.white : HerzogColors.midGray,
+            ),
           ),
           const SizedBox(height: 16),
           ElevatedButton.icon(
@@ -759,6 +765,7 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
   }
 
   Widget _buildPhotoGrid(List<IncidentPhoto> photos) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -769,9 +776,9 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
             width: 100,
             height: 100,
             decoration: BoxDecoration(
-              color: HerzogColors.lightGray,
+              color: isDark ? HerzogDarkColors.surfaceVariant : HerzogColors.lightGray,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: HerzogColors.borderGray),
+              border: Border.all(color: isDark ? HerzogDarkColors.inputBorder : HerzogColors.borderGray),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -784,7 +791,7 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
                       : photo.fileName,
                   style: HerzogText.body(
                     fontSize: 10,
-                    color: HerzogColors.midGray,
+                    color: isDark ? Colors.white : HerzogColors.midGray,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -913,15 +920,26 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
             color: HerzogColors.smoke.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 12),
-          Text(
-            'No investigation linked yet',
-            style: HerzogText.heading(fontSize: 18),
-          ),
+          Builder(builder: (context) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            return Text(
+              'No investigation linked yet',
+              style: HerzogText.heading(
+                fontSize: 18,
+                color: isDark ? Colors.white : HerzogColors.richBlack,
+              ),
+            );
+          }),
           const SizedBox(height: 8),
-          Text(
-            'A Safety Manager can start an investigation for this incident.',
-            style: HerzogText.body(color: HerzogColors.midGray),
-          ),
+          Builder(builder: (context) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            return Text(
+              'A Safety Manager can start an investigation for this incident.',
+              style: HerzogText.body(
+                color: isDark ? Colors.white : HerzogColors.midGray,
+              ),
+            );
+          }),
           if (isSafetyManager &&
               _auth.currentRole != Role.executive &&
               (_incident?.status == 'Reported' ||
@@ -998,16 +1016,27 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
                         color: HerzogColors.smoke.withValues(alpha: 0.5),
                       ),
                       const SizedBox(height: 12),
-                      Text(
-                        'No CAPAs yet',
-                        style: HerzogText.heading(fontSize: 18),
-                      ),
+                      Builder(builder: (context) {
+                        final isDark = Theme.of(context).brightness == Brightness.dark;
+                        return Text(
+                          'No CAPAs yet',
+                          style: HerzogText.heading(
+                            fontSize: 18,
+                            color: isDark ? Colors.white : HerzogColors.richBlack,
+                          ),
+                        );
+                      }),
                       const SizedBox(height: 8),
-                      Text(
-                        'CAPAs are created after an investigation is approved.',
-                        style: HerzogText.body(color: HerzogColors.midGray),
-                        textAlign: TextAlign.center,
-                      ),
+                      Builder(builder: (context) {
+                        final isDark = Theme.of(context).brightness == Brightness.dark;
+                        return Text(
+                          'CAPAs are created after an investigation is approved.',
+                          style: HerzogText.body(
+                            color: isDark ? Colors.white : HerzogColors.midGray,
+                          ),
+                          textAlign: TextAlign.center,
+                        );
+                      }),
                     ],
                   ),
                 ),
@@ -1122,50 +1151,62 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  '${capa.type} — ${capa.category}',
-                  style: HerzogText.body(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: HerzogColors.richBlack,
-                  ),
-                ),
+                Builder(builder: (context) {
+                  final isDark = Theme.of(context).brightness == Brightness.dark;
+                  return Text(
+                    '${capa.type} — ${capa.category}',
+                    style: HerzogText.body(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : HerzogColors.richBlack,
+                    ),
+                  );
+                }),
                 if (capa.description.isNotEmpty) ...[
                   const SizedBox(height: 4),
-                  Text(
-                    capa.description,
-                    style: HerzogText.body(
-                      fontSize: 12,
-                      color: HerzogColors.midGray,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  Builder(builder: (context) {
+                    final isDark = Theme.of(context).brightness == Brightness.dark;
+                    return Text(
+                      capa.description,
+                      style: HerzogText.body(
+                        fontSize: 12,
+                        color: isDark ? Colors.white : HerzogColors.midGray,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    );
+                  }),
                 ],
                 if (capa.dueDate != null) ...[
                   const SizedBox(height: 4),
-                  Text(
-                    'Due: ${DateFormat('MM/dd/yyyy').format(capa.dueDate!)}',
-                    style: HerzogText.body(
-                      fontSize: 11,
-                      color: capa.isOverdue
-                          ? HerzogColors.errorRed
-                          : HerzogColors.smoke,
-                    ),
-                  ),
+                  Builder(builder: (context) {
+                    final isDark = Theme.of(context).brightness == Brightness.dark;
+                    return Text(
+                      'Due: ${DateFormat('MM/dd/yyyy').format(capa.dueDate!)}',
+                      style: HerzogText.body(
+                        fontSize: 11,
+                        color: capa.isOverdue
+                            ? HerzogColors.errorRed
+                            : isDark ? Colors.white : HerzogColors.smoke,
+                      ),
+                    );
+                  }),
                 ],
                 const SizedBox(height: 4),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Text(
-                      'View CAPA #${capa.id}',
-                      style: HerzogText.body(
-                        fontSize: 11,
-                        color: HerzogColors.navyBlue,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    Builder(builder: (context) {
+                      final isDark = Theme.of(context).brightness == Brightness.dark;
+                      return Text(
+                        'View CAPA #${capa.id}',
+                        style: HerzogText.body(
+                          fontSize: 11,
+                          color: isDark ? HerzogColors.gold : HerzogColors.navyBlue,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      );
+                    }),
                     const Icon(
                       Icons.chevron_right,
                       size: 14,
@@ -1255,18 +1296,29 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
                         color: HerzogColors.smoke.withValues(alpha: 0.5),
                       ),
                       const SizedBox(height: 12),
-                      Text(
-                        'No linked incidents',
-                        style: HerzogText.heading(fontSize: 18),
-                      ),
+                      Builder(builder: (context) {
+                        final isDark = Theme.of(context).brightness == Brightness.dark;
+                        return Text(
+                          'No linked incidents',
+                          style: HerzogText.heading(
+                            fontSize: 18,
+                            color: isDark ? Colors.white : HerzogColors.richBlack,
+                          ),
+                        );
+                      }),
                       const SizedBox(height: 8),
-                      Text(
-                        isSafetyCoordinator
-                            ? 'Use "Link Incident" to connect related incidents.'
-                            : 'A Safety Coordinator can link related incidents.',
-                        style: HerzogText.body(color: HerzogColors.midGray),
-                        textAlign: TextAlign.center,
-                      ),
+                      Builder(builder: (context) {
+                        final isDark = Theme.of(context).brightness == Brightness.dark;
+                        return Text(
+                          isSafetyCoordinator
+                              ? 'Use "Link Incident" to connect related incidents.'
+                              : 'A Safety Coordinator can link related incidents.',
+                          style: HerzogText.body(
+                            color: isDark ? Colors.white : HerzogColors.midGray,
+                          ),
+                          textAlign: TextAlign.center,
+                        );
+                      }),
                     ],
                   ),
                 ),
@@ -1325,10 +1377,12 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
         if (_suggestionsError != null)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: Text(
-              _suggestionsError!,
-              style: HerzogText.body(color: HerzogColors.errorRed),
-            ),
+            child: Builder(builder: (context) {
+              return Text(
+                _suggestionsError!,
+                style: HerzogText.body(color: HerzogColors.errorRed),
+              );
+            }),
           ),
 
         if (!_suggestionsChecked && !_suggestionsLoading)
@@ -1344,11 +1398,16 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
                     color: HerzogColors.smoke.withValues(alpha: 0.5),
                   ),
                   const SizedBox(height: 12),
-                  Text(
-                    'Click "Check for Similar Incidents" to scan for potential recurrences.',
-                    style: HerzogText.body(color: HerzogColors.midGray),
-                    textAlign: TextAlign.center,
-                  ),
+                  Builder(builder: (context) {
+                    final isDark = Theme.of(context).brightness == Brightness.dark;
+                    return Text(
+                      'Click "Check for Similar Incidents" to scan for potential recurrences.',
+                      style: HerzogText.body(
+                        color: isDark ? Colors.white : HerzogColors.midGray,
+                      ),
+                      textAlign: TextAlign.center,
+                    );
+                  }),
                 ],
               ),
             ),
@@ -1366,16 +1425,27 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
                     color: HerzogColors.successGreen.withValues(alpha: 0.6),
                   ),
                   const SizedBox(height: 12),
-                  Text(
-                    'No similar incidents found',
-                    style: HerzogText.heading(fontSize: 16),
-                  ),
+                  Builder(builder: (context) {
+                    final isDark = Theme.of(context).brightness == Brightness.dark;
+                    return Text(
+                      'No similar incidents found',
+                      style: HerzogText.heading(
+                        fontSize: 16,
+                        color: isDark ? Colors.white : HerzogColors.richBlack,
+                      ),
+                    );
+                  }),
                   const SizedBox(height: 4),
-                  Text(
-                    'No potential recurrences were detected in the lookback period.',
-                    style: HerzogText.body(color: HerzogColors.midGray),
-                    textAlign: TextAlign.center,
-                  ),
+                  Builder(builder: (context) {
+                    final isDark = Theme.of(context).brightness == Brightness.dark;
+                    return Text(
+                      'No potential recurrences were detected in the lookback period.',
+                      style: HerzogText.body(
+                        color: isDark ? Colors.white : HerzogColors.midGray,
+                      ),
+                      textAlign: TextAlign.center,
+                    );
+                  }),
                 ],
               ),
             ),
@@ -1434,21 +1504,27 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  '#${match.incidentId}',
-                  style: HerzogText.heading(
-                    fontSize: 16,
-                    color: HerzogColors.navyBlue,
-                  ),
-                ),
+                Builder(builder: (context) {
+                  final isDark = Theme.of(context).brightness == Brightness.dark;
+                  return Text(
+                    '#${match.incidentId}',
+                    style: HerzogText.heading(
+                      fontSize: 16,
+                      color: isDark ? HerzogColors.gold : HerzogColors.navyBlue,
+                    ),
+                  );
+                }),
                 const Spacer(),
-                Text(
-                  dateStr,
-                  style: HerzogText.body(
-                    fontSize: 12,
-                    color: HerzogColors.midGray,
-                  ),
-                ),
+                Builder(builder: (context) {
+                  final isDark = Theme.of(context).brightness == Brightness.dark;
+                  return Text(
+                    dateStr,
+                    style: HerzogText.body(
+                      fontSize: 12,
+                      color: isDark ? Colors.white : HerzogColors.midGray,
+                    ),
+                  );
+                }),
               ],
             ),
             const SizedBox(height: 8),
@@ -1487,18 +1563,21 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
             _detailRow('Type', match.type),
             _detailRow('Location', match.location),
             if (match.description.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  match.description,
-                  style: HerzogText.body(
-                    fontSize: 12,
-                    color: HerzogColors.darkGray,
+              Builder(builder: (context) {
+                final isDark = Theme.of(context).brightness == Brightness.dark;
+                return Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    match.description,
+                    style: HerzogText.body(
+                      fontSize: 12,
+                      color: isDark ? Colors.white : HerzogColors.darkGray,
+                    ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
+                );
+              }),
             const SizedBox(height: 12),
 
             // Action buttons
@@ -1582,13 +1661,16 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
                 TextButton.icon(
                   onPressed: () => context.go('/incidents/${other.id}'),
                   icon: const Icon(Icons.open_in_new, size: 14),
-                  label: Text(
-                    '#${other.id}',
-                    style: HerzogText.body(
-                      fontSize: 13,
-                      color: HerzogColors.navyBlue,
-                    ),
-                  ),
+                  label: Builder(builder: (context) {
+                    final isDark = Theme.of(context).brightness == Brightness.dark;
+                    return Text(
+                      '#${other.id}',
+                      style: HerzogText.body(
+                        fontSize: 13,
+                        color: isDark ? HerzogColors.gold : HerzogColors.navyBlue,
+                      ),
+                    );
+                  }),
                 ),
                 // Delete button (Safety Coordinator+ only)
                 if (canDelete)
@@ -1688,16 +1770,27 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
                 color: HerzogColors.errorRed,
               ),
               const SizedBox(height: 12),
-              Text(
-                'Failed to load timeline',
-                style: HerzogText.heading(fontSize: 18),
-              ),
+              Builder(builder: (context) {
+                final isDark = Theme.of(context).brightness == Brightness.dark;
+                return Text(
+                  'Failed to load timeline',
+                  style: HerzogText.heading(
+                    fontSize: 18,
+                    color: isDark ? Colors.white : HerzogColors.richBlack,
+                  ),
+                );
+              }),
               const SizedBox(height: 8),
-              Text(
-                _timelineError!,
-                style: HerzogText.body(color: HerzogColors.midGray),
-                textAlign: TextAlign.center,
-              ),
+              Builder(builder: (context) {
+                final isDark = Theme.of(context).brightness == Brightness.dark;
+                return Text(
+                  _timelineError!,
+                  style: HerzogText.body(
+                    color: isDark ? Colors.white : HerzogColors.midGray,
+                  ),
+                  textAlign: TextAlign.center,
+                );
+              }),
               const SizedBox(height: 16),
               ElevatedButton.icon(
                 onPressed: _loadTimeline,
@@ -1714,6 +1807,7 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
   }
 
   Widget _sectionTitle(String title) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Column(
@@ -1724,7 +1818,7 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
             style: HerzogText.heading(
               fontSize: 14,
               fontWeight: FontWeight.w700,
-              color: HerzogColors.richBlack,
+              color: isDark ? Colors.white : HerzogColors.richBlack,
             ),
           ),
           const SizedBox(height: 2),
@@ -1736,6 +1830,7 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
 
   Widget _detailRow(String label, String value) {
     if (value.isEmpty) return const SizedBox.shrink();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -1748,7 +1843,7 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
               style: HerzogText.label(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: HerzogColors.midGray,
+                color: isDark ? Colors.white : HerzogColors.midGray,
               ),
             ),
           ),
@@ -1757,7 +1852,7 @@ class _IncidentDetailPageState extends State<IncidentDetailPage>
               value,
               style: HerzogText.body(
                 fontSize: 14,
-                color: HerzogColors.darkGray,
+                color: isDark ? Colors.white : HerzogColors.darkGray,
               ),
             ),
           ),

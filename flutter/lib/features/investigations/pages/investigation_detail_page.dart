@@ -143,6 +143,7 @@ class _InvestigationDetailPageState extends State<InvestigationDetailPage>
   }
 
   Widget _buildError() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -155,12 +156,17 @@ class _InvestigationDetailPageState extends State<InvestigationDetailPage>
           const SizedBox(height: 12),
           Text(
             'Failed to load investigation',
-            style: HerzogText.heading(fontSize: 18),
+            style: HerzogText.heading(
+              fontSize: 18,
+              color: isDark ? Colors.white : HerzogColors.richBlack,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             _error ?? '',
-            style: HerzogText.body(color: HerzogColors.midGray),
+            style: HerzogText.body(
+              color: isDark ? Colors.white : HerzogColors.midGray,
+            ),
           ),
           const SizedBox(height: 16),
           ElevatedButton.icon(
@@ -403,6 +409,7 @@ class _InvestigationDetailPageState extends State<InvestigationDetailPage>
     Color color,
     String subtitle,
   ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Expanded(
       child: Semantics(
         label: '$label: $count. $subtitle',
@@ -420,14 +427,14 @@ class _InvestigationDetailPageState extends State<InvestigationDetailPage>
                   label,
                   style: HerzogText.label(
                     fontSize: 11,
-                    color: HerzogColors.midGray,
+                    color: isDark ? Colors.white : HerzogColors.midGray,
                   ),
                 ),
                 Text(
                   subtitle,
                   style: HerzogText.body(
                     fontSize: 10,
-                    color: HerzogColors.smoke,
+                    color: isDark ? Colors.white : HerzogColors.smoke,
                   ),
                 ),
               ],
@@ -526,6 +533,7 @@ class _InvestigationDetailPageState extends State<InvestigationDetailPage>
   // --- Helpers ---
 
   Widget _sectionTitle(String title) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Column(
@@ -536,7 +544,7 @@ class _InvestigationDetailPageState extends State<InvestigationDetailPage>
             style: HerzogText.heading(
               fontSize: 14,
               fontWeight: FontWeight.w700,
-              color: HerzogColors.richBlack,
+              color: isDark ? Colors.white : HerzogColors.richBlack,
             ),
           ),
           const SizedBox(height: 2),
@@ -548,6 +556,7 @@ class _InvestigationDetailPageState extends State<InvestigationDetailPage>
 
   Widget _detailRow(String label, String value) {
     if (value.isEmpty) return const SizedBox.shrink();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -560,7 +569,7 @@ class _InvestigationDetailPageState extends State<InvestigationDetailPage>
               style: HerzogText.label(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: HerzogColors.midGray,
+                color: isDark ? Colors.white : HerzogColors.midGray,
               ),
             ),
           ),
@@ -569,7 +578,7 @@ class _InvestigationDetailPageState extends State<InvestigationDetailPage>
               value,
               style: HerzogText.body(
                 fontSize: 14,
-                color: HerzogColors.darkGray,
+                color: isDark ? Colors.white : HerzogColors.darkGray,
               ),
             ),
           ),

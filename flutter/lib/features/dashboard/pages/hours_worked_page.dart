@@ -142,10 +142,16 @@ class _HoursWorkedPageState extends State<HoursWorkedPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'NEW ENTRY',
-                        style: HerzogText.heading(fontSize: 16),
-                      ),
+                      Builder(builder: (context) {
+                        final isDark = Theme.of(context).brightness == Brightness.dark;
+                        return Text(
+                          'NEW ENTRY',
+                          style: HerzogText.heading(
+                            fontSize: 16,
+                            color: isDark ? Colors.white : HerzogColors.richBlack,
+                          ),
+                        );
+                      }),
                       const SizedBox(height: 16),
                       Row(
                         children: [
@@ -223,7 +229,16 @@ class _HoursWorkedPageState extends State<HoursWorkedPage> {
             const SizedBox(height: 24),
 
             // Existing entries
-            Text('EXISTING ENTRIES', style: HerzogText.heading(fontSize: 16)),
+            Builder(builder: (context) {
+              final isDark = Theme.of(context).brightness == Brightness.dark;
+              return Text(
+                'EXISTING ENTRIES',
+                style: HerzogText.heading(
+                  fontSize: 16,
+                  color: isDark ? Colors.white : HerzogColors.richBlack,
+                ),
+              );
+            }),
             const SizedBox(height: 8),
             if (_loading)
               const Center(child: CircularProgressIndicator())
@@ -233,10 +248,15 @@ class _HoursWorkedPageState extends State<HoursWorkedPage> {
                 style: HerzogText.body(color: HerzogColors.errorRed),
               )
             else if (_entries.isEmpty)
-              Text(
-                'No hours worked entries yet',
-                style: HerzogText.body(color: HerzogColors.smoke),
-              )
+              Builder(builder: (context) {
+                final isDark = Theme.of(context).brightness == Brightness.dark;
+                return Text(
+                  'No hours worked entries yet',
+                  style: HerzogText.body(
+                    color: isDark ? Colors.white : HerzogColors.smoke,
+                  ),
+                );
+              })
             else
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -291,12 +311,19 @@ class _DateField extends StatelessWidget {
           labelText: label,
           suffixIcon: const Icon(Icons.calendar_today, size: 18),
         ),
-        child: Text(
-          value ?? 'Select date',
-          style: value != null
-              ? HerzogText.body()
-              : HerzogText.body(color: HerzogColors.smoke),
-        ),
+        child: Builder(builder: (context) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          return Text(
+            value ?? 'Select date',
+            style: value != null
+                ? HerzogText.body(
+                    color: isDark ? Colors.white : HerzogColors.richBlack,
+                  )
+                : HerzogText.body(
+                    color: isDark ? Colors.white : HerzogColors.smoke,
+                  ),
+          );
+        }),
       ),
     );
   }

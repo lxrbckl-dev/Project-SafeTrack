@@ -183,6 +183,7 @@ class _AgentSessionsPageState extends State<AgentSessionsPage> {
   // ---------------------------------------------------------------------------
 
   Widget _buildActiveSessionsSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -190,7 +191,10 @@ class _AgentSessionsPageState extends State<AgentSessionsPage> {
           children: [
             Text(
               'ACTIVE AGENT SESSIONS',
-              style: HerzogText.heading(fontSize: 15),
+              style: HerzogText.heading(
+                fontSize: 15,
+                color: isDark ? Colors.white : HerzogColors.richBlack,
+              ),
             ),
             const SizedBox(width: 12),
             if (!_loadingSessions)
@@ -223,7 +227,9 @@ class _AgentSessionsPageState extends State<AgentSessionsPage> {
         Text(
           'Agents with API activity within the last 5 minutes. '
           'Auto-refreshes every 10 seconds.',
-          style: HerzogText.body(),
+          style: HerzogText.body(
+            color: isDark ? Colors.white : HerzogColors.richBlack,
+          ),
         ),
         const SizedBox(height: 12),
         if (_loadingSessions)
@@ -244,10 +250,13 @@ class _AgentSessionsPageState extends State<AgentSessionsPage> {
   }
 
   Widget _buildEmptySessions() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        border: Border.all(color: HerzogColors.borderGray),
+        border: Border.all(
+          color: isDark ? HerzogDarkColors.inputBorder : HerzogColors.borderGray,
+        ),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -257,7 +266,9 @@ class _AgentSessionsPageState extends State<AgentSessionsPage> {
           const SizedBox(width: 12),
           Text(
             'No active agent sessions',
-            style: HerzogText.body().copyWith(color: HerzogColors.midGray),
+            style: HerzogText.body().copyWith(
+              color: isDark ? Colors.white : HerzogColors.midGray,
+            ),
           ),
         ],
       ),
@@ -269,15 +280,21 @@ class _AgentSessionsPageState extends State<AgentSessionsPage> {
   // ---------------------------------------------------------------------------
 
   Widget _buildAgentActivitySection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('RECENT AGENT ACTIVITY', style: HerzogText.heading(fontSize: 15)),
+        Text('RECENT AGENT ACTIVITY', style: HerzogText.heading(
+          fontSize: 15,
+          color: isDark ? Colors.white : HerzogColors.richBlack,
+        )),
         const SizedBox(height: 4),
         Text(
           'All actions performed via agent API keys, including rejections and '
           'rollbacks.',
-          style: HerzogText.body(),
+          style: HerzogText.body(
+            color: isDark ? Colors.white : HerzogColors.richBlack,
+          ),
         ),
         const SizedBox(height: 12),
         if (_loadingActivity)
@@ -337,10 +354,13 @@ class _AgentSessionsPageState extends State<AgentSessionsPage> {
   }
 
   Widget _buildEmptyActivity() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        border: Border.all(color: HerzogColors.borderGray),
+        border: Border.all(
+          color: isDark ? HerzogDarkColors.inputBorder : HerzogColors.borderGray,
+        ),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -350,7 +370,9 @@ class _AgentSessionsPageState extends State<AgentSessionsPage> {
           const SizedBox(width: 12),
           Text(
             'No agent activity yet',
-            style: HerzogText.body().copyWith(color: HerzogColors.midGray),
+            style: HerzogText.body().copyWith(
+              color: isDark ? Colors.white : HerzogColors.midGray,
+            ),
           ),
         ],
       ),
@@ -407,6 +429,7 @@ class _SessionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final (statusColor, statusLabel) = _statusIndicator();
 
     return Semantics(
@@ -473,7 +496,7 @@ class _SessionCard extends StatelessWidget {
                       'Key: ${session.keyPrefix}...',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         fontFamily: 'monospace',
-                        color: HerzogColors.midGray,
+                        color: isDark ? Colors.white : HerzogColors.midGray,
                       ),
                     ),
                   ],
@@ -487,7 +510,7 @@ class _SessionCard extends StatelessWidget {
                   Text(
                     'Last action',
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: HerzogColors.midGray,
+                      color: isDark ? Colors.white : HerzogColors.midGray,
                     ),
                   ),
                   Text(
@@ -559,6 +582,7 @@ class _ActivityRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Semantics(
       label: 'Agent action: ${item.message}, ${_formatTime(item.timestamp)}',
       child: Padding(
@@ -614,7 +638,7 @@ class _ActivityRow extends StatelessWidget {
                       Text(
                         item.userDisplayName,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: HerzogColors.midGray,
+                          color: isDark ? Colors.white : HerzogColors.midGray,
                         ),
                       ),
                     ],
@@ -628,7 +652,9 @@ class _ActivityRow extends StatelessWidget {
               _formatTime(item.timestamp),
               style: Theme.of(
                 context,
-              ).textTheme.bodySmall?.copyWith(color: HerzogColors.midGray),
+              ).textTheme.bodySmall?.copyWith(
+                color: isDark ? Colors.white : HerzogColors.midGray,
+              ),
             ),
           ],
         ),

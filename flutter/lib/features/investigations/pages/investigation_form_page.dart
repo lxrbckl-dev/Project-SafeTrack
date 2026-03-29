@@ -225,19 +225,28 @@ class _InvestigationFormPageState extends State<InvestigationFormPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'ASSIGN INVESTIGATION',
-                  style: HerzogText.heading(fontSize: 20),
-                ),
+                Builder(builder: (context) {
+                  final isDark = Theme.of(context).brightness == Brightness.dark;
+                  return Text(
+                    'ASSIGN INVESTIGATION',
+                    style: HerzogText.heading(
+                      fontSize: 20,
+                      color: isDark ? Colors.white : HerzogColors.richBlack,
+                    ),
+                  );
+                }),
                 const SizedBox(height: 4),
-                Text(
-                  'Assign a lead investigator and team to investigate this '
-                  'incident.',
-                  style: HerzogText.body(
-                    fontSize: 13,
-                    color: HerzogColors.midGray,
-                  ),
-                ),
+                Builder(builder: (context) {
+                  final isDark = Theme.of(context).brightness == Brightness.dark;
+                  return Text(
+                    'Assign a lead investigator and team to investigate this '
+                    'incident.',
+                    style: HerzogText.body(
+                      fontSize: 13,
+                      color: isDark ? Colors.white : HerzogColors.midGray,
+                    ),
+                  );
+                }),
                 const SizedBox(height: 24),
 
                 // Incident info
@@ -248,13 +257,16 @@ class _InvestigationFormPageState extends State<InvestigationFormPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'LINKED INCIDENT',
-                            style: HerzogText.heading(
-                              fontSize: 14,
-                              color: HerzogColors.navyBlue,
-                            ),
-                          ),
+                          Builder(builder: (context) {
+                            final isDark = Theme.of(context).brightness == Brightness.dark;
+                            return Text(
+                              'LINKED INCIDENT',
+                              style: HerzogText.heading(
+                                fontSize: 14,
+                                color: isDark ? HerzogColors.gold : HerzogColors.navyBlue,
+                              ),
+                            );
+                          }),
                           const SizedBox(height: 8),
                           _infoRow('Incident ID', '#${_incident!.id}'),
                           _infoRow('Type', _incident!.type),
@@ -376,14 +388,17 @@ class _InvestigationFormPageState extends State<InvestigationFormPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                'TARGET COMPLETION DATE',
-                                style: HerzogText.label(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  color: HerzogColors.midGray,
-                                ),
-                              ),
+                              Builder(builder: (context) {
+                                final isDark = Theme.of(context).brightness == Brightness.dark;
+                                return Text(
+                                  'TARGET COMPLETION DATE',
+                                  style: HerzogText.label(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: isDark ? Colors.white : HerzogColors.midGray,
+                                  ),
+                                );
+                              }),
                               const SizedBox(height: 4),
                               Semantics(
                                 label:
@@ -401,13 +416,16 @@ class _InvestigationFormPageState extends State<InvestigationFormPage> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  'Auto-calculated based on incident severity. Not editable.',
-                  style: HerzogText.body(
-                    fontSize: 11,
-                    color: HerzogColors.smoke,
-                  ),
-                ),
+                Builder(builder: (context) {
+                  final isDark = Theme.of(context).brightness == Brightness.dark;
+                  return Text(
+                    'Auto-calculated based on incident severity. Not editable.',
+                    style: HerzogText.body(
+                      fontSize: 11,
+                      color: isDark ? Colors.white : HerzogColors.smoke,
+                    ),
+                  );
+                }),
                 const SizedBox(height: 24),
 
                 // Submit
@@ -441,6 +459,7 @@ class _InvestigationFormPageState extends State<InvestigationFormPage> {
 
   Widget _infoRow(String label, String value) {
     if (value.isEmpty) return const SizedBox.shrink();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
@@ -452,11 +471,19 @@ class _InvestigationFormPageState extends State<InvestigationFormPage> {
               style: HerzogText.label(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: HerzogColors.midGray,
+                color: isDark ? Colors.white : HerzogColors.midGray,
               ),
             ),
           ),
-          Expanded(child: Text(value, style: HerzogText.body(fontSize: 13))),
+          Expanded(
+            child: Text(
+              value,
+              style: HerzogText.body(
+                fontSize: 13,
+                color: isDark ? Colors.white : HerzogColors.richBlack,
+              ),
+            ),
+          ),
         ],
       ),
     );
