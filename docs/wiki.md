@@ -54,8 +54,8 @@ Flutter App (port 3000)
 Go Backend (port 8000)
     |
     |-- GORM ORM
-    v
-PostgreSQL (port 5432)
+    |   v
+    |   PostgreSQL (port 5432)
     |
     |-- Ollama AI (port 11434, Qwen 2.5 7B)
     |-- WebSocket (real-time push)
