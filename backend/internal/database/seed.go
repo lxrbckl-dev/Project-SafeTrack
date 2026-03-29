@@ -779,8 +779,8 @@ func SeedData(db *gorm.DB) {
 		isOverdue := false
 		escalation := 0
 
-		// ~30% overdue
-		if rng.Float64() < 0.30 {
+		// ~15% overdue
+		if rng.Float64() < 0.15 {
 			isOverdue = true
 			targetDate = now.AddDate(0, 0, -(7 + rng.Intn(60))) // target in the past
 			daysPast := int(now.Sub(targetDate).Hours() / 24)
@@ -1082,6 +1082,89 @@ func SeedData(db *gorm.DB) {
 		}
 	}
 	log.Printf("Seed: created %d CAPAs", len(capas))
+
+	// -------------------------------------------------------------------------
+	// Training Requirements — linked to Training-category CAPAs
+	// -------------------------------------------------------------------------
+	trainingCourseNames := []string{
+		"Lockout/Tagout Refresher",
+		"Confined Space Entry",
+		"Fall Protection",
+		"Hazard Communication",
+		"Electrical Safety",
+	}
+	trainingDescriptions := []string{
+		"Annual refresher on energy isolation procedures per OSHA 1910.147.",
+		"Permit-required confined space entry and rescue awareness training.",
+		"Fall prevention, protection systems, and rescue planning.",
+		"Chemical hazard identification, SDS review, and labeling requirements.",
+		"Electrical safe work practices and arc-flash awareness per NFPA 70E.",
+	}
+	instructorNames := []string{
+		"John Martinez",
+		"Karen Liu",
+		"Mike O'Brien",
+		"Sandra Gomez",
+		"Tom Reynolds",
+	}
+
+	var trainingCapas []*models.CAPA
+	for _, c := range capas {
+		if c.Category == "Training" {
+			trainingCapas = append(trainingCapas, c)
+		}
+	}
+
+	trainingReqCount := 0
+	trainingCompCount := 0
+	allUserIDs := append(reporters, append(coordinators, managers...)...)
+
+	for i, tc := range trainingCapas {
+		if i >= 5 {
+			break // create up to 5 training requirements
+		}
+		courseIdx := i % len(trainingCourseNames)
+		assignee := allUserIDs[rng.Intn(len(allUserIDs))]
+		status := "Pending"
+		if i >= 3 {
+			status = "Completed" // first 3 Pending, last 2 Completed
+		}
+
+		req := models.TrainingRequirement{
+			CAPAID:           tc.ID,
+			CourseName:       trainingCourseNames[courseIdx],
+			Description:      trainingDescriptions[courseIdx],
+			AssignedToUserID: assignee,
+			AssignedByUserID: tc.AssignedByUserID,
+			DueDate:          tc.DueDate,
+			Status:           status,
+		}
+		if err := db.Create(&req).Error; err != nil {
+			log.Printf("Seed: failed to create TrainingRequirement: %v", err)
+			continue
+		}
+		trainingReqCount++
+
+		if status == "Completed" {
+			completionDate := tc.DueDate.AddDate(0, 0, -(1 + rng.Intn(5)))
+			comp := models.TrainingCompletion{
+				TrainingRequirementID: req.ID,
+				CompletedByUserID:     assignee,
+				CompletionDate:        completionDate,
+				DurationHours:         float64(2 + rng.Intn(7)),
+				InstructorName:        instructorNames[rng.Intn(len(instructorNames))],
+				Notes:                 "Employee demonstrated competency in all required areas.",
+				Evidence:              "Signed attendance roster and post-assessment score: 92%",
+				VerifiedByUserID:      pick(managers),
+			}
+			if err := db.Create(&comp).Error; err != nil {
+				log.Printf("Seed: failed to create TrainingCompletion: %v", err)
+			} else {
+				trainingCompCount++
+			}
+		}
+	}
+	log.Printf("Seed: created %d training requirements (%d completions)", trainingReqCount, trainingCompCount)
 
 	// -------------------------------------------------------------------------
 	// Incident Links — 4-5 clusters of 3-4 incidents each

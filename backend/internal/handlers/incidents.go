@@ -221,7 +221,7 @@ func ListIncidents(db *gorm.DB) http.HandlerFunc {
 
 		// Pagination.
 		page := 1
-		perPage := 50
+		perPage := 25
 		if p := r.URL.Query().Get("page"); p != "" {
 			if v, err := strconv.Atoi(p); err == nil && v > 0 {
 				page = v
