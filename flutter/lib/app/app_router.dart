@@ -141,12 +141,16 @@ GoRouter appRouter(AuthService authService) {
           GoRoute(
             path: '/dashboard',
             name: 'dashboard',
-            builder: (context, state) => const SafetyDashboardPage(),
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: SafetyDashboardPage(),
+            ),
             routes: [
               GoRoute(
                 path: 'hours-worked',
                 name: 'hoursWorked',
-                builder: (context, state) => const HoursWorkedPage(),
+                pageBuilder: (context, state) => const NoTransitionPage(
+                  child: HoursWorkedPage(),
+                ),
               ),
             ],
           ),
@@ -155,7 +159,9 @@ GoRouter appRouter(AuthService authService) {
           GoRoute(
             path: '/incidents',
             name: 'incidents',
-            builder: (context, state) => const IncidentListPage(),
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: IncidentListPage(),
+            ),
             routes: [
               GoRoute(
                 path: 'new',
@@ -163,47 +169,65 @@ GoRouter appRouter(AuthService authService) {
                 // TASK-044: pass query parameters for pre-fill support.
                 // GoRouter preserves query params through auth redirect by
                 // default, so deep-links with params survive login.
-                builder: (context, state) =>
-                    IncidentFormPage(queryParams: state.uri.queryParameters),
+                pageBuilder: (context, state) => NoTransitionPage(
+                  child: IncidentFormPage(
+                      queryParams: state.uri.queryParameters),
+                ),
               ),
               GoRoute(
                 path: 'map',
                 name: 'incidentMap',
-                builder: (context, state) => const IncidentMapPage(),
+                pageBuilder: (context, state) => const NoTransitionPage(
+                  child: IncidentMapPage(),
+                ),
               ),
               GoRoute(
                 path: 'clusters',
                 name: 'incidentClusters',
-                builder: (context, state) => const IncidentClusterPage(),
+                pageBuilder: (context, state) => const NoTransitionPage(
+                  child: IncidentClusterPage(),
+                ),
               ),
               GoRoute(
                 path: ':id',
                 name: 'incidentDetail',
-                builder: (context, state) {
+                pageBuilder: (context, state) {
                   final id = int.tryParse(state.pathParameters['id'] ?? '');
                   if (id == null) {
-                    return const IncidentListPage();
+                    return const NoTransitionPage(
+                      child: IncidentListPage(),
+                    );
                   }
-                  return IncidentDetailPage(incidentId: id);
+                  return NoTransitionPage(
+                    child: IncidentDetailPage(incidentId: id),
+                  );
                 },
                 routes: [
                   GoRoute(
                     path: 'edit',
                     name: 'incidentEdit',
-                    builder: (context, state) {
-                      final id = int.tryParse(state.pathParameters['id'] ?? '');
-                      return IncidentFormPage(incidentId: id);
+                    pageBuilder: (context, state) {
+                      final id =
+                          int.tryParse(state.pathParameters['id'] ?? '');
+                      return NoTransitionPage(
+                        child: IncidentFormPage(incidentId: id),
+                      );
                     },
                   ),
                   GoRoute(
                     path: 'osha',
                     name: 'incidentOsha',
-                    builder: (context, state) {
-                      final id = int.tryParse(state.pathParameters['id'] ?? '');
+                    pageBuilder: (context, state) {
+                      final id =
+                          int.tryParse(state.pathParameters['id'] ?? '');
                       if (id == null) {
-                        return const IncidentListPage();
+                        return const NoTransitionPage(
+                          child: IncidentListPage(),
+                        );
                       }
-                      return OshaDeterminationPage(incidentId: id);
+                      return NoTransitionPage(
+                        child: OshaDeterminationPage(incidentId: id),
+                      );
                     },
                   ),
                 ],
@@ -215,31 +239,39 @@ GoRouter appRouter(AuthService authService) {
           GoRoute(
             path: '/investigations',
             name: 'investigations',
-            builder: (context, state) => const InvestigationListPage(),
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: InvestigationListPage(),
+            ),
             routes: [
               GoRoute(
                 path: 'new',
                 name: 'investigationNew',
-                builder: (context, state) {
+                pageBuilder: (context, state) {
                   final params = state.uri.queryParameters;
                   final incidentId = int.tryParse(params['incidentId'] ?? '');
                   // TASK-044: pass leadInvestigator query param for pre-fill.
                   final leadInvestigator = params['leadInvestigator'];
-                  return InvestigationFormPage(
-                    incidentId: incidentId,
-                    leadInvestigator: leadInvestigator,
+                  return NoTransitionPage(
+                    child: InvestigationFormPage(
+                      incidentId: incidentId,
+                      leadInvestigator: leadInvestigator,
+                    ),
                   );
                 },
               ),
               GoRoute(
                 path: ':id',
                 name: 'investigationDetail',
-                builder: (context, state) {
+                pageBuilder: (context, state) {
                   final id = int.tryParse(state.pathParameters['id'] ?? '');
                   if (id == null) {
-                    return const InvestigationListPage();
+                    return const NoTransitionPage(
+                      child: InvestigationListPage(),
+                    );
                   }
-                  return InvestigationDetailPage(investigationId: id);
+                  return NoTransitionPage(
+                    child: InvestigationDetailPage(investigationId: id),
+                  );
                 },
               ),
             ],
@@ -248,33 +280,41 @@ GoRouter appRouter(AuthService authService) {
           GoRoute(
             path: '/capas',
             name: 'capas',
-            builder: (context, state) => const CAPADashboardPage(),
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: CAPADashboardPage(),
+            ),
             routes: [
               GoRoute(
                 path: 'new',
                 name: 'capaNew',
-                builder: (context, state) {
+                pageBuilder: (context, state) {
                   final params = state.uri.queryParameters;
                   final investigationId = int.tryParse(
                     params['investigationId'] ?? '',
                   );
                   // TASK-044: pass type/category/priority/description for
                   // query-param pre-fill.
-                  return CAPAFormPage(
-                    investigationId: investigationId,
-                    queryParams: params,
+                  return NoTransitionPage(
+                    child: CAPAFormPage(
+                      investigationId: investigationId,
+                      queryParams: params,
+                    ),
                   );
                 },
               ),
               GoRoute(
                 path: ':id',
                 name: 'capaDetail',
-                builder: (context, state) {
+                pageBuilder: (context, state) {
                   final id = int.tryParse(state.pathParameters['id'] ?? '');
                   if (id == null) {
-                    return const CAPADashboardPage();
+                    return const NoTransitionPage(
+                      child: CAPADashboardPage(),
+                    );
                   }
-                  return CAPADetailPage(capaId: id);
+                  return NoTransitionPage(
+                    child: CAPADetailPage(capaId: id),
+                  );
                 },
               ),
             ],
@@ -283,17 +323,23 @@ GoRouter appRouter(AuthService authService) {
           GoRoute(
             path: '/training',
             name: 'training',
-            builder: (context, state) => const TrainingListPage(),
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: TrainingListPage(),
+            ),
             routes: [
               GoRoute(
                 path: ':id',
                 name: 'trainingDetail',
-                builder: (context, state) {
+                pageBuilder: (context, state) {
                   final id = int.tryParse(state.pathParameters['id'] ?? '');
                   if (id == null) {
-                    return const TrainingListPage();
+                    return const NoTransitionPage(
+                      child: TrainingListPage(),
+                    );
                   }
-                  return TrainingDetailPage(trainingId: id);
+                  return NoTransitionPage(
+                    child: TrainingDetailPage(trainingId: id),
+                  );
                 },
               ),
             ],
@@ -301,53 +347,71 @@ GoRouter appRouter(AuthService authService) {
           GoRoute(
             path: '/admin',
             name: 'admin',
-            builder: (context, state) => const AdminSettingsPage(),
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: AdminSettingsPage(),
+            ),
             routes: [
               GoRoute(
                 path: 'factor-types',
                 name: 'factorTypes',
-                builder: (context, state) => const FactorTypesPage(),
+                pageBuilder: (context, state) => const NoTransitionPage(
+                  child: FactorTypesPage(),
+                ),
               ),
               GoRoute(
                 path: 'osha-export',
                 name: 'oshaExport',
-                builder: (context, state) => const OshaExportPage(),
+                pageBuilder: (context, state) => const NoTransitionPage(
+                  child: OshaExportPage(),
+                ),
               ),
               GoRoute(
                 path: 'api-keys',
                 name: 'apiKeys',
-                builder: (context, state) => const ApiKeysPage(),
+                pageBuilder: (context, state) => const NoTransitionPage(
+                  child: ApiKeysPage(),
+                ),
               ),
               GoRoute(
                 path: 'agents',
                 name: 'agentSessions',
-                builder: (context, state) => const AgentSessionsPage(),
+                pageBuilder: (context, state) => const NoTransitionPage(
+                  child: AgentSessionsPage(),
+                ),
               ),
             ],
           ),
           GoRoute(
             path: '/audit-log',
             name: 'auditLog',
-            builder: (context, state) => const AuditLogPage(),
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: AuditLogPage(),
+            ),
           ),
           // Global search route
           GoRoute(
             path: '/search',
             name: 'search',
-            builder: (context, state) {
+            pageBuilder: (context, state) {
               final q = state.uri.queryParameters['q'] ?? '';
-              return SearchResultsPage(initialQuery: q);
+              return NoTransitionPage(
+                child: SearchResultsPage(initialQuery: q),
+              );
             },
           ),
           GoRoute(
             path: '/notification-preferences',
             name: 'notificationPreferences',
-            builder: (context, state) => const NotificationPreferencesPage(),
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: NotificationPreferencesPage(),
+            ),
           ),
           GoRoute(
             path: '/activity',
             name: 'activity',
-            builder: (context, state) => const ActivityPage(),
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: ActivityPage(),
+            ),
           ),
         ],
       ),
