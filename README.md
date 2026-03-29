@@ -59,7 +59,7 @@ cd flutter && flutter run -d chrome --web-port=3000 \
 
 **4. Open** `http://localhost:3000` — pick a role and explore.
 
-> AI chat is enabled automatically — the Qwen 2.5 7B model pulls on first startup (~30s delay).
+> AI chat is enabled automatically — the Qwen 2.5 7B model pulls on first startup (~4 min download). The first chat message after startup takes ~60s while the model loads into memory. Subsequent messages are fast (1-3s).
 
 ---
 
@@ -121,5 +121,6 @@ All test accounts use password **`demo1234`**.
 | PostgreSQL connection refused | Start Docker Desktop, then `docker-compose up -d` |
 | Port 5432 conflict (local Postgres) | `lsof -ti:5432 \| xargs kill -9` then `docker-compose up -d` |
 | Need a fresh database | `docker-compose down -v && docker-compose up -d`, then re-seed |
-| AI assistant returns empty responses | Wait ~30s for model pull, or run `docker logs highlander-ollama-pull-1` to check progress |
+| AI chat spinning/timeout on first message | The Qwen model takes ~60s to load into memory on first use. Wait and retry. Subsequent messages are fast |
+| AI assistant returns empty/offline | Check `docker ps` — Ollama container must be running. If model missing: `docker exec -it highlander-ollama-1 ollama pull qwen2.5:7b` |
 | Login returns "unauthorized" | Docker backend is running an old image. Stop it and run locally: `docker-compose stop backend` then `cd backend && go run ./cmd/server/; cd ..` |
