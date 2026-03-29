@@ -224,6 +224,24 @@ class _IncidentListPageState extends State<IncidentListPage> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
+          // Search button (far left)
+          SizedBox(
+            height: 48,
+            child: Semantics(
+              label: 'Search incidents',
+              button: true,
+              child: ElevatedButton.icon(
+                onPressed: _loadIncidents,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: HerzogColors.navyBlue,
+                  foregroundColor: HerzogColors.white,
+                ),
+                icon: const Icon(Icons.search),
+                label: const Text('Search'),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
           // Status filter
           SizedBox(
             width: 180,
@@ -266,24 +284,6 @@ class _IncidentListPageState extends State<IncidentListPage> {
                 setState(() => _divisionFilter = v);
                 _loadIncidents();
               },
-            ),
-          ),
-          const SizedBox(width: 12),
-          // Search button
-          SizedBox(
-            height: 48,
-            child: Semantics(
-              label: 'Search incidents',
-              button: true,
-              child: ElevatedButton.icon(
-                onPressed: _loadIncidents,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: HerzogColors.navyBlue,
-                  foregroundColor: HerzogColors.white,
-                ),
-                icon: const Icon(Icons.search),
-                label: const Text('Search'),
-              ),
             ),
           ),
           const Spacer(),
