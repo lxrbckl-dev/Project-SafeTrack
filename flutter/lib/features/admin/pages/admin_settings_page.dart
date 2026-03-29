@@ -1,8 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
 import '../../../app/herzog_theme.dart';
+import '../../../core/services/api_config.dart';
 import '../../auth/data/auth_service.dart';
 import '../data/admin_repository.dart';
 import '../widgets/setting_section_header.dart';
@@ -28,6 +32,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
   bool _loading = true;
   String? _error;
   bool _saving = false;
+  bool _seedingStressTest = false;
 
   // Controllers for editable fields
   final TextEditingController _trirController = TextEditingController();
@@ -136,6 +141,72 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
       }
     } finally {
       if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _seedStressTest() async {
+    final token = context.read<AuthService>().token;
+    if (token == null) return;
+
+    // Confirmation dialog.
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Generate Stress Test Data'),
+        content: const Text(
+          'This will generate 50 incidents, 15 investigations, '
+          '20 CAPAs, and supporting data. Continue?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Generate'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    setState(() => _seedingStressTest = true);
+    try {
+      final uri = Uri.parse('${ApiConfig.baseUrl}/api/seed-stress-test');
+      final response = await http.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        final message = body['message'] as String? ?? 'Done';
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Failed to seed stress test data: ${response.statusCode}',
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _seedingStressTest = false);
     }
   }
 
@@ -336,6 +407,37 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
               onPressed: () => context.push('/admin/agents'),
               icon: const Icon(Icons.smart_toy_outlined),
               label: const Text('View Agent Sessions'),
+            ),
+          ),
+
+          // ----------------------------------------------------------------
+          // Stress Test Data
+          // ----------------------------------------------------------------
+          const SettingSectionHeader(title: 'STRESS TEST DATA'),
+          Text(
+            'Generate bulk test data for dashboards, charts, and workflow '
+            'validation. This is idempotent — running it again has no effect '
+            'if data already exists.',
+            style: HerzogText.body(),
+          ),
+          const SizedBox(height: 12),
+          Semantics(
+            button: true,
+            label: 'Generate stress test data',
+            child: OutlinedButton.icon(
+              onPressed: _seedingStressTest ? null : _seedStressTest,
+              icon: _seedingStressTest
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.science),
+              label: Text(
+                _seedingStressTest
+                    ? 'Generating...'
+                    : 'Generate Stress Test Data',
+              ),
             ),
           ),
 
