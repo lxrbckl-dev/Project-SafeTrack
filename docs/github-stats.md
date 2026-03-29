@@ -44,6 +44,21 @@
 
 > 33 issues were not assigned a difficulty label (bug fixes, polish, and ad-hoc work created outside the formal task system).
 
+### All Labels (complete tally)
+
+| Label | Count |
+|---|---|
+| `enhancement` | 74 |
+| `difficulty:complex` | 30 |
+| `difficulty:routine` | 30 |
+| `bug` | 26 |
+| `difficulty:trivial` | 9 |
+| `documentation` | 3 |
+| `difficulty:critical` | 1 |
+| **Total labels applied** | **173** |
+
+> Many issues have multiple labels (e.g. `enhancement` + `difficulty:routine`), so the total exceeds the 103 issue count.
+
 ---
 
 ## Pull Requests
