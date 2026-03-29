@@ -297,7 +297,9 @@ curl -X POST http://localhost:8000/mcp/ \
 
 ## Resources
 
-- [GitHub Repository](https://github.com/lxRbckl/highlander)
-- [DockerHub: pap-highlander-web](https://hub.docker.com/repository/docker/lxrbckl/pap-highlander-web/general)
-- [DockerHub: pap-highlander-backend](https://hub.docker.com/repository/docker/lxrbckl/pap-highlander-backend/general)
-- [Project Page](https://lxrbckl.github.io/highlander)
+| Title | Link | Description |
+|---|---|---|
+| GitHub Repository | [lxRbckl/highlander](https://github.com/lxRbckl/highlander) | Source code and issue tracker |
+| DockerHub: Web | [pap-highlander-web](https://hub.docker.com/repository/docker/lxrbckl/pap-highlander-web/general) | Pre-built Flutter web image |
+| DockerHub: Backend | [pap-highlander-backend](https://hub.docker.com/repository/docker/lxrbckl/pap-highlander-backend/general) | Pre-built Go backend image |
+| Project Page | [lxrbckl.github.io/highlander](https://lxrbckl.github.io/highlander) | GitHub Pages project site |
