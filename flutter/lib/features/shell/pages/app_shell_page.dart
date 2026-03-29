@@ -491,21 +491,40 @@ class _Sidebar extends StatelessWidget {
             ),
           ),
 
+          Divider(
+            color: HerzogColors.midGray.withValues(alpha: 0.3),
+            height: 1,
+          ),
+
           // Dark-mode toggle (TASK-036)
-          const _DarkModeToggle(),
+          _DarkModeFooterButton(),
 
           // Restart tour button (TASK-042)
-          const _RestartTourButton(),
+          _SidebarFooterButton(
+            icon: Icons.school,
+            label: 'RESTART TOUR',
+            onTap: () => OnboardingTour.restartTour(context),
+            semanticLabel: 'Restart onboarding tour',
+          ),
 
           // Shortcut discoverability hint (WCAG 2.1.4)
-          _ShortcutHint(),
-
-          const SizedBox(height: 8),
+          _SidebarFooterButton(
+            key: OnboardingKeys.shortcutHint,
+            icon: Icons.keyboard,
+            label: '? FOR SHORTCUTS',
+            onTap: () => KeyboardShortcutOverlay.show(context),
+            semanticLabel: 'Press ? to view keyboard shortcuts',
+          ),
 
           // Logout button (fix #156)
-          const _LogoutButton(),
+          _SidebarFooterButton(
+            icon: Icons.logout,
+            label: 'LOGOUT',
+            onTap: () => context.read<AuthService>().logout(),
+            semanticLabel: 'Log out of SafeTrack',
+          ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
         ],
       ),
     );
@@ -519,17 +538,70 @@ class _Sidebar extends StatelessWidget {
   }
 }
 
-/// Sun / moon toggle button at the bottom of the sidebar.
+/// Shared footer button used for all sidebar footer actions.
 ///
-/// Switches between light and dark mode via [ThemeService.toggle].
+/// Provides a consistent layout: icon + label with hover cursor and
+/// accessibility semantics.
 ///
 /// ADA/WCAG compliance:
-/// - Semantic label "Toggle dark mode" (WCAG 1.3.1).
-/// - Gold icon on dark sidebar — ~8:1 contrast (WCAG AAA, 1.4.3).
-/// - Keyboard accessible via InkWell focus handling (WCAG 2.1.1).
-class _DarkModeToggle extends StatelessWidget {
-  const _DarkModeToggle();
+/// - Semantic label via [semanticLabel] (WCAG 1.3.1).
+/// - Keyboard accessible via InkWell + MouseRegion (WCAG 2.1.1).
+/// - Smoke (#A7A9AC) on black (#000000) — ~7.0:1 contrast (WCAG AAA, 1.4.3).
+class _SidebarFooterButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final String semanticLabel;
 
+  const _SidebarFooterButton({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    required this.semanticLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: semanticLabel,
+      button: true,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            child: Row(
+              children: [
+                Icon(icon, size: 18, color: HerzogColors.smoke),
+                const SizedBox(width: 12),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: HerzogColors.smoke,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Dark-mode toggle footer button.
+///
+/// Extends [_SidebarFooterButton] behaviour with a toggled semantic state and
+/// reactive icon/label based on the current theme.
+///
+/// ADA/WCAG compliance:
+/// - Semantic toggled state (WCAG 1.3.1).
+/// - Gold icon when dark mode is active — ~8:1 contrast (WCAG AAA, 1.4.3).
+class _DarkModeFooterButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeService = context.watch<ThemeService>();
@@ -539,152 +611,26 @@ class _DarkModeToggle extends StatelessWidget {
       label: 'Toggle dark mode',
       button: true,
       toggled: isDark,
-      child: InkWell(
-        onTap: themeService.toggle,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: const BoxDecoration(
-            border: Border(top: BorderSide(color: HerzogColors.darkGray)),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                isDark ? Icons.light_mode : Icons.dark_mode,
-                size: 14,
-                color: isDark ? HerzogColors.gold : HerzogColors.smoke,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                isDark ? 'LIGHT MODE' : 'DARK MODE',
-                style: HerzogText.label(
-                  fontSize: 11,
-                  color: isDark ? HerzogColors.gold : HerzogColors.smoke,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// "Restart Tour" button in the sidebar footer.
-///
-/// Calls [OnboardingTour.restartTour] which resets the persistence flag and
-/// re-triggers the coach-mark sequence.
-///
-/// ADA: Semantic button label (WCAG 1.3.1).
-class _RestartTourButton extends StatelessWidget {
-  const _RestartTourButton();
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      label: 'Restart onboarding tour',
-      button: true,
-      child: InkWell(
-        onTap: () => OnboardingTour.restartTour(context),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: const BoxDecoration(
-            border: Border(top: BorderSide(color: HerzogColors.darkGray)),
-          ),
-          child: Row(
-            children: [
-              const Icon(
-                Icons.tour_outlined,
-                size: 14,
-                color: HerzogColors.midGray,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'RESTART TOUR',
-                style: HerzogText.label(
-                  fontSize: 11,
-                  color: HerzogColors.midGray,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Small hint at the sidebar bottom that makes keyboard shortcuts discoverable.
-///
-/// Tapping it opens the full shortcuts overlay.
-/// ADA: Semantic button label (WCAG 1.3.1), sufficient contrast (WCAG 1.4.3).
-class _ShortcutHint extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      label: 'Press ? to view keyboard shortcuts',
-      button: true,
-      child: InkWell(
-        onTap: () => KeyboardShortcutOverlay.show(context),
-        child: Container(
-          key: OnboardingKeys.shortcutHint,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: const BoxDecoration(
-            border: Border(top: BorderSide(color: HerzogColors.darkGray)),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.keyboard, size: 14, color: HerzogColors.midGray),
-              const SizedBox(width: 8),
-              Text(
-                '? FOR SHORTCUTS',
-                style: HerzogText.label(
-                  fontSize: 11,
-                  color: HerzogColors.midGray,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Logout button in the sidebar footer.
-///
-/// Calls [AuthService.logout] immediately — no confirmation dialog.
-/// GoRouter's [refreshListenable] guard will redirect the user to /login.
-///
-/// ADA/WCAG compliance:
-/// - Semantic label "Log out of SafeTrack" (WCAG 1.3.1).
-/// - Smoke (#A7A9AC) on black (#000000) — ~7.0:1 contrast (WCAG AAA, 1.4.3).
-/// - Keyboard accessible via InkWell + MouseRegion (WCAG 2.1.1).
-class _LogoutButton extends StatelessWidget {
-  const _LogoutButton();
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      label: 'Log out of SafeTrack',
-      button: true,
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
         child: InkWell(
-          onTap: () => context.read<AuthService>().logout(),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: const BoxDecoration(
-              border: Border(top: BorderSide(color: HerzogColors.darkGray)),
-            ),
+          onTap: themeService.toggle,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             child: Row(
               children: [
-                const Icon(Icons.logout, size: 14, color: HerzogColors.smoke),
-                const SizedBox(width: 8),
+                Icon(
+                  isDark ? Icons.light_mode : Icons.dark_mode,
+                  size: 18,
+                  color: HerzogColors.smoke,
+                ),
+                const SizedBox(width: 12),
                 Text(
-                  'LOGOUT',
-                  style: HerzogText.label(
+                  isDark ? 'LIGHT MODE' : 'DARK MODE',
+                  style: const TextStyle(
                     fontSize: 11,
                     color: HerzogColors.smoke,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
