@@ -203,3 +203,10 @@ All test accounts use password **`demo1234`**.
 | AI assistant returns empty/offline | Check Ollama container is running: `docker ps \| grep ollama`. If missing: `docker-compose up -d ollama ollama-pull` |
 | AI chat keeps going offline after idle | The docker-compose sets `OLLAMA_KEEP_ALIVE=-1` to keep the model loaded permanently. Restart: `docker-compose restart ollama` |
 | Login returns "unauthorized" | Docker backend may have a stale image. Rebuild: `docker-compose up -d --build backend` |
+
+---
+
+## Resources
+
+- [DockerHub: pap-highlander-web](https://hub.docker.com/repository/docker/lxrbckl/pap-highlander-web/general)
+- [DockerHub: pap-highlander-backend](https://hub.docker.com/repository/docker/lxrbckl/pap-highlander-backend/general)
