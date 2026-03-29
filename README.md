@@ -24,6 +24,7 @@ Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutt
 > 5. `CLAUDE.md` — Agent orchestration rules, team structure, project conventions.
 > 6. `docs/autoresearch-guide.md` — AutoResearch eval suite: 42-case eval proving wiki-as-RAG improves AI assistant accuracy from 10% to 88%. Includes how to run the eval, category breakdown, and the optimization loop.
 > 7. `eval/wiki_eval.py` — The eval script itself. Runs baseline (no wiki) vs RAG (with wiki) and scores by keyword matching across 13 categories.
+> 8. `docs/mcp-guide.md` — MCP server guide: connect AI agents to SafeTrack's safety data via JSON-RPC 2.0. Pre-seeded demo key, tool reference, example workflows.
 
 ---
 

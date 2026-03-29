@@ -97,6 +97,33 @@ func SeedData(db *gorm.DB) {
 	}
 	log.Printf("Seed: created %d users", len(users))
 
+	// -------------------------------------------------------------------------
+	// Demo API Key — for MCP / judge access without manual key generation.
+	// Idempotent: skipped if a key with prefix "stk_demo" already exists.
+	// -------------------------------------------------------------------------
+	var existingKeyCount int64
+	db.Model(&models.AgentApiKey{}).Where("key_prefix = ?", "stk_demo").Count(&existingKeyCount)
+	if existingKeyCount == 0 {
+		demoKeyHash, err := bcrypt.GenerateFromPassword([]byte("stk_demo_judge_key_2026"), bcrypt.DefaultCost)
+		if err != nil {
+			log.Printf("Seed: failed to hash demo API key: %v", err)
+		} else {
+			demoKey := models.AgentApiKey{
+				UserID:    admin.ID,
+				KeyHash:   string(demoKeyHash),
+				KeyPrefix: "stk_demo",
+				Name:      "Demo Key (pre-seeded)",
+				IsActive:  true,
+				CreatedAt: now,
+			}
+			if err := db.Create(&demoKey).Error; err != nil {
+				log.Printf("Seed: failed to create demo API key: %v", err)
+			} else {
+				log.Println("Seed: demo API key seeded (stk_demo_judge_key_2026)")
+			}
+		}
+	}
+
 	reporters := []string{uid(reporter.ID), uid(reporter2.ID), uid(reporter3.ID)}
 	coordinators := []string{uid(coordinator.ID), uid(coordinator2.ID)}
 	managers := []string{uid(manager.ID), uid(manager2.ID)}
