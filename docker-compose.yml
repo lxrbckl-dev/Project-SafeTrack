@@ -58,7 +58,7 @@ services:
         - SUPPORT_EMAIL=${SUPPORT_EMAIL:-aarbuckle@herzog.com}
         - SUPPORT_PHONE=${SUPPORT_PHONE:-1-816-273-2285}
         - SUPPORT_PHONE_TEL=${SUPPORT_PHONE_TEL:-18162732285}
-        - API_BASE_URL=${API_BASE_URL:-https://highlander.lxrbckl.com}
+        - API_BASE_URL=${API_BASE_URL:-http://localhost:8000}
     ports:
       - "2780:80"
     restart: unless-stopped
