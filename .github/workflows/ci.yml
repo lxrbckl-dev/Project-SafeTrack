@@ -68,7 +68,20 @@ jobs:
       - name: Serve Flutter web
         working-directory: flutter/build/web
         run: |
-          python3 -m http.server 3000 &
+          node -e "
+          const http = require('http');
+          const fs = require('fs');
+          const path = require('path');
+          const mimes = {'.html':'text/html','.js':'application/javascript','.wasm':'application/wasm','.json':'application/json','.css':'text/css','.png':'image/png','.ico':'image/x-icon','.md':'text/markdown'};
+          http.createServer((req, res) => {
+            let p = '.' + (req.url === '/' ? '/index.html' : req.url.split('?')[0]);
+            if (!fs.existsSync(p)) p = './index.html';
+            res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+            res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+            res.setHeader('Content-Type', mimes[path.extname(p)] || 'application/octet-stream');
+            res.end(fs.readFileSync(p));
+          }).listen(3000);
+          " &
           sleep 2
           curl -sf http://localhost:3000
 
