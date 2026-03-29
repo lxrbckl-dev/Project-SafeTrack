@@ -101,32 +101,38 @@ cd backend && go build ./cmd/server/ && cd ..
 
 **Prerequisites:** Complete the [Development Environment Setup](#development-environment-setup) above.
 
-**1. Start PostgreSQL and Ollama** (database + AI model):
+**1. Start PostgreSQL** (database):
 ```bash
-docker-compose up -d postgres ollama ollama-pull
+docker-compose up -d postgres
 ```
 
-> This starts only the database and AI services. The Go backend runs locally in the next step so you always have the latest code.
+**2. Start Ollama** (AI model — runs natively for Metal GPU acceleration):
+```bash
+brew services start ollama
+ollama pull qwen2.5:7b
+```
+
+> Ollama runs natively (not in Docker) because Docker for Mac cannot access Metal GPU. Native Ollama delivers sub-second inference; Docker CPU-only takes 60s+ per response. The model downloads once (~4.7GB) and persists across restarts.
 
 > **Note:** If you previously ran `docker-compose up -d` (which also starts a `backend` container on port 8000), stop it first: `docker-compose stop backend`
 
-**2. Start the Go API** with seed data (leave this terminal running):
+**3. Start the Go API** with seed data (leave this terminal running):
 ```bash
 cd backend && SEED_DATA=true go run ./cmd/server/
 ```
 
 > The API starts on port 8000. `SEED_DATA=true` populates 7 demo accounts and sample incidents/investigations/CAPAs on first run (idempotent — skipped if data already exists).
 
-**3. Start the Flutter app** (open a second terminal):
+**4. Start the Flutter app** (open a second terminal):
 ```bash
 cd flutter && flutter run -d chrome --web-port=3000 \
   --web-header=Cross-Origin-Opener-Policy=same-origin \
   --web-header=Cross-Origin-Embedder-Policy=require-corp
 ```
 
-**4. Open** `http://localhost:3000` — log in with any demo account and explore.
+**5. Open** `http://localhost:3000` — log in with any demo account and explore.
 
-> AI chat is enabled automatically — the Qwen 2.5 7B model pulls on first startup (~4 min download). The first chat message after startup takes ~60s while the model loads into memory. Subsequent messages are fast (1-3s).
+> The first chat message after an Ollama restart takes ~15s while the model loads into GPU memory. Subsequent messages are fast (<1s).
 
 ---
 
@@ -134,10 +140,8 @@ cd flutter && flutter run -d chrome --web-port=3000 \
 
 1. Press `Ctrl+C` in the Go backend terminal
 2. Press `q` in the Flutter terminal (or `lsof -ti:3000 | xargs kill -9`)
-3. Stop Docker services:
-```bash
-docker-compose down
-```
+3. Stop Docker services: `docker-compose down`
+4. Stop Ollama: `brew services stop ollama`
 
 To also wipe the database and start fresh:
 ```bash
@@ -187,6 +191,6 @@ All test accounts use password **`demo1234`**.
 | Port 5432 conflict (local Postgres) | `lsof -ti:5432 \| xargs kill -9` then `docker-compose up -d` |
 | Need a fresh database | `docker-compose down -v && docker-compose up -d`, then re-seed |
 | AI chat spinning/timeout on first message | The Qwen model takes ~60s to load into memory on first use. Wait and retry. Subsequent messages are fast |
-| AI assistant returns empty/offline | Check `docker ps` — Ollama container must be running. If model missing: `docker exec -it highlander-ollama-1 ollama pull qwen2.5:7b` |
-| AI chat keeps going offline after idle | Ollama is using old config without keep-alive. Run `docker-compose restart ollama` to apply the permanent keep-alive setting |
+| AI assistant returns empty/offline | Check Ollama is running: `brew services list \| grep ollama`. If stopped: `brew services start ollama`. If model missing: `ollama pull qwen2.5:7b` |
+| AI chat keeps going offline after idle | Set keep-alive: `OLLAMA_KEEP_ALIVE=-1 ollama serve` or add to launchd plist |
 | Login returns "unauthorized" | Docker backend is running an old image. Stop it and run locally: `docker-compose stop backend` then `cd backend && go run ./cmd/server/; cd ..` |

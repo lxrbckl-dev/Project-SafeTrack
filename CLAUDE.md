@@ -18,7 +18,7 @@ Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutt
 | Testing (Secondary) | Claude Browser Agent |
 | Distribution | TestFlight (iOS + macOS, single link), Flutter web (fallback) |
 | Styling | Herzog brand system (docs/branding.md) |
-| Local dev | `docker-compose.yml` (Go + PostgreSQL + Ollama) |
+| Local dev | `docker-compose.yml` (Go + PostgreSQL) + native Ollama (Metal GPU) |
 
 ## Team Structure
 
