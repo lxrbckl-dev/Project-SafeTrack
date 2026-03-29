@@ -44,7 +44,7 @@ These depend on knowing what the app actually does.
 
 ## Open Decisions
 
-- [x] **Parent DB:** PostgreSQL via Go API — relational match with Drift/SQLite, GORM ORM for auto-migration. Firebase retained for auth only.
+- [x] **Parent DB:** PostgreSQL via Go API — relational match with Drift/SQLite, GORM ORM for auto-migration. Auth via Go backend (bcrypt + JWT), Azure AD-ready.
 - [x] **Primary build environment:** Claude Code CLI — all development, agent teams, and Alex's own contributions happen here
 - [ ] **In-app agent action schema:** Define the JSON structure for navigation + form actions
 

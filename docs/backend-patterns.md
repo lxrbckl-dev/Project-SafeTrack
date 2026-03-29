@@ -100,13 +100,13 @@ func toJSON(v interface{}) string {
 
 ## Registering a Route
 
-Add routes in `backend/cmd/server/main.go`. Public routes go on `mux`, authenticated routes go on `api` (wrapped with `middleware.FirebaseAuth`).
+Add routes in `backend/cmd/server/main.go`. Public routes go on `mux`, authenticated routes go on `api` (wrapped with `middleware` auth).
 
 ```go
 // Public
 mux.HandleFunc("GET /health", handlers.Health)
 
-// Authenticated (behind FirebaseAuth middleware)
+// Authenticated (behind auth middleware)
 api.HandleFunc("POST /api/incidents", handlers.CreateIncident(db))
 api.HandleFunc("GET /api/incidents", handlers.ListIncidents(db))
 api.HandleFunc("GET /api/incidents/{id}", handlers.GetIncident(db))

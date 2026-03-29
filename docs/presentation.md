@@ -14,7 +14,7 @@ Structure the presentation to walk judges through each rubric category, demonstr
 - Application-level medical data encryption
 - Cross-platform: same app on iOS, macOS, Android, Web, Windows
 - API-first architecture with offline caching infrastructure ready for future phase
-- In-app AI assistant powered by Qwen 2.5 7B with auto-generated wiki context
+- In-app AI assistant powered by Qwen 2.5 3B with auto-generated wiki context
 
 ### 2. AI Tool Effectiveness
 - **This is our thesis.** Multi-agent development team:
@@ -28,7 +28,7 @@ Structure the presentation to walk judges through each rubric category, demonstr
 ### 3. Architecture & Design
 - Monorepo: flutter/, backend/, deploy/, playwright/, eval/
 - Go backend + PostgreSQL (relational match with Drift/SQLite — no translation layer)
-- Three-layer auth: email/password login (seeded demo accounts) + Firebase Auth (real SSO) + Azure AD-ready (provider-agnostic JWT middleware)
+- Two-layer auth: email/password login (seeded demo accounts, bcrypt + JWT) + Azure AD-ready (provider-agnostic Go middleware — swap issuer config, no code changes)
 - 7 RBAC roles with role-based UI and route protection
 - API-first data flow: Flutter → Go API → PostgreSQL (Drift available for local caching, offline sync deferred)
 - Feature-first directory structure
@@ -70,7 +70,7 @@ Structure the presentation to walk judges through each rubric category, demonstr
 
 ### The Two-Phase AutoResearch Play
 > **Phase 1:** AutoResearch optimizes the agent prompts → better developers building the app.
-> **Phase 2:** AutoResearch optimizes Qwen 2.5 7B → better in-app assistant for users.
+> **Phase 2:** AutoResearch optimizes Qwen 2.5 3B → better in-app assistant for users.
 > Same pattern, two applications, one project.
 
 ### Post-Mortem Narrative (Judge-Facing)

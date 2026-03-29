@@ -7,7 +7,7 @@
 | Docker | [docker.com](https://www.docker.com/products/docker-desktop/) | Runs Go backend, PostgreSQL, and Ollama (Qwen 2.5 3B) |
 | Flutter | [flutter.dev/get-started](https://flutter.dev/docs/get-started/install) | Frontend framework |
 | Homebrew | [brew.sh](https://brew.sh) | Package manager for macOS |
-| Node.js | [nodejs.org](https://nodejs.org) | Firebase CLI + Playwright |
+| Node.js | [nodejs.org](https://nodejs.org) | Playwright |
 | Go | `brew install go` | Optional — only for running backend outside Docker |
 | Xcode | Mac App Store | Optional — only for iOS + macOS builds |
 
@@ -22,19 +22,11 @@ brew install go
 # tmux (agent teams split-pane view)
 brew install tmux
 
-# Firebase CLI (auth only)
-npm install -g firebase-tools
-firebase login
-
 # Playwright (QA testing)
 npm install
 npx playwright install chromium
 
-# FlutterFire CLI (connects Flutter to Firebase Auth)
-dart pub global activate flutterfire_cli
-export PATH="$PATH":"$HOME/.pub-cache/bin"
-
-# xcodeproj (required by FlutterFire for iOS/macOS config)
+# xcodeproj (required for iOS/macOS config)
 sudo gem install xcodeproj
 ```
 
@@ -57,8 +49,6 @@ highlander/
 
 | Service | URL | Purpose |
 |---|---|---|
-| Firebase Console | `https://console.firebase.google.com/project/project-175f3` | Auth management, user accounts |
-| Firebase Auth Handler | `https://project-175f3.firebaseapp.com/__/auth/handler` | OAuth callback URL |
 | GitHub OAuth App | `https://github.com/settings/developers` | Manage OAuth client ID/secret |
 | Production Web App | `https://highlander.lxrbckl.com` | Live web deployment |
 | Local Flutter (dev) | `http://localhost:3000` | SWE dev server |
@@ -76,17 +66,6 @@ highlander/
 - `director@safetrack.demo` (Division Manager)
 - `executive@safetrack.demo` (Executive)
 - `admin@safetrack.demo` (Admin)
-
-## Firebase Setup (Auth Only)
-
-1. Create a project at [console.firebase.google.com](https://console.firebase.google.com)
-2. Enable **Authentication** → Email/Password
-3. Enable **Multi-factor authentication** in Authentication → Settings
-4. Connect to Flutter:
-   ```bash
-   cd flutter
-   flutterfire configure --project=YOUR-PROJECT-ID --platforms=ios,android,web,macos
-   ```
 
 ## Flutter Setup
 

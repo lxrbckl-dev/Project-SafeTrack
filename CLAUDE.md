@@ -87,7 +87,7 @@ QA tests PR branches directly (not main), so SWEs can continue working on new ta
 
 ```
 User Action → Go API → PostgreSQL (primary data path)
-Firebase Auth handles login/signup/2FA independently
+Auth via Go backend (bcrypt + JWT), Azure AD-ready as config swap
 Drift available for local caching (offline-first sync deferred to Future Phase)
 ```
 

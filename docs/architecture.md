@@ -30,7 +30,7 @@ Drift available for local caching (offline-first sync deferred to Future Phase)
 
 ### Auth: Three-Layer System
 - **Layer 1 — Demo Login:** Email/password login with seeded test accounts (all password: `demo1234`). Each account is pre-assigned a role for quick demo access. Tapping a test account row on the login page auto-fills the email field for convenience.
-- **Layer 2 — Firebase Auth (real SSO):** Google/GitHub OAuth for real authentication. Email/password + 2FA available. Firebase is **not** used for data storage — only auth.
+- **Layer 2 — Azure AD-ready:** Go middleware is provider-agnostic — verifies JWT claims regardless of issuer. Swap to Azure AD by configuring the public key/issuer URL.
 - **Layer 3 — Provider-agnostic Go middleware:** Verifies JWT claims and reads role. Doesn't care if the JWT came from Firebase, Azure AD, or any OIDC provider. Swapping to Azure AD SSO in production is a config change (client ID + tenant ID), not a code change.
 - **RBAC roles (7):** Field Reporter, Safety Coordinator, Safety Manager, PM, Division Manager, Executive, Admin — each sees different UI and has different permissions.
 - Firestore is not used.

@@ -80,7 +80,7 @@ python3 eval/wiki_eval.py --verbose
 | `EVAL_MODEL` | `qwen2.5:3b` | Model to evaluate |
 | `EVAL_WIKI_MAX_CHARS` | `8000` | Max wiki chars sent as context |
 
-**Performance note:** On Docker CPU (no GPU passthrough on macOS), a full 42-case baseline + RAG run takes ~10 minutes with the model warm. First run may be longer due to cold start. For faster iteration, run Ollama natively to get Metal GPU acceleration — eval completes in under a minute:
+**Performance note:** On Docker CPU (no GPU passthrough on macOS), a full 42-case baseline + RAG run takes ~10 minutes with the model warm. First run may be longer due to cold start. For faster iteration, optionally run Ollama natively for Metal GPU acceleration (faster but requires macOS host install) — eval completes in under a minute:
 
 ```bash
 # Native Ollama (sub-second inference, full wiki fits)
