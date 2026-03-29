@@ -19,7 +19,7 @@ Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutt
 > 4. `docs/branding.md` — Herzog brand system (colors, typography, components).
 > 5. `CLAUDE.md` — Agent orchestration rules, team structure, project conventions.
 >
-> **To run it locally:** Follow the Quick Start section below. Docker + Flutter + Go are the only prerequisites. Demo accounts are seeded automatically.
+> **To run it locally:** Follow the [Development Environment Setup](#development-environment-setup) then [Quick Start](#quick-start) below. Demo accounts are seeded automatically.
 
 ---
 
@@ -27,6 +27,7 @@ Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutt
 
 | Section | |
 |---|---|
+| [Development Environment Setup](#development-environment-setup) | Install Flutter, Go, and other tools |
 | [Quick Start](#quick-start) | Get the app running locally |
 | [Stopping Everything](#stopping-everything) | Shut down services |
 | [Demo Accounts](#demo-accounts) | 7 test accounts to explore |
@@ -48,15 +49,20 @@ Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutt
 | [Node.js](https://nodejs.org) | 18+ | `brew install node` (for Playwright tests) |
 | [GitHub CLI](https://cli.github.com) | Any | `brew install gh` then `gh auth login` |
 
-### Install Flutter (macOS ARM64)
+### Install Flutter
 
-Flutter requires a manual SDK download — it's not in Homebrew:
+Flutter requires a manual SDK download — it's not in Homebrew.
 
+**macOS (Apple Silicon):**
 ```bash
 mkdir -p ~/development && cd ~/development
 curl -LO https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_arm64_3.41.6-stable.zip
 unzip -qo flutter_macos_arm64_3.41.6-stable.zip
 ```
+
+**macOS (Intel):** Replace `arm64` with `x64` in the URL above.
+
+**Linux/Windows:** See [flutter.dev/get-started/install](https://flutter.dev/docs/get-started/install) for platform-specific instructions.
 
 Add Flutter to your PATH (add to `~/.zshrc` for persistence):
 ```bash
