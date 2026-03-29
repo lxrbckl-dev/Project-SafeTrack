@@ -73,19 +73,43 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: HerzogColors.offWhite,
       appBar: AppBar(
         title: const Text('SAFETRACK'),
         backgroundColor: HerzogColors.richBlack,
         foregroundColor: HerzogColors.gold,
       ),
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 480),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(24, 40, 24, 32),
-              child: Column(
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Decorative background image — excluded from accessibility tree.
+          Semantics(
+            excludeSemantics: true,
+            child: Image.asset(
+              'assets/herzog-bg.jpg',
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: double.infinity,
+            ),
+          ),
+
+          // Semi-transparent overlay to ensure WCAG contrast for content above.
+          Container(color: Colors.black.withValues(alpha: 0.6)),
+
+          // Login form — solid-background card guarantees text contrast
+          // independent of the image/overlay behind it.
+          SafeArea(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 480),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(24, 40, 24, 32),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: HerzogColors.offWhite,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Page heading
@@ -308,9 +332,12 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ],
               ),
+                  ),
+                ),
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
