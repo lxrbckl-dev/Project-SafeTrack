@@ -806,3 +806,37 @@ Already installed: Flutter 3.41.4, Xcode 26.3, Playwright 1.58.2
 ### Chart Tooltip Clipping Fix
 - SWE-2 fixed incident trend chart tooltips being clipped by card border
 - Added fitInsideHorizontally/Vertically, maxContentWidth, Clip.none on card
+
+### Seed Data: Randomized Incident Times
+- SWE-1 updated randDate in seed.go — weighted hour distribution (70% day, 20% evening, 10% overnight)
+- Fixes Incident Time Heatmap showing a single column
+
+### MCP Section in README
+- Added "Connect Your AI Agent (MCP)" section with demo key, Claude Code/Desktop configs, curl examples
+- Updated contents table
+
+### GitHub Repository Statistics
+- Generated docs/github-stats.md from live gh/git commands
+- 237 commits, 93 branches, 103 issues (all closed), 94 PRs (93 merged)
+- Full label tally: 74 enhancements, 26 bugs, 30 complex, 30 routine, 9 trivial, 1 critical
+
+### Comprehensive Dark Mode Audit
+- SWE-1 (16 files) + SWE-2 (12 files) ran full dark mode text contrast audit across every page
+- CAPAs, Training, Admin, Audit Log, Search, Notifications, Activity, Chat, Shell, Auth
+- Incidents (detail, form, clusters, map, OSHA), Investigations (detail, form, 5-why, factors, witnesses, review), Hours Worked
+- All text uses Colors.white in dark mode per Alex's preference
+
+### Dark Mode Follow-ups
+- Fixed chart titles/subtitles/legends (HerzogText.heading with no color → white in dark mode)
+- Fixed advanced analytics widget titles (heatmap, body map, radar chart)
+- Fixed investigations list: headers, ID links (gold in dark), investigator names, dates, pagination
+- Fixed incident list: filter dropdowns, cards, empty/error states
+- Fixed admin section headers: SettingSectionHeader shared widget was rendering black
+
+### CAPA Dashboard Layout
+- SWE-1 toned down overdue row highlights (subtle 8%/12% opacity tints)
+- Made table full-width using LayoutBuilder for correct content area width
+- Centered KPI cards and filter controls
+
+### Training Filter Chips
+- Fixed FilterChip backgroundColor hardcoded to lightGray — now uses dark surface variant in dark mode
