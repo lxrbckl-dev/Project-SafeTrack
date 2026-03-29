@@ -127,6 +127,9 @@ func main() {
 	// Agent session tracking routes (active sessions, agent-only activity feed)
 	handlers.RegisterAgentSessionRoutes(api, db)
 
+	// Stress-test data seeding route (admin only)
+	handlers.RegisterSeedStressRoutes(api, db)
+
 	// Wrap the authenticated API mux with:
 	//   1. FirebaseAuth — JWT verification and claims extraction.
 	//   2. UpdateAgentLastUsed — updates AgentApiKey.LastUsedAt on every agent
