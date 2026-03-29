@@ -27,8 +27,9 @@ Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutt
 
 | Section | |
 |---|---|
+| [Deploy from DockerHub](#deploy-from-dockerhub) | Run with just Docker — no build required |
 | [Development Environment Setup](#development-environment-setup) | Install Flutter, Go, and other tools |
-| [Quick Start](#quick-start) | Get the app running locally |
+| [Quick Start (Development)](#quick-start-development) | Get the app running locally for development |
 | [Stopping Everything](#stopping-everything) | Shut down services |
 | [Demo Accounts](#demo-accounts) | 7 test accounts to explore |
 | [Keyboard Shortcuts](#keyboard-shortcuts) | Navigation hotkeys |
@@ -98,7 +99,29 @@ cd flutter && dart analyze && cd ..
 
 ---
 
-## Quick Start
+## Deploy from DockerHub
+
+Run the full app with just Docker — no repo clone, no SDKs, no build step.
+
+**Prerequisites:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed.
+
+**1. Download the compose file:**
+```bash
+curl -O https://raw.githubusercontent.com/lxRbckl/highlander/main/docker-compose.prod.yml
+```
+
+**2. Start everything:**
+```bash
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+**3. Open** `http://localhost:2780` — log in with any [demo account](#demo-accounts).
+
+> First startup pulls images and downloads the AI model (~2GB). Subsequent starts are instant. All env vars have working defaults — override via a `.env` file next to the compose file.
+
+---
+
+## Quick Start (Development)
 
 **Prerequisites:** Complete the [Development Environment Setup](#development-environment-setup) above.
 
