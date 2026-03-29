@@ -377,31 +377,34 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
 
   /// TARGET DATE header — tap toggles sort direction.
   Widget _buildDueDateHeader(bool isDark) {
-    final color = isDark ? Colors.white : HerzogColors.midGray;
+    final activeColor = isDark ? HerzogColors.gold : HerzogColors.navyBlue;
     return Semantics(
       label: 'Sort by due date',
       button: true,
-      child: GestureDetector(
+      child: InkWell(
         onTap: () {
           setState(() => _sortAscending = !_sortAscending);
         },
-        child: MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'TARGET DATE',
-                style: HerzogText.label(color: color),
+        hoverColor: isDark ? HerzogDarkColors.surfaceVariant : HerzogColors.lightGray,
+        mouseCursor: SystemMouseCursors.click,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'TARGET DATE',
+              style: HerzogText.label(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.white : HerzogColors.richBlack,
               ),
-              const SizedBox(width: 4),
-              Icon(
-                _sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
-                size: 14,
-                color: color,
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 4),
+            Icon(
+              _sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+              size: 14,
+              color: activeColor,
+            ),
+          ],
         ),
       ),
     );
