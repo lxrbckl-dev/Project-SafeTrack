@@ -4,6 +4,8 @@
 
 SafeTrack is an Incident Investigation & Corrective Action System built for workplace safety management in the rail and infrastructure industry. It covers the full incident lifecycle: field reporting, OSHA recordability determination, root cause investigation (interactive 5-Why analysis with fishbone diagrams), corrective/preventive actions (CAPAs), training verification, and executive safety dashboards with TRIR/DART metrics. Seven role-based access levels control who can see and do what. An AI assistant (Qwen 2.5 3B via Ollama) provides natural-language help, page navigation, and form filling. External agents can integrate via MCP (Model Context Protocol) or REST API with dedicated API keys.
 
+---
+
 ## Pages & Routes
 
 | Route | Page | Purpose |
@@ -36,6 +38,8 @@ SafeTrack is an Incident Investigation & Corrective Action System built for work
 | `/notification-preferences` | Notification Preferences | Choose notification delivery: in-app only, email, or both |
 | `/activity` | Activity Feed | Live system-wide action stream with real-time WebSocket updates and human-readable messages |
 
+---
+
 ## Data Flow
 
 All data flows through the Go REST API to PostgreSQL:
@@ -62,6 +66,8 @@ Go Backend (port 8000)
     |-- MCP Protocol (/mcp/* endpoints)
 ```
 
+---
+
 ## Login & Test Accounts
 
 The login page uses email/password authentication. All 7 test accounts share password **demo1234**.
@@ -80,6 +86,8 @@ After login, Field Reporters land on `/incidents` (their primary workflow). All 
 
 First-time users see a guided onboarding tour highlighting key features. The tour can be restarted from the sidebar.
 
+---
+
 ## Roles & Permissions
 
 | Role | Access Level |
@@ -93,6 +101,8 @@ First-time users see a guided onboarding tour highlighting key features. The tou
 | Admin | Full access: system settings, audit log, API key management, agent sessions, factor types, OSHA export |
 
 Route protection is enforced at both the Flutter router level (redirect) and the Go API level (middleware RBAC).
+
+---
 
 ## Key Features
 
@@ -233,6 +243,8 @@ Supported query parameters by route:
 - ADA/WCAG compliance: semantic widgets, contrast ratios, focus indicators, keyboard navigation
 - Graceful shutdown with 30-second drain period for in-flight requests
 
+---
+
 ## Keyboard Shortcuts
 
 | Key | Action |
@@ -247,6 +259,8 @@ Supported query parameters by route:
 | ? | Show keyboard shortcuts overlay |
 | Esc | Close open panels |
 
+---
+
 ## Navigation
 
 - **Desktop (>=900px):** Sidebar navigation with section icons and labels
@@ -255,6 +269,8 @@ Supported query parameters by route:
 - Logout button in sidebar footer
 - "Restart Tour" option in sidebar
 - `go_router` handles all navigation with deep linking and web URL support
+
+---
 
 ## API Endpoints
 
@@ -344,6 +360,8 @@ Supported query parameters by route:
 | Method | Path | Purpose |
 |---|---|---|
 | POST | `/mcp/` | MCP JSON-RPC endpoint for tool calls |
+
+---
 
 ## Styling
 
