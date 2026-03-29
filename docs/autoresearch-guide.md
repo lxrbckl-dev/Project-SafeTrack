@@ -1,98 +1,155 @@
 # AutoResearch Guide
 
-> How to use the AutoResearch pattern to optimize Qwen 2.5 7B for this project.
+> Eval-driven optimization of the SafeTrack AI assistant using wiki-as-RAG.
 
 ---
 
-## What We Validated
+## Results
 
-We proved the eval loop works by:
-1. Writing 5 question/answer eval cases about the app
-2. Feeding the wiki (`docs/wiki.md`) as RAG context into Qwen's system prompt
-3. Running each question through Qwen and checking if the response contained the expected keyword
-4. Result: 5/5 passed — the wiki provides sufficient context for accurate answers
+The eval suite measures how well the AI assistant answers questions about SafeTrack with and without the wiki injected as RAG context.
 
-The eval script lives at `eval/wiki_eval.py`.
+**Latest run (2026-03-29, Qwen 2.5 3B, Docker CPU):**
+
+| Mode | Score | Avg Response Time |
+|---|---|---|
+| Baseline (no wiki) | **4/42 (10%)** | 3.9s |
+| With Wiki RAG | **37/42 (88%)** | 11.6s |
+| **Improvement** | **+79 percentage points** | — |
+
+Category breakdown with wiki RAG:
+
+| Category | Score | Notes |
+|---|---|---|
+| Routes | 6/6 (100%) | All route questions answered correctly |
+| RBAC | 5/5 (100%) | Roles, permissions, access rules |
+| Accounts | 3/3 (100%) | Test emails, passwords, role mappings |
+| Incidents | 4/4 (100%) | Types, drafts, encryption, railroad |
+| Dashboard | 2/2 (100%) | KPIs, chart types |
+| OSHA | 2/2 (100%) | Decision tree, log types |
+| Tech | 4/4 (100%) | Database, ports, WebSocket, MCP |
+| Identity | 2/2 (100%) | App purpose, industry |
+| CAPAs | 3/4 (75%) | Lifecycle, verification rules |
+| Investigations | 2/3 (67%) | 5-Why, fishbone |
+| Accessibility | 2/3 (67%) | Offline, WCAG |
+| AI | 1/2 (50%) | Form filling (shortcuts missed) |
+| API | 1/2 (50%) | Auth (specific endpoint missed) |
+
+Without the wiki, the model knows almost nothing about SafeTrack — it scores 10%. With the wiki as RAG context, it accurately answers 88% of domain-specific questions. This is the measurable value of the wiki-as-RAG pipeline.
 
 ---
 
-## Validation Result
+## How It Works
 
-We validated the pattern during initial setup: 5/5 evals passed against Qwen 2.5 7B with the current wiki as RAG context. Re-run with `python3 eval/wiki_eval.py`.
+1. **Wiki generation:** Before every commit, `docs/wiki.md` is regenerated from the codebase and copied to `flutter/assets/wiki.md`
+2. **RAG injection:** The Flutter chat widget loads the wiki from the bundled asset and sends it as the `system` field in chat API requests
+3. **System prompt assembly:** The Go backend prepends the agent system prompt (role awareness, action dispatch instructions) and appends the wiki content
+4. **Eval scoring:** The eval script sends the same questions with and without the wiki, then checks responses for required keywords
 
-## How to Run the Eval
+```
+User question → Go backend → [system prompt + wiki RAG + user role] → Qwen 2.5 3B → response
+                                                                            ↑
+                                            wiki auto-regenerated on every commit
+```
+
+---
+
+## Running the Eval
 
 ```bash
+# Full run: baseline (no wiki) + RAG (with wiki) — shows the delta
 python3 eval/wiki_eval.py
+
+# RAG only (skip baseline — faster)
+python3 eval/wiki_eval.py --rag-only
+
+# Baseline only
+python3 eval/wiki_eval.py --baseline-only
+
+# Verbose mode (show model responses)
+python3 eval/wiki_eval.py --verbose
 ```
 
-Requires Ollama running with Qwen 2.5 7B loaded and `docs/wiki.md` to exist.
+**Requirements:**
+- Ollama running on `localhost:11434` with `qwen2.5:3b` loaded
+- `docs/wiki.md` must exist
+
+**Environment variables:**
+| Variable | Default | Purpose |
+|---|---|---|
+| `OLLAMA_URL` | `http://localhost:11434` | Ollama endpoint |
+| `EVAL_MODEL` | `qwen2.5:3b` | Model to evaluate |
+| `EVAL_WIKI_MAX_CHARS` | `8000` | Max wiki chars sent as context |
+
+**Performance note:** On Docker CPU (no GPU passthrough on macOS), a full 42-case baseline + RAG run takes ~10 minutes with the model warm. First run may be longer due to cold start. For faster iteration, run Ollama natively to get Metal GPU acceleration — eval completes in under a minute:
+
+```bash
+# Native Ollama (sub-second inference, full wiki fits)
+brew services start ollama
+OLLAMA_URL=http://localhost:11434 EVAL_WIKI_MAX_CHARS=0 python3 eval/wiki_eval.py
+```
 
 ---
 
-## The Full AutoResearch Loop (Post-Build)
+## Eval Case Design
 
-Once the app has real features, run this optimization process:
+The eval suite has 42 cases across 13 categories. Each case has:
+- A natural-language question (what a user would actually ask)
+- Required keywords that must appear in the response (case-insensitive)
+- Keywords support OR alternatives with `|` (e.g., `"TRIR|Total Recordable"`)
+- A case passes only if ALL required keywords are present
 
-### Phase 1: Optimize the System Prompt
+Categories cover the full application surface: identity, routes, RBAC, test accounts, incident reporting, investigations, CAPAs, dashboard, AI assistant, OSHA compliance, technical architecture, accessibility, and API endpoints.
 
-The goal is to improve how Qwen answers user questions by iterating on the system prompt.
-
-**Step 1: Write more eval cases**
-
-Add eval cases to `eval/wiki_eval.py` that cover the actual app's features. Aim for 20-50 cases covering:
-- Feature explanations ("How do I create a new X?")
-- Navigation help ("Where is the settings page?")
-- Error handling ("What happens if sync fails?")
-- Edge cases ("Can I use the app offline?")
-
-**Step 2: Establish a baseline**
-
-Run the eval and record the pass rate. This is your starting score.
-
-**Step 3: Iterate on the system prompt**
-
-Modify the system prompt in the eval script (or the wiki content itself). Ideas:
-- Add usage examples to the wiki
-- Add a FAQ section
-- Restructure the wiki to front-load the most common questions
-- Add "If the user asks about X, explain Y" instructions to the system prompt
-
-**Step 4: Re-run and compare**
-
-Run the eval after each change. Keep changes that improve the score, discard ones that don't.
-
-**Step 5: Automate (optional)**
-
-Point AutoResearch at the system prompt file. Let it iterate overnight:
-```
-program.md → tells AutoResearch what to optimize (the system prompt)
-wiki.md → the RAG context (AutoResearch can modify this too)
-wiki_eval.py → the scoring function
+To add a new eval case, append to the `EVAL_CASES` list in `eval/wiki_eval.py`:
+```python
+(
+    "category",
+    "What is the question?",
+    ["required_keyword_1", "keyword_2|alternative_2"],
+    "Brief description of what this tests",
+),
 ```
 
-AutoResearch modifies the prompt/wiki, runs the eval, keeps improvements, loops.
+---
 
-### Phase 2: Optimize the Agent Prompts
+## The AutoResearch Loop
 
-Same pattern, different target. Instead of optimizing Qwen's system prompt, optimize the agent definition files (`tpm.md`, `swe-1.md`, etc.):
+The eval enables a systematic optimization cycle:
+
+### Phase 1: Optimize Wiki Content (current)
+
+The wiki is the primary lever for improving assistant quality. The loop:
+
+1. **Run eval** → establish current score (88%)
+2. **Identify failures** → which categories score lowest?
+3. **Improve wiki** → add missing content, restructure for clarity, front-load common questions
+4. **Re-run eval** → did the score improve?
+5. **Keep or revert** → only commit changes that improve the score
+6. **Repeat**
+
+Concrete improvement opportunities from the current run:
+- CAPA priority due dates (Critical=7d) are in the wiki but after the 8K truncation — restructure to put key data earlier
+- Keyboard shortcuts section could be more prominent
+- API endpoint details are deep in the wiki — add a quick-reference section
+
+### Phase 2: Automate (future)
+
+Point an AutoResearch agent at the wiki file and let it iterate overnight:
+```
+program.md → tells AutoResearch what to optimize (wiki content + structure)
+wiki.md → the RAG context (the optimization target)
+wiki_eval.py → the scoring function (42 cases, keyword matching)
+```
+
+The agent modifies the wiki, runs the eval, keeps improvements, loops. This is the pattern Shopify used to achieve 53% performance improvement across 120 experiments on their agent definitions.
+
+### Phase 3: Optimize Agent Definitions (future)
+
+Same pattern, different target — optimize the Claude Code agent definitions:
 
 **Eval cases:** "Given this task, did the agent produce working code?"
-**Target file:** `.claude/agents/swe-1.md` (or any agent)
-**Scoring:** Did the code compile? Did tests pass? Did it follow the style guide?
-
-This is what Shopify did — 53% performance improvement across 120 experiments.
-
----
-
-## Key Principle
-
-> AutoResearch optimizes anything you can score. Define the metric, point it at the file, let it iterate.
-
-- If you can't score it, you can't optimize it
-- More eval cases = better signal = better optimization
-- The wiki auto-regenerates on every commit, so the RAG context improves as the app evolves
-- The eval script runs in seconds — fast feedback loop
+**Target files:** `.claude/agents/swe-1.md`, `.claude/agents/tpm.md`
+**Scoring:** Code compiles, tests pass, style guide followed
 
 ---
 
@@ -100,7 +157,9 @@ This is what Shopify did — 53% performance improvement across 120 experiments.
 
 | File | Purpose |
 |---|---|
-| `eval/wiki_eval.py` | Eval script — runs questions against Qwen, scores responses |
-| `docs/wiki.md` | RAG context injected into Qwen's system prompt |
-| `flutter/assets/wiki.md` | Copy bundled into the Flutter app |
-| `.claude/agents/*.md` | Agent definitions (Phase 2 optimization targets) |
+| `eval/wiki_eval.py` | Eval script — 42 cases, baseline + RAG comparison, category breakdown |
+| `docs/wiki.md` | Source wiki — RAG context for the AI assistant |
+| `flutter/assets/wiki.md` | Bundled copy loaded by the Flutter app |
+| `flutter/lib/features/chat/data/chat_repository.dart` | Loads wiki asset, sends as `system` field |
+| `backend/internal/handlers/chat.go` | Appends wiki to Ollama system prompt |
+| `.claude/agents/*.md` | Agent definitions (Phase 3 optimization targets) |
