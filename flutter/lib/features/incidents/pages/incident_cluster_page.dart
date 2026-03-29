@@ -259,16 +259,18 @@ class _IncidentClusterPageState extends State<IncidentClusterPage> {
                             '${t.similarityType} (${t.count})',
                             style: HerzogText.label(
                               fontSize: 11,
-                              color: HerzogColors.navyBlue,
+                              color: isDark
+                                  ? HerzogColors.gold
+                                  : HerzogColors.navyBlue,
                             ),
                           ),
-                          backgroundColor: HerzogColors.navyBlue.withValues(
-                            alpha: 0.08,
-                          ),
+                          backgroundColor: isDark
+                              ? HerzogDarkColors.surfaceVariant
+                              : HerzogColors.navyBlue.withValues(alpha: 0.08),
                           side: BorderSide(
-                            color: HerzogColors.navyBlue.withValues(
-                              alpha: 0.25,
-                            ),
+                            color: isDark
+                                ? HerzogColors.gold.withValues(alpha: 0.4)
+                                : HerzogColors.navyBlue.withValues(alpha: 0.3),
                           ),
                           padding: EdgeInsets.zero,
                           materialTapTargetSize:
