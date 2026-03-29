@@ -158,15 +158,20 @@ class _SafetyDashboardPageState extends State<SafetyDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthService>();
+    return _buildBody();
+  }
+
+  /// Builds the dashboard action buttons (Export, Hours Worked, Refresh).
+  Widget _buildActionButtons(AuthService auth) {
     final canManageHours =
         auth.currentRole == Role.safetyManager ||
         auth.currentRole == Role.admin;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('SAFETY DASHBOARD'),
-        actions: [
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
           if (_data != null)
             _generatingPdf
                 ? const Padding(
@@ -201,7 +206,6 @@ class _SafetyDashboardPageState extends State<SafetyDashboardPage> {
           ),
         ],
       ),
-      body: _buildBody(),
     );
   }
 
@@ -242,6 +246,8 @@ class _SafetyDashboardPageState extends State<SafetyDashboardPage> {
               children: [
                 // Welcome header with role badge and quick-action cards.
                 const WelcomeHeader(),
+                // Action buttons (Export, Hours Worked, Refresh) — moved from removed AppBar.
+                _buildActionButtons(auth),
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(

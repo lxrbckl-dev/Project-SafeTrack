@@ -67,16 +67,11 @@ class _TrainingListPageState extends State<TrainingListPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('TRAINING REQUIREMENTS', style: HerzogText.heading()),
-      ),
-      body: Column(
-        children: [
-          _buildFilterBar(),
-          Expanded(child: _buildBody()),
-        ],
-      ),
+    return Column(
+      children: [
+        _buildFilterBar(),
+        Expanded(child: _buildBody()),
+      ],
     );
   }
 

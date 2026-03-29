@@ -133,34 +133,36 @@ class _AuditLogPageState extends State<AuditLogPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('AUDIT LOG'),
-        actions: [
-          Tooltip(
-            message: 'Refresh audit log',
-            child: IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: _loading ? null : _loadData,
-            ),
+    return Column(
+      children: [
+        // Page-specific action buttons
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Tooltip(
+                message: 'Refresh audit log',
+                child: IconButton(
+                  icon: const Icon(Icons.refresh),
+                  onPressed: _loading ? null : _loadData,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Filters
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-            child: AuditLogFilters(
-              filter: _filter,
-              onFilterChanged: _onFilterChanged,
-            ),
+        ),
+        // Filters
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+          child: AuditLogFilters(
+            filter: _filter,
+            onFilterChanged: _onFilterChanged,
           ),
+        ),
 
-          // Content
-          Expanded(child: _buildContent()),
-        ],
-      ),
+        // Content
+        Expanded(child: _buildContent()),
+      ],
     );
   }
 

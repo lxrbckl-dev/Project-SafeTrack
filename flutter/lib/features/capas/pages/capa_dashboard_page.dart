@@ -86,30 +86,27 @@ class _CAPADashboardPageState extends State<CAPADashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('CAPA MANAGEMENT')),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-          ? _buildError()
-          : RefreshIndicator(
-              onRefresh: _loadData,
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (_dashboard != null) _buildKPICards(),
-                    const SizedBox(height: 20),
-                    _buildFilters(),
-                    const SizedBox(height: 16),
-                    if (_listResponse != null) _buildCAPATable(),
-                  ],
-                ),
+    return _loading
+        ? const Center(child: CircularProgressIndicator())
+        : _error != null
+        ? _buildError()
+        : RefreshIndicator(
+            onRefresh: _loadData,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (_dashboard != null) _buildKPICards(),
+                  const SizedBox(height: 20),
+                  _buildFilters(),
+                  const SizedBox(height: 16),
+                  if (_listResponse != null) _buildCAPATable(),
+                ],
               ),
             ),
-    );
+          );
   }
 
   Widget _buildError() {

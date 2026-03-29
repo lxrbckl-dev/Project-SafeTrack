@@ -93,46 +93,45 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
         (_auth.currentRole == Role.safetyManager ||
             _auth.currentRole == Role.admin);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('INVESTIGATIONS'),
-        actions: [
-          if (isSafetyManager)
-            Padding(
-              padding: const EdgeInsets.only(right: 12),
-              child: ElevatedButton.icon(
-                onPressed: () => context.go('/investigations/new'),
-                icon: const Icon(Icons.add, size: 16),
-                label: const Text('New Investigation'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: HerzogColors.gold,
-                  foregroundColor: HerzogColors.richBlack,
+    return Column(
+      children: [
+        // Page-specific action buttons
+        if (isSafetyManager)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () => context.go('/investigations/new'),
+                  icon: const Icon(Icons.add, size: 16),
+                  label: const Text('New Investigation'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: HerzogColors.gold,
+                    foregroundColor: HerzogColors.richBlack,
+                  ),
                 ),
-              ),
+              ],
             ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Filters bar
-          _buildFilters(),
-          const Divider(height: 1),
-
-          // Table
-          Expanded(
-            child: _loading
-                ? const Center(child: CircularProgressIndicator())
-                : _error != null
-                ? _buildError()
-                : _investigations.isEmpty
-                ? _buildEmpty()
-                : _buildTable(),
           ),
+        // Filters bar
+        _buildFilters(),
+        const Divider(height: 1),
 
-          // Pagination
-          if (!_loading && _total > 50) _buildPagination(),
-        ],
-      ),
+        // Table
+        Expanded(
+          child: _loading
+              ? const Center(child: CircularProgressIndicator())
+              : _error != null
+              ? _buildError()
+              : _investigations.isEmpty
+              ? _buildEmpty()
+              : _buildTable(),
+        ),
+
+        // Pagination
+        if (!_loading && _total > 50) _buildPagination(),
+      ],
     );
   }
 
