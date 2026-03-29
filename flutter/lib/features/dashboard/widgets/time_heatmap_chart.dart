@@ -69,7 +69,7 @@ class _TimeHeatmapChartState extends State<TimeHeatmapChart> {
             const SizedBox(height: 4),
             Text(
               'Incidents by hour of day and day of week (last 12 months)',
-              style: HerzogText.body(fontSize: 12, color: isDark ? HerzogDarkColors.textMuted : HerzogColors.smoke),
+              style: HerzogText.body(fontSize: 12, color: isDark ? Colors.white : HerzogColors.smoke),
             ),
             if (_hoveredCell != null) ...[
               const SizedBox(height: 4),
@@ -210,7 +210,7 @@ class _TimeHeatmapChartState extends State<TimeHeatmapChart> {
                                             fontWeight: FontWeight.w600,
                                             color: intensity > 0.5
                                                 ? HerzogColors.white
-                                                : (isDark ? HerzogDarkColors.textPrimary : HerzogColors.richBlack),
+                                                : (isDark ? Colors.white : HerzogColors.richBlack),
                                           ),
                                         )
                                       : null,
@@ -249,7 +249,7 @@ class _TimeHeatmapChartState extends State<TimeHeatmapChart> {
       child: Row(
         children: [
           Text('0', style: isDark
-              ? HerzogText.body(fontSize: 11, color: HerzogDarkColors.textSecondary)
+              ? HerzogText.body(fontSize: 11, color: Colors.white)
               : HerzogText.body(fontSize: 11)),
           const SizedBox(width: 6),
           Expanded(
@@ -270,7 +270,7 @@ class _TimeHeatmapChartState extends State<TimeHeatmapChart> {
           ),
           const SizedBox(width: 6),
           Text('High', style: isDark
-              ? HerzogText.body(fontSize: 11, color: HerzogDarkColors.textSecondary)
+              ? HerzogText.body(fontSize: 11, color: Colors.white)
               : HerzogText.body(fontSize: 11)),
         ],
       ),

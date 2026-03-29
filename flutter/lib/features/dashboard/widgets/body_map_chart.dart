@@ -44,7 +44,7 @@ class _BodyMapChartState extends State<BodyMapChart> {
             // ── Subtitle ─────────────────────────────────────────────────
             Text(
               'Injury count by body part (last 12 months)',
-              style: HerzogText.body(fontSize: 12, color: isDark ? HerzogDarkColors.textMuted : HerzogColors.smoke),
+              style: HerzogText.body(fontSize: 12, color: isDark ? Colors.white : HerzogColors.smoke),
             ),
             const SizedBox(height: 8),
             // ── Summary line ─────────────────────────────────────────────
@@ -179,7 +179,7 @@ class _BodyMapChartState extends State<BodyMapChart> {
                 style: HerzogText.body(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? HerzogDarkColors.textPrimary : HerzogColors.richBlack,
+                  color: isDark ? Colors.white : HerzogColors.richBlack,
                 ),
               ),
             ),
@@ -216,7 +216,7 @@ class _BodyMapChartState extends State<BodyMapChart> {
       child: Center(
         child: Text(
           'No injury data recorded',
-          style: TextStyle(color: isDark ? HerzogDarkColors.textMuted : HerzogColors.smoke, fontSize: 14),
+          style: TextStyle(color: isDark ? Colors.white : HerzogColors.smoke, fontSize: 14),
         ),
       ),
     );

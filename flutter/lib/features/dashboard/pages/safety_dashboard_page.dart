@@ -429,7 +429,7 @@ class _RecentActivitySectionState extends State<_RecentActivitySection> {
                 Icon(
                   _expanded ? Icons.expand_less : Icons.expand_more,
                   color: isDark
-                      ? HerzogDarkColors.textSecondary
+                      ? Colors.white
                       : HerzogColors.midGray,
                 ),
               ],
@@ -569,7 +569,7 @@ class _KPITile extends StatelessWidget {
               label.toUpperCase(),
               style: HerzogText.label(
                 color: isDark
-                    ? HerzogDarkColors.textMuted
+                    ? Colors.white
                     : HerzogColors.midGray,
               ),
             ),
@@ -581,7 +581,7 @@ class _KPITile extends StatelessWidget {
                   style: HerzogText.heading(
                     fontSize: 28,
                     color: isDark
-                        ? HerzogDarkColors.textPrimary
+                        ? Colors.white
                         : HerzogColors.richBlack,
                   ),
                 ),
@@ -598,7 +598,7 @@ class _KPITile extends StatelessWidget {
                         : trend == _Trend.up
                         ? HerzogColors.errorRed
                         : isDark
-                        ? HerzogDarkColors.textMuted
+                        ? Colors.white
                         : HerzogColors.midGray,
                     size: 20,
                   ),
@@ -682,7 +682,7 @@ class _IncidentTrendChart extends StatelessWidget {
               'Stacked by incident type',
               style: HerzogText.body(
                 fontSize: 12,
-                color: isDark ? HerzogDarkColors.textSecondary : HerzogColors.midGray,
+                color: isDark ? Colors.white : HerzogColors.midGray,
               ),
             ),
             const SizedBox(height: 8),
@@ -714,7 +714,7 @@ class _IncidentTrendChart extends StatelessWidget {
                   ? Center(
                       child: Text(
                         'No data',
-                        style: HerzogText.body(color: isDark ? HerzogDarkColors.textMuted : HerzogColors.smoke),
+                        style: HerzogText.body(color: isDark ? Colors.white : HerzogColors.smoke),
                       ),
                     )
                   : BarChart(
@@ -782,7 +782,7 @@ class _IncidentTrendChart extends StatelessWidget {
                               'Incident Count',
                               style: HerzogText.body(
                                 fontSize: 10,
-                                color: isDark ? HerzogDarkColors.textSecondary : HerzogColors.midGray,
+                                color: isDark ? Colors.white : HerzogColors.midGray,
                               ),
                             ),
                             axisNameSize: 18,
@@ -793,7 +793,7 @@ class _IncidentTrendChart extends StatelessWidget {
                                 v.toInt().toString(),
                                 style: HerzogText.body(
                                   fontSize: 10,
-                                  color: isDark ? HerzogDarkColors.textSecondary : HerzogColors.darkGray,
+                                  color: isDark ? Colors.white : HerzogColors.darkGray,
                                 ),
                               ),
                             ),
@@ -803,7 +803,7 @@ class _IncidentTrendChart extends StatelessWidget {
                               'Month',
                               style: HerzogText.body(
                                 fontSize: 10,
-                                color: isDark ? HerzogDarkColors.textSecondary : HerzogColors.midGray,
+                                color: isDark ? Colors.white : HerzogColors.midGray,
                               ),
                             ),
                             axisNameSize: 18,
@@ -825,7 +825,7 @@ class _IncidentTrendChart extends StatelessWidget {
                                     label,
                                     style: HerzogText.body(
                                       fontSize: 9,
-                                      color: isDark ? HerzogDarkColors.textSecondary : HerzogColors.darkGray,
+                                      color: isDark ? Colors.white : HerzogColors.darkGray,
                                     ),
                                   ),
                                 );
@@ -939,7 +939,7 @@ class _TRIRTrendChart extends StatelessWidget {
                   ? Center(
                       child: Text(
                         'No data',
-                        style: HerzogText.body(color: isDark ? HerzogDarkColors.textMuted : HerzogColors.smoke),
+                        style: HerzogText.body(color: isDark ? Colors.white : HerzogColors.smoke),
                       ),
                     )
                   : LineChart(
@@ -955,7 +955,7 @@ class _TRIRTrendChart extends StatelessWidget {
                                 v.toStringAsFixed(1),
                                 style: HerzogText.body(
                                   fontSize: 10,
-                                  color: isDark ? HerzogDarkColors.textSecondary : HerzogColors.darkGray,
+                                  color: isDark ? Colors.white : HerzogColors.darkGray,
                                 ),
                               ),
                             ),
@@ -978,7 +978,7 @@ class _TRIRTrendChart extends StatelessWidget {
                                         : label,
                                     style: HerzogText.body(
                                       fontSize: 9,
-                                      color: isDark ? HerzogDarkColors.textSecondary : HerzogColors.darkGray,
+                                      color: isDark ? Colors.white : HerzogColors.darkGray,
                                     ),
                                   ),
                                 );
@@ -1093,7 +1093,7 @@ class _DivisionChart extends StatelessWidget {
                   ? Center(
                       child: Text(
                         'No data',
-                        style: HerzogText.body(color: isDark ? HerzogDarkColors.textMuted : HerzogColors.smoke),
+                        style: HerzogText.body(color: isDark ? Colors.white : HerzogColors.smoke),
                       ),
                     )
                   : BarChart(
@@ -1124,7 +1124,7 @@ class _DivisionChart extends StatelessWidget {
                                 v.toInt().toString(),
                                 style: HerzogText.body(
                                   fontSize: 10,
-                                  color: isDark ? HerzogDarkColors.textSecondary : HerzogColors.darkGray,
+                                  color: isDark ? Colors.white : HerzogColors.darkGray,
                                 ),
                               ),
                             ),
@@ -1146,7 +1146,7 @@ class _DivisionChart extends StatelessWidget {
                                         : label,
                                     style: HerzogText.body(
                                       fontSize: 9,
-                                      color: isDark ? HerzogDarkColors.textSecondary : HerzogColors.darkGray,
+                                      color: isDark ? Colors.white : HerzogColors.darkGray,
                                     ),
                                   ),
                                 );
@@ -1220,7 +1220,7 @@ class _SeverityDonut extends StatelessWidget {
                   ? Center(
                       child: Text(
                         'No data',
-                        style: HerzogText.body(color: isDark ? HerzogDarkColors.textMuted : HerzogColors.smoke),
+                        style: HerzogText.body(color: isDark ? Colors.white : HerzogColors.smoke),
                       ),
                     )
                   : Row(
@@ -1415,7 +1415,7 @@ class _RecentIncidentsTable extends StatelessWidget {
             incidents.isEmpty
                 ? Text(
                     'No incidents yet',
-                    style: HerzogText.body(color: isDark ? HerzogDarkColors.textMuted : HerzogColors.smoke),
+                    style: HerzogText.body(color: isDark ? Colors.white : HerzogColors.smoke),
                   )
                 : LayoutBuilder(
                     builder: (context, constraints) {
@@ -1668,7 +1668,7 @@ class _AgentBadgeState extends State<_AgentBadge> {
         : (isDark ? HerzogDarkColors.surface : HerzogColors.lightGray);
     final fgColor = hasAgents
         ? (isDark ? HerzogDarkColors.successFg : HerzogColors.successGreen)
-        : (isDark ? HerzogDarkColors.textMuted : HerzogColors.midGray);
+        : (isDark ? Colors.white : HerzogColors.midGray);
     final borderColor = hasAgents
         ? (isDark ? HerzogDarkColors.successFg : HerzogColors.successGreen)
         : (isDark ? HerzogDarkColors.border : HerzogColors.borderGray);

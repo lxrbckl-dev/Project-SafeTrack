@@ -42,7 +42,7 @@ class DivisionRadarChart extends StatelessWidget {
               Center(
                 child: Text(
                   'No division data available',
-                  style: HerzogText.body(color: isDark ? HerzogDarkColors.textMuted : HerzogColors.smoke),
+                  style: HerzogText.body(color: isDark ? Colors.white : HerzogColors.smoke),
                 ),
               ),
               const SizedBox(height: 40),
@@ -69,7 +69,7 @@ class DivisionRadarChart extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               'Multi-metric radar across divisions',
-              style: HerzogText.body(fontSize: 12, color: isDark ? HerzogDarkColors.textMuted : HerzogColors.smoke),
+              style: HerzogText.body(fontSize: 12, color: isDark ? Colors.white : HerzogColors.smoke),
             ),
             const SizedBox(height: 12),
             SizedBox(
@@ -121,7 +121,7 @@ class DivisionRadarChart extends StatelessWidget {
                     tickCount: 4,
                     ticksTextStyle: HerzogText.body(
                       fontSize: 9,
-                      color: isDark ? HerzogDarkColors.textMuted : HerzogColors.smoke,
+                      color: isDark ? Colors.white : HerzogColors.smoke,
                     ),
                     tickBorderData: BorderSide(
                       color: isDark ? HerzogDarkColors.border : HerzogColors.borderGray,
