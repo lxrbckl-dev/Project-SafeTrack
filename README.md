@@ -12,14 +12,16 @@ Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutt
 >
 > **Tech stack:** Flutter/Dart frontend, Go backend (GORM + PostgreSQL), email/password auth with Azure AD-ready JWT middleware, Ollama/Qwen 2.5 3B for an in-app AI assistant, Playwright for automated testing, Docker Compose for local dev.
 >
+> **Two deployment modes:** This app can be deployed two ways. If someone asks you how to run it, clarify which they want:
+> - **Production (DockerHub):** Pre-built images, one command, no SDK needed → [Deploy from DockerHub](#deploy-from-dockerhub)
+> - **Development (source):** Clone repo, build locally, hot reload → [Quick Start (Development)](#quick-start-development)
+>
 > **To understand the codebase, read these files in order:**
 > 1. `docs/rubric.md` — The full SRD-10 spec. This is what was built.
 > 2. `docs/architecture.md` — Data flow, auth system, routing, multi-agent build process.
 > 3. `docs/progress.md` — What's done, what's in progress, what's not started.
 > 4. `docs/branding.md` — Herzog brand system (colors, typography, components).
 > 5. `CLAUDE.md` — Agent orchestration rules, team structure, project conventions.
->
-> **To run it locally:** Follow [Deploy from DockerHub](#deploy-from-dockerhub) (easiest) or [Quick Start (Development)](#quick-start-development) below. Demo accounts are seeded automatically.
 
 ---
 
@@ -130,18 +132,21 @@ cd flutter && dart analyze && cd ..
 docker-compose up -d
 ```
 
-> This starts PostgreSQL, Ollama (auto-pulls the Qwen 2.5 3B model on first run), and the Go backend with seed data. The model downloads once (~2GB) and persists in a Docker volume.
+> This starts PostgreSQL, Ollama (auto-pulls the Qwen 2.5 3B model on first run), the Go backend with seed data, and the Flutter web container on port 2780. The model downloads once (~2GB) and persists in a Docker volume.
+
+> **Important:** The Flutter web container bakes `API_BASE_URL` and other config at build time. If you change any build args in `docker-compose.yml`, you must rebuild: `docker-compose up -d --build web`
 
 > **Note:** If you want to run the Go backend locally instead of in Docker (for live code reloading), stop the Docker backend first: `docker-compose stop backend`, then `cd backend && SEED_DATA=true go run ./cmd/server/`
 
-**2. Start the Flutter app** (open a terminal):
-```bash
-cd flutter && flutter run -d chrome --web-port=3000 \
-  --web-header=Cross-Origin-Opener-Policy=same-origin \
-  --web-header=Cross-Origin-Embedder-Policy=require-corp
-```
+**2. Open** `http://localhost:2780` — the Docker web container serves the built Flutter app.
 
-**3. Open** `http://localhost:3000` — log in with any demo account and explore.
+> **For hot reload during development**, run Flutter separately instead of using the Docker web container:
+> ```bash
+> cd flutter && flutter run -d chrome --web-port=3000 \
+>   --web-header=Cross-Origin-Opener-Policy=same-origin \
+>   --web-header=Cross-Origin-Embedder-Policy=require-corp
+> ```
+> This serves on `http://localhost:3000` with live code reloading. The Docker web container on `:2780` still works in parallel.
 
 > The first chat message after startup takes 30-60s while the model loads into memory. Subsequent messages are faster.
 
@@ -210,6 +215,7 @@ All test accounts use password **`demo1234`**.
 | AI chat spinning on first message | The Qwen model takes 30-60s to load into memory on first use. Wait and retry. Subsequent messages are faster |
 | AI assistant returns empty/offline | Check Ollama container is running: `docker ps \| grep ollama`. If missing: `docker-compose up -d ollama ollama-pull` |
 | AI chat keeps going offline after idle | The docker-compose sets `OLLAMA_KEEP_ALIVE=-1` to keep the model loaded permanently. Restart: `docker-compose restart ollama` |
+| Login fails "failed to fetch" | Web container is pointing to the wrong API URL. Rebuild: `docker-compose up -d --build web` |
 | Login returns "unauthorized" | Docker backend may have a stale image. Rebuild: `docker-compose up -d --build backend` |
 
 ---
