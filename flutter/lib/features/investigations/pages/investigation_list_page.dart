@@ -39,12 +39,23 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
   String _incidentIdFilter = '';
   bool _overdueOnly = false;
 
+  // Filter text controllers
+  final TextEditingController _investigatorController = TextEditingController();
+  final TextEditingController _incidentIdController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
     _auth = context.read<AuthService>();
     _repo = InvestigationRepository(_auth);
     _load();
+  }
+
+  @override
+  void dispose() {
+    _investigatorController.dispose();
+    _incidentIdController.dispose();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -189,6 +200,7 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
               label: 'Filter by investigator ID',
               textField: true,
               child: TextField(
+                controller: _investigatorController,
                 decoration: const InputDecoration(
                   labelText: 'Investigator',
                   isDense: true,
@@ -213,6 +225,7 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
               label: 'Filter by incident ID',
               textField: true,
               child: TextField(
+                controller: _incidentIdController,
                 decoration: const InputDecoration(
                   labelText: 'Incident ID',
                   isDense: true,
@@ -245,6 +258,58 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
               },
               selectedColor: HerzogColors.errorLight,
               checkmarkColor: HerzogColors.errorRed,
+            ),
+          ),
+
+          // Spacing before action buttons
+          const SizedBox(width: 8),
+
+          // Search button
+          SizedBox(
+            height: 48,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                setState(() {
+                  _investigatorFilter = _investigatorController.text;
+                  _incidentIdFilter = _incidentIdController.text;
+                });
+                _page = 1;
+                _load();
+              },
+              icon: const Icon(Icons.search, size: 16),
+              label: const Text('SEARCH'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: HerzogColors.navyBlue,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ),
+
+          // Spacing between buttons
+          const SizedBox(width: 8),
+
+          // Clear button
+          SizedBox(
+            height: 48,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                _investigatorController.clear();
+                _incidentIdController.clear();
+                setState(() {
+                  _statusFilter = '';
+                  _investigatorFilter = '';
+                  _incidentIdFilter = '';
+                  _overdueOnly = false;
+                });
+                _page = 1;
+                _load();
+              },
+              icon: const Icon(Icons.clear, size: 16),
+              label: const Text('CLEAR'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: HerzogColors.navyBlue,
+                side: const BorderSide(color: HerzogColors.navyBlue),
+              ),
             ),
           ),
         ],
