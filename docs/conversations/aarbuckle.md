@@ -840,3 +840,41 @@ Already installed: Flutter 3.41.4, Xcode 26.3, Playwright 1.58.2
 
 ### Training Filter Chips
 - Fixed FilterChip backgroundColor hardcoded to lightGray — now uses dark surface variant in dark mode
+
+### Sort Header Visibility
+- SWE-2 improved investigations table sort header — active sort arrow now gold (dark) / navy (light), InkWell hover highlight + click cursor
+
+### Help Guide Page
+- SWE-1 created /help route rendering bundled wiki.md with flutter_markdown
+- Herzog-branded markdown: Oswald headings, gold links in dark mode, themed code blocks
+- Added "HELP GUIDE" sidebar button + onboarding tour step (step 5 of 6)
+- Added Ctrl+Shift+G keyboard shortcut across keybindings, overlay, wiki, README
+
+### Refresh + Auto-Refresh on List Pages
+- SWE-2 added refresh IconButton and didChangeDependencies auto-refresh to Investigations, Incidents, and CAPAs list pages
+
+### Investigation Form Improvements
+- SWE-2 added GET /api/users endpoint (Safety Coordinator+ RBAC)
+- Replaced raw Incident ID text field with searchable Autocomplete (#ID — Type — Location)
+- Replaced Lead Investigator text field with searchable Autocomplete (Name — Role)
+- SWE-1 centered form at 700px max width with stretch fields
+
+### Wiki Dividers
+- Added horizontal rule dividers between all ## and ### sections in both wiki copies
+
+### Incident Cluster Badge Contrast
+- SWE-2 fixed common thread badges — gold text/border on dark surface in dark mode
+
+### Division Dropdowns App-Wide
+- Created shared kDivisions constant (6 Herzog divisions)
+- SWE-1 added Search button + converted Division to dropdown on incident list
+- SWE-2 converted Division to dropdown on incident form, injured person form, hours worked page
+- Dark mode support added to shared AppDropdown widget
+
+### PDF Report Headers
+- SWE-1 added SafeTrack icon (icon.png) to both incident and dashboard PDF report headers
+
+### Incident Filter Polish
+- Moved Search button to far left of filter row
+- Added Clear Filters button (navy blue, matches Search style) — resets all three filters
+- Production API URL rebuild triggered for DockerHub images
