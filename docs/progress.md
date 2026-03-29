@@ -24,7 +24,7 @@
 | Wiki auto-generation | Wiki regenerated to reflect current feature state |
 | Herzog branding | Full theme system: Oswald headings, Roboto body, gold accents, navy actions, KPI cards, status badges |
 | Monorepo structure | flutter/, backend/, deploy/, playwright/, eval/ |
-| Docker-compose | Go + PostgreSQL + Ollama + model auto-pull — full local dev stack |
+| Docker-compose | Go + PostgreSQL in Docker; Ollama runs natively for Metal GPU |
 | Auto-format hook | `dart format` + `gofmt` run automatically |
 | Feature-first architecture | flutter/lib/ restructured: app/, core/, features/, shared/ |
 | API config (centralized) | `ApiConfig.baseUrl` and `ApiConfig.ollamaUrl` — single source of truth |

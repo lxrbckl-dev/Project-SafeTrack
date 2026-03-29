@@ -209,7 +209,7 @@ backend/                           ← Go API server
   go.mod
 backend/internal/models/            ← GORM models (auto-migrated on startup)
 deploy/                             ← Docker, K8s, Terraform
-docker-compose.yml                 ← Local dev: Go + PostgreSQL + Ollama
+docker-compose.yml                 ← Local dev: Go + PostgreSQL (Ollama runs natively)
 playwright/                               ← Playwright test scripts
 eval/                              ← AutoResearch eval scripts
 .claude/agents/                    ← Agent definitions

@@ -6,7 +6,8 @@
 |---|---|---|
 | Flutter | [flutter.dev/get-started](https://flutter.dev/docs/get-started/install) | Frontend framework |
 | Go | `brew install go` | Backend API |
-| Docker | [docker.com](https://www.docker.com/products/docker-desktop/) | PostgreSQL + containerized services |
+| Docker | [docker.com](https://www.docker.com/products/docker-desktop/) | PostgreSQL (database) |
+| Ollama | `brew install ollama` | Local LLM — runs natively for Metal GPU acceleration |
 | Xcode | Mac App Store | iOS + macOS builds |
 | Node.js | [nodejs.org](https://nodejs.org) | Firebase CLI + Playwright |
 | Homebrew | [brew.sh](https://brew.sh) | Package manager for macOS |
@@ -69,7 +70,7 @@ highlander/
 | Local Flutter (QA) | `http://localhost:3001` | QA test server |
 | Local Go API | `http://localhost:8000` | Backend API |
 | Local PostgreSQL | `localhost:5432` | Database (highlander/marchpass) |
-| Local Ollama | `http://localhost:11434` | LLM (direct, dev only) |
+| Local Ollama | `http://localhost:11434` | LLM (native macOS, Metal GPU) |
 | Go Chat Proxy | `http://localhost:8000/api/chat` | LLM via Go (production path) |
 
 **Test accounts (seeded in database):** All use password `demo1234`
@@ -209,6 +210,7 @@ services:
       - PORT=8000
       - DATABASE_URL=postgres://highlander:marchpass@postgres:5432/highlander?sslmode=disable
       - OLLAMA_URL=http://host.docker.internal:11434
+      - SEED_DATA=true
     restart: unless-stopped
 
   postgres:

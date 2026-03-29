@@ -10,7 +10,7 @@ Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutt
 >
 > **What this app does:** SafeTrack is an internal safety management system for Herzog, a North American rail and infrastructure contractor. It covers the full incident lifecycle: field reporting → investigation (interactive 5-Why analysis) → corrective/preventive actions (CAPA) → safety dashboard with TRIR/DART metrics. 7 RBAC roles control who sees what.
 >
-> **Tech stack:** Flutter/Dart frontend, Go backend (GORM + PostgreSQL), three-layer auth (demo login + Firebase Auth + Azure AD-ready), Ollama/Qwen 2.5 7B for an in-app AI assistant, Playwright for automated testing, Docker Compose for local dev.
+> **Tech stack:** Flutter/Dart frontend, Go backend (GORM + PostgreSQL), three-layer auth (demo login + Firebase Auth + Azure AD-ready), Ollama/Qwen 2.5 7B for an in-app AI assistant (native macOS for Metal GPU), Playwright for automated testing, Docker Compose + native Ollama for local dev.
 >
 > **To understand the codebase, read these files in order:**
 > 1. `docs/rubric.md` — The full SRD-10 spec. This is what was built.
@@ -46,6 +46,7 @@ Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutt
 | [Homebrew](https://brew.sh) | Any | `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"` |
 | [Go](https://go.dev/dl/) | 1.23+ | `brew install go` |
 | [Flutter](https://flutter.dev/docs/get-started/install) | 3.41+ (Dart 3.11+) | See below |
+| [Ollama](https://ollama.com) | Any | `brew install ollama` (runs natively for Metal GPU) |
 | [Node.js](https://nodejs.org) | 18+ | `brew install node` (for Playwright tests) |
 | [GitHub CLI](https://cli.github.com) | Any | `brew install gh` then `gh auth login` |
 
@@ -189,8 +190,8 @@ All test accounts use password **`demo1234`**.
 | Port 3000 in use | `lsof -ti:3000 \| xargs kill -9` |
 | PostgreSQL connection refused | Start Docker Desktop, then `docker-compose up -d` |
 | Port 5432 conflict (local Postgres) | `lsof -ti:5432 \| xargs kill -9` then `docker-compose up -d` |
-| Need a fresh database | `docker-compose down -v && docker-compose up -d`, then re-seed |
-| AI chat spinning/timeout on first message | The Qwen model takes ~60s to load into memory on first use. Wait and retry. Subsequent messages are fast |
+| Need a fresh database | `docker-compose down -v && docker-compose up -d postgres`, then restart Go with `SEED_DATA=true` |
+| AI chat spinning on first message | The Qwen model takes ~15s to load into GPU memory on first use. Wait and retry. Subsequent messages are <1s |
 | AI assistant returns empty/offline | Check Ollama is running: `brew services list \| grep ollama`. If stopped: `brew services start ollama`. If model missing: `ollama pull qwen2.5:7b` |
 | AI chat keeps going offline after idle | Set keep-alive: `OLLAMA_KEEP_ALIVE=-1 ollama serve` or add to launchd plist |
 | Login returns "unauthorized" | Docker backend is running an old image. Stop it and run locally: `docker-compose stop backend` then `cd backend && go run ./cmd/server/; cd ..` |
