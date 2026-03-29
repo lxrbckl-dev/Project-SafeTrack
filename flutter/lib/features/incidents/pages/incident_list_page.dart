@@ -176,7 +176,7 @@ class _IncidentListPageState extends State<IncidentListPage> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Builder(builder: (context) {
                 final isDark = Theme.of(context).brightness == Brightness.dark;

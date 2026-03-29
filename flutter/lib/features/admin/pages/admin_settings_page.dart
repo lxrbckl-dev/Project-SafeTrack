@@ -218,7 +218,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               IconButton(
                 tooltip: 'Refresh settings',

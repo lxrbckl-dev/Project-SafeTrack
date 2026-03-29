@@ -115,7 +115,7 @@ class _CAPADashboardPageState extends State<CAPADashboardPage> {
                   Builder(builder: (context) {
                     final isDark = Theme.of(context).brightness == Brightness.dark;
                     return Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         Semantics(
                           label: 'Refresh CAPA data',
