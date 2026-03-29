@@ -79,12 +79,14 @@ Verify: `flutter --version` should show Flutter 3.41.x with Dart 3.11.x.
 # Flutter packages
 cd flutter && flutter pub get && cd ..
 
-# Go modules
-cd backend && go mod tidy && cd ..
-
 # Playwright (for running tests)
 npm install
 npx playwright install chromium
+```
+
+If you installed Go for local backend dev:
+```bash
+cd backend && go mod tidy && cd ..
 ```
 
 ### Verify Everything Builds
@@ -92,9 +94,6 @@ npx playwright install chromium
 ```bash
 # Dart analysis (should show "No issues found")
 cd flutter && dart analyze && cd ..
-
-# Go build (should complete without errors)
-cd backend && go build ./cmd/server/ && cd ..
 ```
 
 ---
@@ -180,4 +179,4 @@ All test accounts use password **`demo1234`**.
 | AI chat spinning on first message | The Qwen model takes 30-60s to load into memory on first use. Wait and retry. Subsequent messages are faster |
 | AI assistant returns empty/offline | Check Ollama container is running: `docker ps \| grep ollama`. If missing: `docker-compose up -d ollama ollama-pull` |
 | AI chat keeps going offline after idle | The docker-compose sets `OLLAMA_KEEP_ALIVE=-1` to keep the model loaded permanently. Restart: `docker-compose restart ollama` |
-| Login returns "unauthorized" | Docker backend is running an old image. Stop it and run locally: `docker-compose stop backend` then `cd backend && go run ./cmd/server/; cd ..` |
+| Login returns "unauthorized" | Docker backend may have a stale image. Rebuild: `docker-compose up -d --build backend` |

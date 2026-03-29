@@ -4,22 +4,20 @@
 
 | Tool | Install | Purpose |
 |---|---|---|
+| Docker | [docker.com](https://www.docker.com/products/docker-desktop/) | Runs Go backend, PostgreSQL, and Ollama (Qwen 2.5 3B) |
 | Flutter | [flutter.dev/get-started](https://flutter.dev/docs/get-started/install) | Frontend framework |
-| Go | `brew install go` | Backend API |
-| Docker | [docker.com](https://www.docker.com/products/docker-desktop/) | PostgreSQL + Ollama + Go backend |
-| Ollama | Included in docker-compose | Local LLM (Qwen 2.5 3B) |
-| Xcode | Mac App Store | iOS + macOS builds |
-| Node.js | [nodejs.org](https://nodejs.org) | Firebase CLI + Playwright |
 | Homebrew | [brew.sh](https://brew.sh) | Package manager for macOS |
+| Node.js | [nodejs.org](https://nodejs.org) | Firebase CLI + Playwright |
+| Go | `brew install go` | Optional — only for running backend outside Docker |
+| Xcode | Mac App Store | Optional — only for iOS + macOS builds |
 
 ## Tool Installation
 
 ```bash
-# Go (backend API)
+# Go (optional — only if running backend outside Docker)
 brew install go
 
-# Ollama is included in docker-compose — no manual install needed
-# The ollama-pull service auto-pulls Qwen 2.5 3B on first startup
+# Ollama + Qwen 2.5 3B are included in docker-compose — no manual install needed
 
 # tmux (agent teams split-pane view)
 brew install tmux
