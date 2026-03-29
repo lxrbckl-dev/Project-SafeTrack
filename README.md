@@ -37,6 +37,7 @@ Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutt
 | [Quick Start (Development)](#quick-start-development) | Get the app running locally for development |
 | [Stopping Everything](#stopping-everything) | Shut down services |
 | [Demo Accounts](#demo-accounts) | 7 test accounts to explore |
+| [Connect Your AI Agent (MCP)](#connect-your-ai-agent-mcp) | Hook up Claude, GPT, or any agent |
 | [Keyboard Shortcuts](#keyboard-shortcuts) | Navigation hotkeys |
 | [Troubleshooting](#troubleshooting) | Common issues & fixes |
 
@@ -188,6 +189,76 @@ All test accounts use password **`demo1234`**.
 | `admin@safetrack.demo` | Admin | Configure system settings, view audit log |
 
 > **Suggested walkthrough:** Start as Field Reporter to create an incident, then switch to Safety Manager to investigate it.
+
+---
+
+## Connect Your AI Agent (MCP)
+
+SafeTrack has a built-in MCP server that lets any AI agent read and write safety data — create incidents, run investigations, pull dashboard metrics, manage CAPAs, and more — all through a standard JSON-RPC 2.0 protocol.
+
+**Pre-seeded demo key (no setup required):**
+```
+stk_demo_judge_key_2026
+```
+This key has **admin** access (all 40+ tools available).
+
+**Verify the server is live:**
+```bash
+curl -X POST http://localhost:8000/mcp/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer stk_demo_judge_key_2026" \
+  -d '{"jsonrpc":"2.0","method":"initialize","id":1}'
+```
+
+### Claude Code (`.mcp.json`)
+```json
+{
+  "mcpServers": {
+    "safetrack": {
+      "type": "url",
+      "url": "http://localhost:8000/mcp/",
+      "headers": {
+        "Authorization": "Bearer stk_demo_judge_key_2026"
+      }
+    }
+  }
+}
+```
+
+### Claude Desktop (`claude_desktop_config.json`)
+```json
+{
+  "mcpServers": {
+    "safetrack": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "http://localhost:8000/mcp/"],
+      "env": {
+        "MCP_AUTH_HEADER": "Bearer stk_demo_judge_key_2026"
+      }
+    }
+  }
+}
+```
+
+### Other Agents (curl / HTTP)
+```bash
+# List all tools available to your key
+curl -X POST http://localhost:8000/mcp/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer stk_demo_judge_key_2026" \
+  -d '{"jsonrpc":"2.0","method":"tools/list","id":2}'
+
+# Call a tool (e.g. list incidents)
+curl -X POST http://localhost:8000/mcp/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer stk_demo_judge_key_2026" \
+  -d '{"jsonrpc":"2.0","method":"tools/call","id":3,
+    "params":{"name":"list_incidents","arguments":{}}}'
+```
+
+> For the complete tool reference (40+ tools), role-based access details, Python examples, end-to-end workflows, and troubleshooting, see [`docs/mcp-guide.md`](docs/mcp-guide.md).
+
+**Want to create your own key?** Log in as admin → Admin → API Keys → Create Key. Keys inherit the creating user's role and permissions.
 
 ---
 
