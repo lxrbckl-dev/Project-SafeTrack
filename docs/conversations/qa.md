@@ -106,5 +106,9 @@
 ### Post-Build Polish
 [2026-03-28] QA PASSED PRs: #117 (debug banner), #119 (icon 52px), #121 (ratio spacing), #123 (Ollama offline), #125 (forgot password), #127 (login links), #130 (pointer cursor), #131 (divider), #133 (onboarding tour), #135 (sidebar highlight), #137 (Ctrl+Shift shortcuts), #139 (heatmap horizontal), #141 (body map bar chart), #143 (remove sidebar hints), #146 (NEW INCIDENT AppBar), #147 (sidebar uppercase), #149 (auth persistence), #154 (AppBar gold border), #155 (KPI gold + 4-col).
 
+### Continued Polish (PRs #156-#181)
+[2026-03-28] QA PASSED PRs: #157-#175 (LOGOUT, 404, KPI blank, admin save, filters, footer, CAPA avg, double AppBar, chat indicators, seed).
+[2026-03-29] QA PASSED PRs: #178 (AppBar titles), #179 (investigation search/clear), #181 (borderRadius fix).
+
 ### Current Status
-[2026-03-28] 155 PRs merged. All builds clean. go build CLEAN. go vet CLEAN. dart analyze: No issues found.
+[2026-03-29] 181 PRs merged. All builds clean.

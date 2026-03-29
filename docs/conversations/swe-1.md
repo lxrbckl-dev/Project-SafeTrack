@@ -103,3 +103,5 @@
 [19:50] #136 Ctrl+Shift shortcuts → PR #137 (7 files). #140 Body map → bar chart → PR #141.
 [20:10] #144 NEW INCIDENT to AppBar → PR #146. #148 Auth persistence → PR #149.
 [20:30] #150+#151 KPI gold border + 4-col → PR #155.
+[20:40] #158 404 page, #160 KPI blank, #164 incident filters, #168 CAPA avg, #170 double AppBar (9 files), #174 seed expansion.
+[22:00] #176 Investigation search/clear → PR #179. #180 borderRadius fix → PR #181.

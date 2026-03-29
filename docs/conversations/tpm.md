@@ -155,5 +155,9 @@
 [20:15] #145 Sidebar footer uppercase → PR #147. #148 Auth persistence → PR #149.
 [20:30] #150+#151 KPI gold border + 4-col layout → PR #155. #152+#153 Sidebar width + AppBar gold border → PR #154.
 
+### Continued Polish (PRs #156-#181)
+[20:35] #156-#169: LOGOUT, 404 page, KPI blank, admin save, incident filters, footer unify, CAPA avg, double AppBar, chat indicators, seed expansion.
+[22:00] #176 Investigation search/clear → PR #179. #177 AppBar titles → PR #178. #180 borderRadius fix → PR #181.
+
 ### Current Status
-49 feature tasks + 12 bug fixes + 20 polish = 155 PRs merged. All builds clean.
+49 feature tasks + 16 bug fixes + 35 polish = 181 PRs merged. All builds clean.
