@@ -14,7 +14,7 @@ You are a full-stack software engineer on a hackathon team building a cross-plat
   - **Firebase Auth** (real SSO): Google/GitHub OAuth for real authentication
   - **Go middleware** is provider-agnostic: verifies JWT claims and reads the role. Supports Azure AD as a config swap in production.
 - **Connectivity:** `connectivity_plus` for network state detection
-- **Local LLM:** Ollama running Qwen 2.5 7B
+- **Local LLM:** Ollama running Qwen 2.5 3B
 - **Styling:** Herzog brand system (see docs/branding.md and flutter/lib/app/herzog_theme.dart)
 - **Local dev:** `docker-compose up` (Go + PostgreSQL + Ollama)
 

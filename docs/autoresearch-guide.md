@@ -1,6 +1,6 @@
 # AutoResearch Guide
 
-> How to use the AutoResearch pattern to optimize Qwen 2.5 7B for this project.
+> How to use the AutoResearch pattern to optimize Qwen 2.5 3B for this project.
 
 ---
 
@@ -18,7 +18,7 @@ The eval script lives at `eval/wiki_eval.py`.
 
 ## Validation Result
 
-We validated the pattern during initial setup: 5/5 evals passed against Qwen 2.5 7B with the current wiki as RAG context. Re-run with `python3 eval/wiki_eval.py`.
+We validated the pattern during initial setup: 5/5 evals passed against Qwen 2.5 3B with the current wiki as RAG context. Re-run with `python3 eval/wiki_eval.py`.
 
 ## How to Run the Eval
 
@@ -26,7 +26,7 @@ We validated the pattern during initial setup: 5/5 evals passed against Qwen 2.5
 python3 eval/wiki_eval.py
 ```
 
-Requires Ollama running with Qwen 2.5 7B loaded and `docs/wiki.md` to exist.
+Requires Ollama running with Qwen 2.5 3B loaded and `docs/wiki.md` to exist.
 
 ---
 

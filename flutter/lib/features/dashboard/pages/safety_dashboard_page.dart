@@ -956,6 +956,7 @@ class _DivisionChart extends StatelessWidget {
     final divs = data.incidentsByDivision;
 
     return Card(
+      clipBehavior: Clip.none,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -966,8 +967,7 @@ class _DivisionChart extends StatelessWidget {
               style: HerzogText.heading(fontSize: 16),
             ),
             const SizedBox(height: 12),
-            SizedBox(
-              height: 220,
+            Expanded(
               child: divs.isEmpty
                   ? Center(
                       child: Text(
@@ -981,6 +981,8 @@ class _DivisionChart extends StatelessWidget {
                         barTouchData: BarTouchData(
                           enabled: true,
                           touchTooltipData: BarTouchTooltipData(
+                            fitInsideVertically: true,
+                            fitInsideHorizontally: true,
                             getTooltipItem: (group, gIdx, rod, rIdx) {
                               return BarTooltipItem(
                                 '${divs[group.x.toInt()].division}\n${rod.toY.toInt()}',

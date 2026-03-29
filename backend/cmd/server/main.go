@@ -159,7 +159,7 @@ func main() {
 			ollamaURL = "http://localhost:11434"
 		}
 		warmClient := &http.Client{Timeout: 120 * time.Second}
-		payload := []byte(`{"model":"qwen2.5:7b","prompt":"hello","stream":false}`)
+		payload := []byte(`{"model":"qwen2.5:3b","prompt":"hello","stream":false}`)
 		start := time.Now()
 		log.Printf("Ollama warm-up: loading model...")
 		resp, err := warmClient.Post(ollamaURL+"/api/generate", "application/json", bytes.NewReader(payload))

@@ -17,10 +17,10 @@
 # Go (backend API)
 brew install go
 
-# Ollama (local LLM serving) + Qwen 2.5 7B model
+# Ollama (local LLM serving) + Qwen 2.5 3B model
 brew install ollama
 brew services start ollama
-ollama pull qwen2.5:7b
+ollama pull qwen2.5:3b
 
 # tmux (agent teams split-pane view)
 brew install tmux
@@ -175,7 +175,7 @@ Internet → Caddy (HTTPS/TLS) → :2780 → Flutter web (nginx container)
                                               ↕
                                     Go API (:8000) → PostgreSQL (:5432)
                                               ↕
-                                    Ollama (:11434, Qwen 2.5 7B)
+                                    Ollama (:11434, Qwen 2.5 3B)
 ```
 
 **Production docker-compose** should expose the Flutter web build on port `2780`:
@@ -279,7 +279,7 @@ cd flutter && flutter build web && cd ..
 
 # Pull Qwen model (first time only)
 docker-compose up ollama -d
-docker exec $(docker ps -q -f name=ollama) ollama pull qwen2.5:7b
+docker exec $(docker ps -q -f name=ollama) ollama pull qwen2.5:3b
 
 # Start everything
 docker-compose up -d

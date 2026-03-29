@@ -369,7 +369,7 @@
 
 **Flutter:**
 - Chat widget (floating action button or sidebar panel) that sends user questions to `POST /api/chat`
-- Displays Qwen 2.5 7B responses with wiki-as-RAG context
+- Displays Qwen 2.5 3B responses with wiki-as-RAG context
 - Toggle open/close
 
 **QA:** Chat opens/closes. Questions get responses. Responses are contextually relevant.
