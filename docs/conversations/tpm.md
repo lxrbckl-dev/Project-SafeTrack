@@ -159,5 +159,8 @@
 [20:35] #156-#169: LOGOUT, 404 page, KPI blank, admin save, incident filters, footer unify, CAPA avg, double AppBar, chat indicators, seed expansion.
 [22:00] #176 Investigation search/clear → PR #179. #177 AppBar titles → PR #178. #180 borderRadius fix → PR #181.
 
+[22:30] #182 Stress test seed endpoint → PR #183 (SWE-1, Opus). 50 incidents, 15 investigations, 20 CAPAs, admin button. Merged.
+[23:00] #184 Investigations inline column header filters → PR #185 (SWE-2, Opus). Full filter bar redesign. Merged.
+
 ### Current Status
-49 feature tasks + 16 bug fixes + 35 polish = 181 PRs merged. All builds clean.
+49 feature tasks + 16 bug fixes + 37 polish = 185 PRs merged. All builds clean.

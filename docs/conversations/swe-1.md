@@ -105,3 +105,4 @@
 [20:30] #150+#151 KPI gold border + 4-col → PR #155.
 [20:40] #158 404 page, #160 KPI blank, #164 incident filters, #168 CAPA avg, #170 double AppBar (9 files), #174 seed expansion.
 [22:00] #176 Investigation search/clear → PR #179. #180 borderRadius fix → PR #181.
+[22:30] #182 Stress test seed endpoint (50 incidents, 15 investigations, 20 CAPAs, admin button) → PR #183. Opus. Merged.

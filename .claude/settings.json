@@ -64,7 +64,12 @@
       "Bash(docker-compose -f /Users/highlander/Desktop/highlander/docker-compose.yml down)",
       "Bash(docker-compose -f /Users/highlander/Desktop/highlander/docker-compose.yml up -d)",
       "Bash(dart analyze:*)",
-      "Bash(sips -g pixelWidth -g pixelHeight /Users/highlander/Desktop/highlander/flutter/assets/icon_sidebar.png)"
+      "Bash(sips -g pixelWidth -g pixelHeight /Users/highlander/Desktop/highlander/flutter/assets/icon_sidebar.png)",
+      "Bash(curl -s -X POST http://localhost:11434/api/generate -d '{\"\"\"\"model\"\"\"\":\"\"\"\"qwen2.5:7b\"\"\"\",\"\"\"\"prompt\"\"\"\":\"\"\"\"say hello\"\"\"\",\"\"\"\"stream\"\"\"\":false}' --max-time 10)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(''''Ollama:'''', d.get\\(''''response'''',''''EMPTY''''\\)[:80]\\)\")",
+      "Bash(docker exec:*)",
+      "Bash(curl -s -X POST http://localhost:11434/api/generate -d '{\"\"\"\"model\"\"\"\":\"\"\"\"qwen2.5:7b\"\"\"\",\"\"\"\"prompt\"\"\"\":\"\"\"\"hello\"\"\"\",\"\"\"\"stream\"\"\"\":false}' --max-time 120)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(''''Ready:'''', d.get\\(''''response'''',''''FAILED''''\\)[:80]\\)\")"
     ],
     "deny": [],
     "defaultMode": "bypassPermissions",

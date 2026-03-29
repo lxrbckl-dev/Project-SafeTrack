@@ -110,5 +110,7 @@
 [2026-03-28] QA PASSED PRs: #157-#175 (LOGOUT, 404, KPI blank, admin save, filters, footer, CAPA avg, double AppBar, chat indicators, seed).
 [2026-03-29] QA PASSED PRs: #178 (AppBar titles), #179 (investigation search/clear), #181 (borderRadius fix).
 
+[2026-03-29] QA PASSED PR #183 (stress test seed, 11 checks). QA PASSED PR #185 (investigations filters, 12 checks). Both merged.
+
 ### Current Status
-[2026-03-29] 181 PRs merged. All builds clean.
+[2026-03-29] 185 PRs merged. All builds clean.

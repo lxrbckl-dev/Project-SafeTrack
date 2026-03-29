@@ -110,3 +110,4 @@
 [20:10] #142 Remove sidebar hints → PR #143. #145 Sidebar footer uppercase → PR #147.
 [20:30] #152+#153 Sidebar width + AppBar gold border → PR #154.
 [20:35] #156 LOGOUT, #162 admin save, #166 footer unify, #172 chat indicators, #177 AppBar titles → PR #178.
+[23:00] #184 Investigations inline column header filters → PR #185. Full redesign: popup filters, sort, Clear filters row. Opus. Merged.
