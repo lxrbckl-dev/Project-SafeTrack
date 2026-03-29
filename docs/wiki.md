@@ -2,7 +2,7 @@
 
 ## What SafeTrack Does
 
-SafeTrack is an Incident Investigation & Corrective Action System built for workplace safety management in the rail and infrastructure industry. It covers the full incident lifecycle: field reporting, OSHA recordability determination, root cause investigation (interactive 5-Why analysis with fishbone diagrams), corrective/preventive actions (CAPAs), training verification, and executive safety dashboards with TRIR/DART metrics. Seven role-based access levels control who can see and do what. An AI assistant (Qwen 2.5 3B via Ollama) provides natural-language help, page navigation, and form filling. External agents can integrate via MCP (Model Context Protocol) or REST API with dedicated API keys.
+SafeTrack is an Incident Investigation & Corrective Action System built for workplace safety management in the rail and infrastructure industry. It covers the full incident lifecycle: field reporting, OSHA recordability determination, root cause investigation (interactive 5-Why analysis with fishbone diagrams), corrective/preventive actions (CAPAs), training verification, and executive safety dashboards with TRIR/DART metrics. Seven role-based access levels control who can see and do what. An AI assistant (Qwen 2.5 7B via Ollama) provides natural-language help, page navigation, and form filling. External agents can integrate via MCP (Model Context Protocol) or REST API with dedicated API keys.
 
 ## Pages & Routes
 
@@ -57,7 +57,7 @@ Go Backend (port 8000)
     |   v
     |   PostgreSQL (port 5432)
     |
-    |-- Ollama AI (port 11434, Qwen 2.5 3B)
+    |-- Ollama AI (port 11434, Qwen 2.5 7B)
     |-- WebSocket (real-time push)
     |-- MCP Protocol (/mcp/* endpoints)
 ```
@@ -166,7 +166,7 @@ Route protection is enforced at both the Flutter router level (redirect) and the
 - Live activity feed with human-readable action messages
 
 ### AI Assistant
-- Qwen 2.5 3B language model via Ollama with wiki-as-RAG context injection
+- Qwen 2.5 7B language model via Ollama with wiki-as-RAG context injection
 - Chat panel toggled via Ctrl+Shift+K or `/` key
 - Page navigation commands (AI can direct user to any route)
 - Form filling commands (AI can pre-fill incident, investigation, and CAPA forms)

@@ -12,7 +12,7 @@ These validate that the core infrastructure works correctly.
 - [x] `connectivity_plus` correctly detects online/offline state on all platforms
 - [x] Offline write → sync queue → Go API → PostgreSQL works end-to-end
 - [x] Go backend + GORM integrates with Drift sync pattern
-- [x] Ollama serves Qwen 2.5 3B on Mac Mini M4 Pro with acceptable latency
+- [x] Ollama serves Qwen 2.5 7B on Mac Mini M4 Pro with acceptable latency
 - [x] Wiki content can be injected as RAG context into Ollama system prompt
 - [ ] Claude Code Agent Teams mode enables and runs with multiple agents
 - [x] Thought logging to `.logs/thoughts/` — instruction baked into all agent definitions, validates with Agent Teams
@@ -51,7 +51,7 @@ These depend on knowing what the app actually does.
 ### Resolved Contingencies
 - **Team composition:** Solo (Alex + Claude agents only). No other humans.
 - **Agent Teams fallback:** If experimental Agent Teams fails, fallback is Alex working directly with Claude Code in standard mode (no hierarchy, just direct collaboration)
-- [x] **7B model selection:** Qwen 2.5 3B — strong coding/reasoning, good fit for in-app assistant with RAG context
+- [x] **7B model selection:** Qwen 2.5 7B — strong coding/reasoning, good fit for in-app assistant with RAG context
 - [x] **Playwright role:** Primary QA tool — QA agent writes and runs Playwright tests for every PR. Claude browser agent is secondary (exploratory validation)
 - [x] **App Store expedited review:** Not needed — distributing via TestFlight (beta), which skips App Store review entirely. Upload build → share link → judges install immediately
-- [x] **AutoResearch integration depth:** Deferred — ship with base Qwen 2.5 3B + system prompt + wiki-as-RAG during hackathon. AutoResearch optimization happens post-build once app is stable and wiki content exists. Use the pipeline as a judge-facing talking point ("continuous model improvement infrastructure")
+- [x] **AutoResearch integration depth:** Deferred — ship with base Qwen 2.5 7B + system prompt + wiki-as-RAG during hackathon. AutoResearch optimization happens post-build once app is stable and wiki content exists. Use the pipeline as a judge-facing talking point ("continuous model improvement infrastructure")

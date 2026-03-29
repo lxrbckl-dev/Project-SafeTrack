@@ -22,7 +22,7 @@ class _OllamaTestPageState extends State<OllamaTestPage> {
     setState(() {
       _loading = true;
       _response = '';
-      _status = 'Sending to Qwen 2.5 3B...';
+      _status = 'Sending to Qwen 2.5 7B...';
     });
 
     final stopwatch = Stopwatch()..start();
@@ -32,7 +32,7 @@ class _OllamaTestPageState extends State<OllamaTestPage> {
         Uri.parse('http://localhost:11434/api/generate'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'model': 'qwen2.5:3b',
+          'model': 'qwen2.5:7b',
           'prompt': _controller.text,
           'stream': false,
         }),

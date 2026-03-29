@@ -19,7 +19,7 @@
 | PostgreSQL (via GORM) | Auto-migrating ORM — tables defined as Go structs, no SQL migrations needed |
 | Sync service | API-first: Flutter → Go API → PostgreSQL. Drift available for local caching |
 | connectivity_plus | Real-time online/offline detection |
-| Ollama + Qwen 2.5 3B | AI model serving via REST API, warm-up on startup, KEEP_ALIVE=-1 |
+| Ollama + Qwen 2.5 7B | AI model serving via REST API, warm-up on startup, KEEP_ALIVE=-1 |
 | Wiki-as-RAG | Wiki injected into Qwen system prompt for accurate in-app help |
 | Wiki auto-generation | Wiki regenerated to reflect current feature state |
 | Herzog branding | Full theme system: Oswald headings, Roboto body, gold accents, navy actions, KPI cards, status badges |

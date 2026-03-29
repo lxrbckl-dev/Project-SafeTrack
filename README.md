@@ -10,7 +10,7 @@ Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutt
 >
 > **What this app does:** SafeTrack is an internal safety management system for Herzog, a North American rail and infrastructure contractor. It covers the full incident lifecycle: field reporting → investigation (interactive 5-Why analysis) → corrective/preventive actions (CAPA) → safety dashboard with TRIR/DART metrics. 7 RBAC roles control who sees what.
 >
-> **Tech stack:** Flutter/Dart frontend, Go backend (GORM + PostgreSQL), three-layer auth (demo login + Firebase Auth + Azure AD-ready), Ollama/Qwen 2.5 3B for an in-app AI assistant, Playwright for automated testing, Docker Compose for local dev.
+> **Tech stack:** Flutter/Dart frontend, Go backend (GORM + PostgreSQL), three-layer auth (demo login + Firebase Auth + Azure AD-ready), Ollama/Qwen 2.5 7B for an in-app AI assistant, Playwright for automated testing, Docker Compose for local dev.
 >
 > **To understand the codebase, read these files in order:**
 > 1. `docs/rubric.md` — The full SRD-10 spec. This is what was built.
@@ -64,7 +64,7 @@ cd flutter && flutter run -d chrome --web-port=3000 \
 
 **4. Open** `http://localhost:3000` — log in with any demo account and explore.
 
-> AI chat is enabled automatically — the Qwen 2.5 3B model pulls on first startup (~4 min download). The first chat message after startup takes ~60s while the model loads into memory. Subsequent messages are fast (1-3s).
+> AI chat is enabled automatically — the Qwen 2.5 7B model pulls on first startup (~4 min download). The first chat message after startup takes ~60s while the model loads into memory. Subsequent messages are fast (1-3s).
 
 ---
 
@@ -125,6 +125,6 @@ All test accounts use password **`demo1234`**.
 | Port 5432 conflict (local Postgres) | `lsof -ti:5432 \| xargs kill -9` then `docker-compose up -d` |
 | Need a fresh database | `docker-compose down -v && docker-compose up -d`, then re-seed |
 | AI chat spinning/timeout on first message | The Qwen model takes ~60s to load into memory on first use. Wait and retry. Subsequent messages are fast |
-| AI assistant returns empty/offline | Check `docker ps` — Ollama container must be running. If model missing: `docker exec -it highlander-ollama-1 ollama pull qwen2.5:3b` |
+| AI assistant returns empty/offline | Check `docker ps` — Ollama container must be running. If model missing: `docker exec -it highlander-ollama-1 ollama pull qwen2.5:7b` |
 | AI chat keeps going offline after idle | Ollama is using old config without keep-alive. Run `docker-compose restart ollama` to apply the permanent keep-alive setting |
 | Login returns "unauthorized" | Docker backend is running an old image. Stop it and run locally: `docker-compose stop backend` then `cd backend && go run ./cmd/server/; cd ..` |

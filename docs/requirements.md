@@ -11,14 +11,14 @@ All components must be **Flutter/Dart**, **web + mobile compatible**, and **ADA-
 - Long-term idea: use **AutoResearch** to train/optimize the local 7B model to act as the in-app assistant
 - **AutoResearch is a two-phase play:**
   - **Phase 1 (Agent Prompts):** After the app is built and real tasks exist, use AutoResearch to optimize the agent definition files (`tpm.md`, `swe-1.md`, etc.) against eval test cases. The agents get measurably better at building *this specific app*. Shopify used this pattern on a coding agent — 53% performance improvement across 120 automated experiments.
-  - **Phase 2 (In-App Assistant):** Use AutoResearch to optimize Qwen 2.5 3B with app-specific wiki/docs as training context. The user-facing assistant gets smarter about *this specific app*.
+  - **Phase 2 (In-App Assistant):** Use AutoResearch to optimize Qwen 2.5 7B with app-specific wiki/docs as training context. The user-facing assistant gets smarter about *this specific app*.
   - **Judge narrative:** Same AutoResearch pattern, two applications — one improves the developers, one improves the product. Continuous improvement at both layers.
 
 ## Wiki Auto-Regeneration Pipeline
 - Before every commit (done through Claude Code), Claude regenerates the wiki automatically
 - Claude reads all source files in `flutter/lib/` and `backend/` and produces accurate documentation of the app's current state
 - Wiki is written to `docs/wiki.md` and copied to `flutter/assets/wiki.md` (bundled into the Flutter app)
-- Qwen 2.5 3B reads the wiki as RAG context in its system prompt — so the in-app assistant always knows what the app does
+- Qwen 2.5 7B reads the wiki as RAG context in its system prompt — so the in-app assistant always knows what the app does
 - **Talking point for judges:** Mirrors the AutoResearch agentic feedback loop pattern — a self-improving knowledge base that stays current with every commit
 
 ## Keyboard Shortcuts

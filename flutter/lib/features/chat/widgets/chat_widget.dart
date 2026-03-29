@@ -54,7 +54,7 @@ class _ChatMessage {
 /// Floating AI Chat widget for the SafeTrack app.
 ///
 /// Renders as a gold FAB in the bottom-right corner of the shell. When tapped,
-/// expands to an overlay chat panel powered by Qwen 2.5 3B via [POST /api/chat].
+/// expands to an overlay chat panel powered by Qwen 2.5 7B via [POST /api/chat].
 ///
 /// TASK-019 enhancement: AI responses can include structured actions (navigate,
 /// fill, navigate_and_fill). Action buttons are shown below the message bubble.
@@ -418,7 +418,7 @@ class _PanelHeader extends StatelessWidget {
           ),
           const Spacer(),
           Text(
-            'Qwen 2.5 3B',
+            'Qwen 2.5 7B',
             style: HerzogText.label(fontSize: 10, color: HerzogColors.smoke),
           ),
         ],
