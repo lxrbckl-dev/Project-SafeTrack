@@ -300,3 +300,4 @@ curl -X POST http://localhost:8000/mcp/ \
 - [GitHub Repository](https://github.com/lxRbckl/highlander)
 - [DockerHub: pap-highlander-web](https://hub.docker.com/repository/docker/lxrbckl/pap-highlander-web/general)
 - [DockerHub: pap-highlander-backend](https://hub.docker.com/repository/docker/lxrbckl/pap-highlander-backend/general)
+- [Project Page](https://lxrbckl.github.io/highlander)

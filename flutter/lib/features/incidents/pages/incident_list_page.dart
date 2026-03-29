@@ -229,27 +229,38 @@ class _IncidentListPageState extends State<IncidentListPage> {
           ),
           const SizedBox(width: 12),
           // Division filter
-          SizedBox(
+          Builder(builder: (context) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            return SizedBox(
             width: 180,
             height: 48,
             child: TextField(
               decoration: InputDecoration(
                 labelText: 'Division',
-                labelStyle: HerzogText.label(fontSize: 11),
+                labelStyle: HerzogText.label(
+                  fontSize: 11,
+                  color: isDark ? HerzogDarkColors.textMuted : null,
+                ),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 12,
                   vertical: 12,
                 ),
-                border: const OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(4)),
-                ),
-                enabledBorder: const OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(4)),
-                ),
-                focusedBorder: const OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(4)),
+                border: OutlineInputBorder(
+                  borderRadius: const BorderRadius.all(Radius.circular(4)),
                   borderSide: BorderSide(
-                    color: HerzogColors.navyBlue,
+                    color: isDark ? HerzogDarkColors.inputBorder : HerzogColors.borderGray,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: const BorderRadius.all(Radius.circular(4)),
+                  borderSide: BorderSide(
+                    color: isDark ? HerzogDarkColors.inputBorder : HerzogColors.borderGray,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: const BorderRadius.all(Radius.circular(4)),
+                  borderSide: BorderSide(
+                    color: isDark ? HerzogColors.gold : HerzogColors.navyBlue,
                     width: 2,
                   ),
                 ),
@@ -264,13 +275,17 @@ class _IncidentListPageState extends State<IncidentListPage> {
                       )
                     : null,
               ),
-              style: HerzogText.body(fontSize: 13),
+              style: HerzogText.body(
+                fontSize: 13,
+                color: isDark ? HerzogDarkColors.textPrimary : null,
+              ),
               onSubmitted: (v) {
                 setState(() => _divisionFilter = v.isEmpty ? null : v);
                 _loadIncidents();
               },
             ),
-          ),
+          );
+          }),
           const Spacer(),
           // New Incident button
           if (canCreate)
@@ -418,6 +433,7 @@ class _IncidentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final dateStr = incident.date != null
         ? DateFormat('MM/dd/yyyy').format(incident.date!)
         : 'No date';
@@ -438,10 +454,10 @@ class _IncidentCard extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: HerzogColors.navyBlue.withValues(alpha: 0.1),
+                    color: HerzogColors.navyBlue.withValues(alpha: isDark ? 0.25 : 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(icon, color: HerzogColors.navyBlue, size: 22),
+                  child: Icon(icon, color: isDark ? HerzogColors.gold : HerzogColors.navyBlue, size: 22),
                 ),
                 const SizedBox(width: 12),
 
@@ -460,7 +476,7 @@ class _IncidentCard extends StatelessWidget {
                               style: HerzogText.body(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
-                                color: HerzogColors.richBlack,
+                                color: isDark ? HerzogDarkColors.textPrimary : HerzogColors.richBlack,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -473,7 +489,7 @@ class _IncidentCard extends StatelessWidget {
                         '$dateStr  |  ${incident.location.isNotEmpty ? incident.location : "No location"}',
                         style: HerzogText.body(
                           fontSize: 12,
-                          color: HerzogColors.midGray,
+                          color: isDark ? HerzogDarkColors.textSecondary : HerzogColors.midGray,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -488,7 +504,7 @@ class _IncidentCard extends StatelessWidget {
                                   incident.division,
                                   style: HerzogText.body(
                                     fontSize: 12,
-                                    color: HerzogColors.smoke,
+                                    color: isDark ? HerzogDarkColors.textMuted : HerzogColors.smoke,
                                   ),
                                 ),
                               if (incident.division.isNotEmpty &&
@@ -525,9 +541,9 @@ class _IncidentCard extends StatelessWidget {
                 ),
 
                 const SizedBox(width: 8),
-                const Icon(
+                Icon(
                   Icons.chevron_right,
-                  color: HerzogColors.smoke,
+                  color: isDark ? HerzogDarkColors.textMuted : HerzogColors.smoke,
                   size: 20,
                 ),
               ],
@@ -767,33 +783,56 @@ class _FilterDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return DropdownButtonFormField<String>(
       initialValue: value,
       isExpanded: true,
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: HerzogText.label(fontSize: 11),
+        labelStyle: HerzogText.label(
+          fontSize: 11,
+          color: isDark ? HerzogDarkColors.textMuted : null,
+        ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 12,
           vertical: 12,
         ),
-        border: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(4)),
+        border: OutlineInputBorder(
+          borderRadius: const BorderRadius.all(Radius.circular(4)),
+          borderSide: BorderSide(
+            color: isDark ? HerzogDarkColors.inputBorder : HerzogColors.borderGray,
+          ),
         ),
-        enabledBorder: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(4)),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: const BorderRadius.all(Radius.circular(4)),
+          borderSide: BorderSide(
+            color: isDark ? HerzogDarkColors.inputBorder : HerzogColors.borderGray,
+          ),
         ),
-        focusedBorder: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(4)),
-          borderSide: BorderSide(color: HerzogColors.navyBlue, width: 2),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: const BorderRadius.all(Radius.circular(4)),
+          borderSide: BorderSide(
+            color: isDark ? HerzogColors.gold : HerzogColors.navyBlue,
+            width: 2,
+          ),
         ),
       ),
-      style: HerzogText.body(fontSize: 13, color: HerzogColors.darkGray),
-      dropdownColor: HerzogColors.white,
+      style: HerzogText.body(
+        fontSize: 13,
+        color: isDark ? HerzogDarkColors.textPrimary : HerzogColors.darkGray,
+      ),
+      dropdownColor: isDark ? HerzogDarkColors.surfaceVariant : HerzogColors.white,
+      iconEnabledColor: isDark ? HerzogDarkColors.textSecondary : null,
       items: [
         DropdownMenuItem<String>(
           value: null,
-          child: Text('All', style: HerzogText.body(fontSize: 13)),
+          child: Text(
+            'All',
+            style: HerzogText.body(
+              fontSize: 13,
+              color: isDark ? HerzogDarkColors.textPrimary : null,
+            ),
+          ),
         ),
         ...items.map(
           (item) => DropdownMenuItem<String>(value: item, child: Text(item)),
