@@ -13,12 +13,12 @@ Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutt
 | Remote DB | PostgreSQL (via Go API) |
 | Auth | Three-layer: Email/password login (seeded demo accounts, bcrypt) + Firebase Auth (real SSO) + Azure AD-ready (provider-agnostic JWT middleware) |
 | Offline detection | `connectivity_plus` |
-| Local LLM | Ollama — Qwen 2.5 7B |
+| Local LLM | Ollama — Qwen 2.5 3B |
 | Testing (Primary) | Playwright |
 | Testing (Secondary) | Claude Browser Agent |
 | Distribution | TestFlight (iOS + macOS, single link), Flutter web (fallback) |
 | Styling | Herzog brand system (docs/branding.md) |
-| Local dev | `docker-compose.yml` (Go + PostgreSQL) + native Ollama (Metal GPU) |
+| Local dev | `docker-compose.yml` (Go + PostgreSQL + Ollama) |
 
 ## Team Structure
 
@@ -122,7 +122,7 @@ JSON dispatch to `go_router` (navigation) and `TextEditingController` (form fill
 
 **Before every commit**, regenerate `docs/wiki.md` and copy it to `flutter/assets/wiki.md`. When Alex asks you to commit, always regenerate the wiki first, stage it, then commit — so the wiki is always included and up to date.
 
-The wiki is injected into Qwen 2.5 7B's system prompt as RAG context for the in-app assistant. It should be concise, accurate, and cover:
+The wiki is injected into Qwen 2.5 3B's system prompt as RAG context for the in-app assistant. It should be concise, accurate, and cover:
 - What the app does
 - All pages/routes and their purpose
 - How data is stored and synced (Drift → Go API → PostgreSQL)

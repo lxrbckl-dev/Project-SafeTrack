@@ -6,8 +6,8 @@
 |---|---|---|
 | Flutter | [flutter.dev/get-started](https://flutter.dev/docs/get-started/install) | Frontend framework |
 | Go | `brew install go` | Backend API |
-| Docker | [docker.com](https://www.docker.com/products/docker-desktop/) | PostgreSQL (database) |
-| Ollama | `brew install ollama` | Local LLM — runs natively for Metal GPU acceleration |
+| Docker | [docker.com](https://www.docker.com/products/docker-desktop/) | PostgreSQL + Ollama + Go backend |
+| Ollama | Included in docker-compose | Local LLM (Qwen 2.5 3B) |
 | Xcode | Mac App Store | iOS + macOS builds |
 | Node.js | [nodejs.org](https://nodejs.org) | Firebase CLI + Playwright |
 | Homebrew | [brew.sh](https://brew.sh) | Package manager for macOS |
@@ -18,11 +18,8 @@
 # Go (backend API)
 brew install go
 
-# Ollama (local LLM serving) — must run natively for Metal GPU acceleration
-# Docker for Mac cannot access Metal, so Ollama runs as a native macOS service
-brew install ollama
-brew services start ollama
-ollama pull qwen2.5:7b
+# Ollama is included in docker-compose — no manual install needed
+# The ollama-pull service auto-pulls Qwen 2.5 3B on first startup
 
 # tmux (agent teams split-pane view)
 brew install tmux
@@ -70,7 +67,7 @@ highlander/
 | Local Flutter (QA) | `http://localhost:3001` | QA test server |
 | Local Go API | `http://localhost:8000` | Backend API |
 | Local PostgreSQL | `localhost:5432` | Database (highlander/marchpass) |
-| Local Ollama | `http://localhost:11434` | LLM (native macOS, Metal GPU) |
+| Local Ollama | `http://localhost:11434` | LLM (Docker, Qwen 2.5 3B) |
 | Go Chat Proxy | `http://localhost:8000/api/chat` | LLM via Go (production path) |
 
 **Test accounts (seeded in database):** All use password `demo1234`
@@ -109,19 +106,19 @@ go mod tidy
 go build ./cmd/server/
 ```
 
-## Local Dev Stack (Docker Compose + Native Ollama)
+## Local Dev Stack (Docker Compose)
 
-Start PostgreSQL (Docker) and Ollama (native):
+Start all services:
 ```bash
-docker-compose up -d postgres
-brew services start ollama
+docker-compose up -d
 ```
 
 This starts:
-- **PostgreSQL** on `:5432` (Docker)
-- **Ollama** on `:11434` (native, Metal GPU)
+- **PostgreSQL** on `:5432`
+- **Ollama** on `:11434` (auto-pulls Qwen 2.5 3B on first run)
+- **Go backend** on `:8000` (with seed data)
 
-> **Why native Ollama?** Docker for Mac runs containers in a Linux VM that cannot access Metal GPU. Native Ollama gets Metal acceleration — sub-second inference vs 60s+ in Docker. The Docker backend container reaches native Ollama via `host.docker.internal:11434`.
+> **For local development**, you may prefer to run the Go backend outside Docker for live code reloading: `docker-compose stop backend && cd backend && SEED_DATA=true go run ./cmd/server/`
 
 ## Drift Web (WASM) Requirements
 
@@ -179,16 +176,10 @@ Internet → Caddy (HTTPS/TLS) → :2780 → Flutter web (nginx container)
                                               ↕
                                     Go API (:8000) → PostgreSQL (:5432)
                                               ↕
-                                    Ollama (:11434, native, Metal GPU)
+                                    Ollama (:11434, Qwen 2.5 3B)
 ```
 
-**Ollama runs natively** (not in Docker) for Metal GPU acceleration:
-```bash
-brew services start ollama
-ollama pull qwen2.5:7b
-```
-
-**Production docker-compose** — web, backend, and PostgreSQL in Docker; Ollama native:
+**Production docker-compose** — all services in Docker:
 ```yaml
 services:
   web:
@@ -209,7 +200,7 @@ services:
     environment:
       - PORT=8000
       - DATABASE_URL=postgres://highlander:marchpass@postgres:5432/highlander?sslmode=disable
-      - OLLAMA_URL=http://host.docker.internal:11434
+      - OLLAMA_URL=http://ollama:11434
       - SEED_DATA=true
     restart: unless-stopped
 
@@ -230,8 +221,28 @@ services:
       retries: 5
     restart: unless-stopped
 
+  ollama:
+    image: ollama/ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_KEEP_ALIVE=-1
+    restart: unless-stopped
+
+  ollama-pull:
+    image: ollama/ollama
+    depends_on:
+      - ollama
+    entrypoint: ["sh", "-c", "sleep 5 && ollama pull qwen2.5:3b"]
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    restart: "no"
+
 volumes:
   postgres_data:
+  ollama_data:
 ```
 
 **Nginx Dockerfile** (`deploy/docker/Dockerfile.web`):
@@ -277,15 +288,11 @@ flutter build macos
 
 **Deploy steps (web + backend):**
 ```bash
-# Start Ollama natively (first time: install + pull model)
-brew install ollama
-brew services start ollama
-ollama pull qwen2.5:7b
-
 # Build Flutter web
 cd flutter && flutter build web && cd ..
 
-# Start Docker services (PostgreSQL + backend + web)
+# Start all Docker services (PostgreSQL + Ollama + backend + web)
+# Ollama auto-pulls Qwen 2.5 3B on first run
 docker-compose up -d
 ```
 
@@ -295,8 +302,7 @@ docker-compose up -d
 
 | What | Command |
 |---|---|
-| PostgreSQL (Docker) | `docker-compose up -d postgres` |
-| Ollama (native) | `brew services start ollama` |
+| Full local stack | `docker-compose up -d` |
 | Flutter web (Chrome) | `cd flutter && flutter run -d chrome --web-header=Cross-Origin-Opener-Policy=same-origin --web-header=Cross-Origin-Embedder-Policy=require-corp` |
 | Flutter macOS | `cd flutter && flutter run -d macos` |
 | Flutter iOS | `cd flutter && flutter run -d iphone` |

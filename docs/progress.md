@@ -19,12 +19,12 @@
 | PostgreSQL (via GORM) | Auto-migrating ORM — tables defined as Go structs, no SQL migrations needed |
 | Sync service | API-first: Flutter → Go API → PostgreSQL. Drift available for local caching |
 | connectivity_plus | Real-time online/offline detection |
-| Ollama + Qwen 2.5 7B | AI model serving via REST API, warm-up on startup, KEEP_ALIVE=-1 |
+| Ollama + Qwen 2.5 3B | AI model serving via REST API, warm-up on startup, KEEP_ALIVE=-1 |
 | Wiki-as-RAG | Wiki injected into Qwen system prompt for accurate in-app help |
 | Wiki auto-generation | Wiki regenerated to reflect current feature state |
 | Herzog branding | Full theme system: Oswald headings, Roboto body, gold accents, navy actions, KPI cards, status badges |
 | Monorepo structure | flutter/, backend/, deploy/, playwright/, eval/ |
-| Docker-compose | Go + PostgreSQL in Docker; Ollama runs natively for Metal GPU |
+| Docker-compose | Go + PostgreSQL + Ollama — full local dev stack |
 | Auto-format hook | `dart format` + `gofmt` run automatically |
 | Feature-first architecture | flutter/lib/ restructured: app/, core/, features/, shared/ |
 | API config (centralized) | `ApiConfig.baseUrl` and `ApiConfig.ollamaUrl` — single source of truth |

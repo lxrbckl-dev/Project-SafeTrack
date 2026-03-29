@@ -28,7 +28,7 @@ The hackathon rubric (`docs/rubric.md`) **dictates priority.** All infrastructur
 | Auth | Three-layer | Email/password login (seeded demo accounts, bcrypt) + Firebase Auth (real SSO) + Azure AD-ready (provider-agnostic Go middleware) |
 | Connectivity | `connectivity_plus` | Network state detection |
 | Local LLM | Ollama | Mac Mini M4 Pro, 48GB RAM |
-| LLM Model | Qwen 2.5 7B | Strong coding + reasoning, selected for in-app assistant role |
+| LLM Model | Qwen 2.5 3B | Optimized for Docker deployment — fast inference without GPU passthrough |
 | CI/CD | GitHub Actions | Wiki regeneration pipeline |
 | Agentic Tooling | Claude Code (CLI) | Multi-agent builds; all development happens here |
 | Testing (Primary) | Playwright | QA agent writes and runs automated tests for every PR |

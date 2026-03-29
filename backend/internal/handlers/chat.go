@@ -216,7 +216,7 @@ func writeOfflineResponse(w http.ResponseWriter) {
 	})
 }
 
-// Chat returns an HTTP handler that proxies user prompts to Ollama (Qwen 2.5 7B)
+// Chat returns an HTTP handler that proxies user prompts to Ollama (Qwen 2.5 3B)
 // and parses the response for structured action blocks.
 //
 // The handler injects a system prompt that teaches Qwen both the JSON action
@@ -262,7 +262,7 @@ func Chat(db *gorm.DB) http.HandlerFunc {
 		}
 
 		ollamaReq, _ := json.Marshal(map[string]interface{}{
-			"model":  "qwen2.5:7b",
+			"model":  "qwen2.5:3b",
 			"prompt": req.Prompt,
 			"system": systemPrompt,
 			"stream": false,

@@ -10,7 +10,7 @@ Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutt
 >
 > **What this app does:** SafeTrack is an internal safety management system for Herzog, a North American rail and infrastructure contractor. It covers the full incident lifecycle: field reporting → investigation (interactive 5-Why analysis) → corrective/preventive actions (CAPA) → safety dashboard with TRIR/DART metrics. 7 RBAC roles control who sees what.
 >
-> **Tech stack:** Flutter/Dart frontend, Go backend (GORM + PostgreSQL), three-layer auth (demo login + Firebase Auth + Azure AD-ready), Ollama/Qwen 2.5 7B for an in-app AI assistant (native macOS for Metal GPU), Playwright for automated testing, Docker Compose + native Ollama for local dev.
+> **Tech stack:** Flutter/Dart frontend, Go backend (GORM + PostgreSQL), three-layer auth (demo login + Firebase Auth + Azure AD-ready), Ollama/Qwen 2.5 3B for an in-app AI assistant, Playwright for automated testing, Docker Compose for local dev.
 >
 > **To understand the codebase, read these files in order:**
 > 1. `docs/rubric.md` — The full SRD-10 spec. This is what was built.
@@ -46,7 +46,7 @@ Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutt
 | [Homebrew](https://brew.sh) | Any | `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"` |
 | [Go](https://go.dev/dl/) | 1.23+ | `brew install go` |
 | [Flutter](https://flutter.dev/docs/get-started/install) | 3.41+ (Dart 3.11+) | See below |
-| [Ollama](https://ollama.com) | Any | `brew install ollama` (runs natively for Metal GPU) |
+| [Ollama](https://ollama.com) | Any | Runs in Docker (included in docker-compose) |
 | [Node.js](https://nodejs.org) | 18+ | `brew install node` (for Playwright tests) |
 | [GitHub CLI](https://cli.github.com) | Any | `brew install gh` then `gh auth login` |
 
@@ -102,47 +102,32 @@ cd backend && go build ./cmd/server/ && cd ..
 
 **Prerequisites:** Complete the [Development Environment Setup](#development-environment-setup) above.
 
-**1. Start PostgreSQL** (database):
+**1. Start all Docker services** (database + AI model + backend):
 ```bash
-docker-compose up -d postgres
+docker-compose up -d
 ```
 
-**2. Start Ollama** (AI model — runs natively for Metal GPU acceleration):
-```bash
-brew services start ollama
-ollama pull qwen2.5:7b
-```
+> This starts PostgreSQL, Ollama (auto-pulls the Qwen 2.5 3B model on first run), and the Go backend with seed data. The model downloads once (~2GB) and persists in a Docker volume.
 
-> Ollama runs natively (not in Docker) because Docker for Mac cannot access Metal GPU. Native Ollama delivers sub-second inference; Docker CPU-only takes 60s+ per response. The model downloads once (~4.7GB) and persists across restarts.
+> **Note:** If you want to run the Go backend locally instead of in Docker (for live code reloading), stop the Docker backend first: `docker-compose stop backend`, then `cd backend && SEED_DATA=true go run ./cmd/server/`
 
-> **Note:** If you previously ran `docker-compose up -d` (which also starts a `backend` container on port 8000), stop it first: `docker-compose stop backend`
-
-**3. Start the Go API** with seed data (leave this terminal running):
-```bash
-cd backend && SEED_DATA=true go run ./cmd/server/
-```
-
-> The API starts on port 8000. `SEED_DATA=true` populates 7 demo accounts and sample incidents/investigations/CAPAs on first run (idempotent — skipped if data already exists).
-
-**4. Start the Flutter app** (open a second terminal):
+**2. Start the Flutter app** (open a terminal):
 ```bash
 cd flutter && flutter run -d chrome --web-port=3000 \
   --web-header=Cross-Origin-Opener-Policy=same-origin \
   --web-header=Cross-Origin-Embedder-Policy=require-corp
 ```
 
-**5. Open** `http://localhost:3000` — log in with any demo account and explore.
+**3. Open** `http://localhost:3000` — log in with any demo account and explore.
 
-> The first chat message after an Ollama restart takes ~15s while the model loads into GPU memory. Subsequent messages are fast (<1s).
+> The first chat message after startup takes 30-60s while the model loads into memory. Subsequent messages are faster.
 
 ---
 
 ## Stopping Everything
 
-1. Press `Ctrl+C` in the Go backend terminal
-2. Press `q` in the Flutter terminal (or `lsof -ti:3000 | xargs kill -9`)
-3. Stop Docker services: `docker-compose down`
-4. Stop Ollama: `brew services stop ollama`
+1. Press `q` in the Flutter terminal (or `lsof -ti:3000 | xargs kill -9`)
+2. Stop Docker services: `docker-compose down`
 
 To also wipe the database and start fresh:
 ```bash
@@ -191,7 +176,7 @@ All test accounts use password **`demo1234`**.
 | PostgreSQL connection refused | Start Docker Desktop, then `docker-compose up -d` |
 | Port 5432 conflict (local Postgres) | `lsof -ti:5432 \| xargs kill -9` then `docker-compose up -d` |
 | Need a fresh database | `docker-compose down -v && docker-compose up -d postgres`, then restart Go with `SEED_DATA=true` |
-| AI chat spinning on first message | The Qwen model takes ~15s to load into GPU memory on first use. Wait and retry. Subsequent messages are <1s |
-| AI assistant returns empty/offline | Check Ollama is running: `brew services list \| grep ollama`. If stopped: `brew services start ollama`. If model missing: `ollama pull qwen2.5:7b` |
-| AI chat keeps going offline after idle | Set keep-alive: `OLLAMA_KEEP_ALIVE=-1 ollama serve` or add to launchd plist |
+| AI chat spinning on first message | The Qwen model takes 30-60s to load into memory on first use. Wait and retry. Subsequent messages are faster |
+| AI assistant returns empty/offline | Check Ollama container is running: `docker ps \| grep ollama`. If missing: `docker-compose up -d ollama ollama-pull` |
+| AI chat keeps going offline after idle | The docker-compose sets `OLLAMA_KEEP_ALIVE=-1` to keep the model loaded permanently. Restart: `docker-compose restart ollama` |
 | Login returns "unauthorized" | Docker backend is running an old image. Stop it and run locally: `docker-compose stop backend` then `cd backend && go run ./cmd/server/; cd ..` |
