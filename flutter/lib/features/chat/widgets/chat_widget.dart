@@ -10,6 +10,12 @@ import '../data/action_dispatcher.dart';
 import '../data/chat_repository.dart';
 
 // ---------------------------------------------------------------------------
+// AI status enum
+// ---------------------------------------------------------------------------
+
+enum _AiStatus { warmingUp, ready, offline }
+
+// ---------------------------------------------------------------------------
 // Data model
 // ---------------------------------------------------------------------------
 
@@ -25,11 +31,17 @@ class _ChatMessage {
   /// real AI responses.
   final bool isOffline;
 
+  /// How long the AI took to respond.  Only set for AI messages that are the
+  /// direct reply to a user prompt (not for offline/error messages and not for
+  /// action-result messages).
+  final Duration? responseTime;
+
   const _ChatMessage({
     required this.text,
     required this.isUser,
     this.actions = const [],
     this.isOffline = false,
+    this.responseTime,
   });
 
   bool get hasActions => actions.isNotEmpty;
@@ -48,13 +60,20 @@ class _ChatMessage {
 /// fill, navigate_and_fill). Action buttons are shown below the message bubble.
 /// Actions are permission-gated via [ChatActionDispatcher].
 ///
+/// Issue #172 enhancements:
+/// - Animated typing indicator (_TypingIndicator) while waiting for a response.
+/// - Cold-start warning banner shown until the first successful AI response.
+/// - Connection-status dot in the header (yellow → green / red).
+/// - Response-time label ("responded in X.Xs") below each AI message.
+///
 /// ADA compliance:
 /// - FAB has semantic label "Open AI assistant" / "Close AI assistant"
 /// - Chat panel is keyboard navigable; focus is managed on open/close
 /// - Send button has semantic label "Send message"
 /// - Messages have Semantics wrappers with speaker labels
 /// - Action buttons have semantic labels describing the action
-/// - Loading indicator has semantic label "Waiting for AI response"
+/// - Typing indicator has semantic label "AI is thinking"
+/// - Status dot has semantic label "AI status: …"
 ///
 /// Degrades gracefully when Ollama is unavailable — shows an error message
 /// in the chat panel and does not crash.
@@ -72,6 +91,11 @@ class _ChatFabState extends State<ChatFab> with SingleTickerProviderStateMixin {
   final ScrollController _scrollController = ScrollController();
   final FocusNode _inputFocus = FocusNode();
   bool _isLoading = false;
+
+  // --- Issue #172 state ---
+  _AiStatus _aiStatus = _AiStatus.warmingUp;
+  bool _showColdStartWarning = true;
+  DateTime? _requestStartTime;
 
   late final ChatRepository _repo;
 
@@ -108,6 +132,7 @@ class _ChatFabState extends State<ChatFab> with SingleTickerProviderStateMixin {
     setState(() {
       _messages.add(_ChatMessage(text: text, isUser: true));
       _isLoading = true;
+      _requestStartTime = DateTime.now();
     });
     _inputController.clear();
     _scrollToBottom();
@@ -115,23 +140,43 @@ class _ChatFabState extends State<ChatFab> with SingleTickerProviderStateMixin {
     final result = await _repo.sendMessage(text, token: token);
 
     if (!mounted) return;
+
+    final elapsed = _requestStartTime != null
+        ? DateTime.now().difference(_requestStartTime!)
+        : Duration.zero;
+
     setState(() {
       _isLoading = false;
       if (result.isSuccess) {
         // Detect the backend's offline/system message and apply offline styling.
         final offline = result.response == kOllamaOfflineMessage;
-        _messages.add(
-          _ChatMessage(
-            text: result.response!,
-            isUser: false,
-            actions: result.actions,
-            isOffline: offline,
-          ),
-        );
 
-        // Auto-dispatch "fill" actions immediately (no button needed —
-        // the form on the current page picks up the pending data).
-        if (!offline) {
+        if (offline) {
+          _aiStatus = _AiStatus.offline;
+          _messages.add(
+            _ChatMessage(
+              text: result.response!,
+              isUser: false,
+              actions: result.actions,
+              isOffline: true,
+            ),
+          );
+        } else {
+          // Successful real response — mark ready and dismiss cold-start banner.
+          _aiStatus = _AiStatus.ready;
+          _showColdStartWarning = false;
+          _messages.add(
+            _ChatMessage(
+              text: result.response!,
+              isUser: false,
+              actions: result.actions,
+              isOffline: false,
+              responseTime: elapsed,
+            ),
+          );
+
+          // Auto-dispatch "fill" actions immediately (no button needed —
+          // the form on the current page picks up the pending data).
           for (final action in result.actions) {
             if (action.action == 'fill') {
               ChatActionDispatcher.execute(context, action);
@@ -141,6 +186,7 @@ class _ChatFabState extends State<ChatFab> with SingleTickerProviderStateMixin {
       } else {
         // Network/timeout failures — show with offline styling so the user
         // sees a clear system message rather than a raw "Error: ..." string.
+        _aiStatus = _AiStatus.offline;
         _messages.add(
           _ChatMessage(
             text: result.error ?? kOllamaOfflineMessage,
@@ -191,6 +237,8 @@ class _ChatFabState extends State<ChatFab> with SingleTickerProviderStateMixin {
             inputFocus: _inputFocus,
             onSend: _sendMessage,
             onActionTap: _executeAction,
+            aiStatus: _aiStatus,
+            showColdStartWarning: _showColdStartWarning,
           ),
 
         const SizedBox(height: 8),
@@ -231,6 +279,8 @@ class _ChatPanel extends StatelessWidget {
   final FocusNode inputFocus;
   final VoidCallback onSend;
   final ValueChanged<ChatAction> onActionTap;
+  final _AiStatus aiStatus;
+  final bool showColdStartWarning;
 
   const _ChatPanel({
     required this.messages,
@@ -240,6 +290,8 @@ class _ChatPanel extends StatelessWidget {
     required this.inputFocus,
     required this.onSend,
     required this.onActionTap,
+    required this.aiStatus,
+    required this.showColdStartWarning,
   });
 
   @override
@@ -259,12 +311,14 @@ class _ChatPanel extends StatelessWidget {
           ),
           child: Column(
             children: [
-              _PanelHeader(),
+              _PanelHeader(aiStatus: aiStatus),
               const Divider(
                 height: 1,
                 thickness: 1,
                 color: HerzogColors.borderGray,
               ),
+              // Cold-start warning banner
+              if (showColdStartWarning) const _ColdStartBanner(),
               Expanded(
                 child: Semantics(
                   liveRegion: true,
@@ -300,6 +354,32 @@ class _ChatPanel extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _PanelHeader extends StatelessWidget {
+  final _AiStatus aiStatus;
+
+  const _PanelHeader({required this.aiStatus});
+
+  Color get _statusColor {
+    switch (aiStatus) {
+      case _AiStatus.ready:
+        return HerzogColors.successGreen;
+      case _AiStatus.warmingUp:
+        return HerzogColors.gold;
+      case _AiStatus.offline:
+        return HerzogColors.errorRed;
+    }
+  }
+
+  String get _statusLabel {
+    switch (aiStatus) {
+      case _AiStatus.ready:
+        return 'AI status: ready';
+      case _AiStatus.warmingUp:
+        return 'AI status: warming up';
+      case _AiStatus.offline:
+        return 'AI status: offline';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -323,12 +403,225 @@ class _PanelHeader extends StatelessWidget {
               fontWeight: FontWeight.w700,
             ),
           ),
+          const SizedBox(width: 8),
+          // Connection status dot
+          Semantics(
+            label: _statusLabel,
+            child: Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: _statusColor,
+              ),
+            ),
+          ),
           const Spacer(),
           Text(
             'Qwen 2.5 7B',
             style: HerzogText.label(fontSize: 10, color: HerzogColors.smoke),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Cold-start warning banner
+// ---------------------------------------------------------------------------
+
+/// Yellow banner shown at the top of the chat panel until the first successful
+/// AI response.  Informs users that the first response may take up to 60 s
+/// while the AI backend warms up.
+class _ColdStartBanner extends StatelessWidget {
+  const _ColdStartBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      color: HerzogColors.warningLight,
+      child: Row(
+        children: [
+          const Icon(
+            Icons.warning_amber_rounded,
+            size: 16,
+            color: HerzogColors.warningAmber,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'AI assistant is warming up — first response may take up to 60 seconds.',
+              style: HerzogText.body(
+                fontSize: 11,
+                color: HerzogColors.warningAmber,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Typing indicator
+// ---------------------------------------------------------------------------
+
+/// Animated "AI is thinking…" indicator with three pulsing dots shown while
+/// waiting for an AI response.
+///
+/// Each dot animates opacity and scale with a staggered delay so they pulse
+/// in sequence left-to-right, giving a clear visual indication of activity.
+///
+/// ADA: wrapped in a [Semantics] node labelled "AI is thinking".
+class _TypingIndicator extends StatefulWidget {
+  const _TypingIndicator();
+
+  @override
+  State<_TypingIndicator> createState() => _TypingIndicatorState();
+}
+
+class _TypingIndicatorState extends State<_TypingIndicator>
+    with TickerProviderStateMixin {
+  static const _dotCount = 3;
+  static const _duration = Duration(milliseconds: 1200);
+  // Fraction of the full cycle each dot occupies (0..1)
+  static const _dotWindow = 0.4;
+  // Offset between consecutive dots as a fraction of the cycle
+  static const _staggerStep = 0.2;
+
+  late final List<AnimationController> _controllers;
+  late final List<Animation<double>> _opacities;
+  late final List<Animation<double>> _scales;
+
+  @override
+  void initState() {
+    super.initState();
+    _controllers = List.generate(
+      _dotCount,
+      (_) => AnimationController(vsync: this, duration: _duration),
+    );
+
+    _opacities = List.generate(_dotCount, (i) {
+      final begin = _staggerStep * i;
+      final end = begin + _dotWindow;
+      final items = <TweenSequenceItem<double>>[];
+      if (begin > 0) {
+        items.add(TweenSequenceItem(tween: ConstantTween(0.2), weight: begin));
+      }
+      items.add(
+        TweenSequenceItem(
+          tween: Tween(begin: 0.2, end: 1.0),
+          weight: _dotWindow / 2,
+        ),
+      );
+      items.add(
+        TweenSequenceItem(
+          tween: Tween(begin: 1.0, end: 0.2),
+          weight: _dotWindow / 2,
+        ),
+      );
+      if (end < 1.0) {
+        items.add(
+          TweenSequenceItem(tween: ConstantTween(0.2), weight: 1.0 - end),
+        );
+      }
+      return TweenSequence<double>(items).animate(_controllers[i]);
+    });
+
+    _scales = List.generate(_dotCount, (i) {
+      final begin = _staggerStep * i;
+      final end = begin + _dotWindow;
+      final items = <TweenSequenceItem<double>>[];
+      if (begin > 0) {
+        items.add(TweenSequenceItem(tween: ConstantTween(1.0), weight: begin));
+      }
+      items.add(
+        TweenSequenceItem(
+          tween: Tween(begin: 1.0, end: 1.4),
+          weight: _dotWindow / 2,
+        ),
+      );
+      items.add(
+        TweenSequenceItem(
+          tween: Tween(begin: 1.4, end: 1.0),
+          weight: _dotWindow / 2,
+        ),
+      );
+      if (end < 1.0) {
+        items.add(
+          TweenSequenceItem(tween: ConstantTween(1.0), weight: 1.0 - end),
+        );
+      }
+      return TweenSequence<double>(items).animate(_controllers[i]);
+    });
+
+    for (final c in _controllers) {
+      c.repeat();
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final c in _controllers) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: 'AI is thinking',
+      child: Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: HerzogColors.offWhite,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+                bottomLeft: Radius.circular(2),
+                bottomRight: Radius.circular(12),
+              ),
+              border: Border.all(color: HerzogColors.borderGray),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: List.generate(_dotCount, (i) {
+                return Padding(
+                  padding: EdgeInsets.only(left: i == 0 ? 0 : 4),
+                  child: AnimatedBuilder(
+                    animation: _controllers[i],
+                    builder: (context, child) {
+                      return Opacity(
+                        opacity: _opacities[i].value,
+                        child: Transform.scale(
+                          scale: _scales[i].value,
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: Container(
+                      width: 7,
+                      height: 7,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: HerzogColors.smoke,
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -359,26 +652,8 @@ class _MessageList extends StatelessWidget {
       itemCount: messages.length + (isLoading ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == messages.length) {
-          // Loading indicator at bottom
-          return Semantics(
-            label: 'Waiting for AI response',
-            child: const Padding(
-              padding: EdgeInsets.only(top: 8),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      HerzogColors.navyBlue,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          );
+          // Animated typing indicator replaces the old spinner
+          return const _TypingIndicator();
         }
 
         final msg = messages[index];
@@ -395,12 +670,19 @@ class _MessageList extends StatelessWidget {
 /// A single chat bubble — right-aligned for user, left-aligned for AI.
 ///
 /// When the AI message has actions, action buttons are displayed below the
-/// text bubble.
+/// text bubble.  When the AI message has a [_ChatMessage.responseTime],
+/// a light-gray "responded in X.Xs" label is shown below the bubble.
 class _MessageBubble extends StatelessWidget {
   final _ChatMessage message;
   final ValueChanged<ChatAction> onActionTap;
 
   const _MessageBubble({required this.message, required this.onActionTap});
+
+  /// Formats a [Duration] as seconds with one decimal place, e.g. "1.2s".
+  static String _formatDuration(Duration d) {
+    final seconds = d.inMilliseconds / 1000.0;
+    return '${seconds.toStringAsFixed(1)}s';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -485,6 +767,18 @@ class _MessageBubble extends StatelessWidget {
               _ActionButtons(
                 actions: message.actions,
                 onActionTap: onActionTap,
+              ),
+            // Response timing label — shown only for AI messages with timing
+            if (!isUser && message.responseTime != null)
+              Padding(
+                padding: const EdgeInsets.only(left: 30, top: 2),
+                child: Text(
+                  'responded in ${_formatDuration(message.responseTime!)}',
+                  style: HerzogText.body(
+                    fontSize: 10,
+                    color: HerzogColors.smoke,
+                  ),
+                ),
               ),
           ],
         ),
