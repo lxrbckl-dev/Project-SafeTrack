@@ -125,6 +125,7 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isSafetyManager =
         _auth.currentRole != null &&
         _auth.currentRole != Role.executive &&
@@ -148,7 +149,7 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
                     icon: const Icon(Icons.clear_all, size: 16),
                     label: const Text('Clear filters'),
                     style: TextButton.styleFrom(
-                      foregroundColor: HerzogColors.navyBlue,
+                      foregroundColor: isDark ? HerzogColors.gold : HerzogColors.navyBlue,
                     ),
                   ),
                 ),
@@ -177,14 +178,14 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
           child: _loading
               ? const Center(child: CircularProgressIndicator())
               : _error != null
-              ? _buildError()
+              ? _buildError(isDark)
               : _investigations.isEmpty
-              ? _buildEmpty()
-              : _buildTable(),
+              ? _buildEmpty(isDark)
+              : _buildTable(isDark),
         ),
 
         // Pagination
-        if (!_loading && _total > 50) _buildPagination(),
+        if (!_loading && _total > 50) _buildPagination(isDark),
       ],
     );
   }
@@ -194,8 +195,10 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
   // ---------------------------------------------------------------------------
 
   /// STATUS header — opens a popup menu with status options.
-  Widget _buildStatusHeader() {
+  Widget _buildStatusHeader(bool isDark) {
     final isActive = _statusFilter.isNotEmpty;
+    final activeColor = isDark ? HerzogColors.gold : HerzogColors.navyBlue;
+    final inactiveColor = isDark ? Colors.white : HerzogColors.midGray;
     return Semantics(
       label: 'Filter by status',
       button: true,
@@ -225,15 +228,15 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
             Text(
               'STATUS',
               style: HerzogText.label(
-                color: isActive ? HerzogColors.navyBlue : HerzogColors.midGray,
+                color: isActive ? activeColor : inactiveColor,
               ),
             ),
             if (isActive) ...[
               const SizedBox(width: 4),
-              const Icon(
+              Icon(
                 Icons.filter_list,
                 size: 14,
-                color: HerzogColors.navyBlue,
+                color: activeColor,
               ),
             ],
           ],
@@ -243,8 +246,10 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
   }
 
   /// INVESTIGATOR header — opens a text-search dialog.
-  Widget _buildInvestigatorHeader() {
+  Widget _buildInvestigatorHeader(bool isDark) {
     final isActive = _investigatorFilter.isNotEmpty;
+    final activeColor = isDark ? HerzogColors.gold : HerzogColors.navyBlue;
+    final inactiveColor = isDark ? Colors.white : HerzogColors.midGray;
     return Semantics(
       label: 'Filter by investigator',
       button: true,
@@ -266,17 +271,15 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
               Text(
                 'INVESTIGATOR',
                 style: HerzogText.label(
-                  color: isActive
-                      ? HerzogColors.navyBlue
-                      : HerzogColors.midGray,
+                  color: isActive ? activeColor : inactiveColor,
                 ),
               ),
               if (isActive) ...[
                 const SizedBox(width: 4),
-                const Icon(
+                Icon(
                   Icons.filter_list,
                   size: 14,
-                  color: HerzogColors.navyBlue,
+                  color: activeColor,
                 ),
               ],
             ],
@@ -287,8 +290,10 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
   }
 
   /// INCIDENT header — opens a text-search dialog.
-  Widget _buildIncidentIdHeader() {
+  Widget _buildIncidentIdHeader(bool isDark) {
     final isActive = _incidentIdFilter.isNotEmpty;
+    final activeColor = isDark ? HerzogColors.gold : HerzogColors.navyBlue;
+    final inactiveColor = isDark ? Colors.white : HerzogColors.midGray;
     return Semantics(
       label: 'Filter by incident ID',
       button: true,
@@ -311,17 +316,15 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
               Text(
                 'INCIDENT',
                 style: HerzogText.label(
-                  color: isActive
-                      ? HerzogColors.navyBlue
-                      : HerzogColors.midGray,
+                  color: isActive ? activeColor : inactiveColor,
                 ),
               ),
               if (isActive) ...[
                 const SizedBox(width: 4),
-                const Icon(
+                Icon(
                   Icons.filter_list,
                   size: 14,
-                  color: HerzogColors.navyBlue,
+                  color: activeColor,
                 ),
               ],
             ],
@@ -332,7 +335,8 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
   }
 
   /// OVERDUE header — tap toggles the overdue-only filter.
-  Widget _buildOverdueHeader() {
+  Widget _buildOverdueHeader(bool isDark) {
+    final inactiveColor = isDark ? Colors.white : HerzogColors.midGray;
     return Semantics(
       label: 'Toggle overdue only filter',
       button: true,
@@ -353,7 +357,7 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
                 style: HerzogText.label(
                   color: _overdueOnly
                       ? HerzogColors.errorRed
-                      : HerzogColors.midGray,
+                      : inactiveColor,
                 ),
               ),
               if (_overdueOnly) ...[
@@ -372,7 +376,8 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
   }
 
   /// TARGET DATE header — tap toggles sort direction.
-  Widget _buildDueDateHeader() {
+  Widget _buildDueDateHeader(bool isDark) {
+    final color = isDark ? Colors.white : HerzogColors.midGray;
     return Semantics(
       label: 'Sort by due date',
       button: true,
@@ -387,13 +392,13 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
             children: [
               Text(
                 'TARGET DATE',
-                style: HerzogText.label(color: HerzogColors.midGray),
+                style: HerzogText.label(color: color),
               ),
               const SizedBox(width: 4),
               Icon(
                 _sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
                 size: 14,
-                color: HerzogColors.midGray,
+                color: color,
               ),
             ],
           ),
@@ -463,7 +468,7 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
   // Table
   // ---------------------------------------------------------------------------
 
-  Widget _buildTable() {
+  Widget _buildTable(bool isDark) {
     // Client-side sort by target date
     final sorted = List<Investigation>.from(_investigations);
     sorted.sort((a, b) {
@@ -480,12 +485,12 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
       child: SingleChildScrollView(
         child: DataTable(
           columns: [
-            const DataColumn(label: Text('ID')),
-            DataColumn(label: _buildIncidentIdHeader()),
-            DataColumn(label: _buildStatusHeader()),
-            DataColumn(label: _buildInvestigatorHeader()),
-            DataColumn(label: _buildDueDateHeader()),
-            DataColumn(label: _buildOverdueHeader()),
+            DataColumn(label: Text('ID', style: HerzogText.label(color: isDark ? Colors.white : HerzogColors.midGray))),
+            DataColumn(label: _buildIncidentIdHeader(isDark)),
+            DataColumn(label: _buildStatusHeader(isDark)),
+            DataColumn(label: _buildInvestigatorHeader(isDark)),
+            DataColumn(label: _buildDueDateHeader(isDark)),
+            DataColumn(label: _buildOverdueHeader(isDark)),
           ],
           rows: sorted.map((inv) {
             final isOverdue = inv.isOverdue;
@@ -522,7 +527,7 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
                         '#${inv.id}',
                         style: HerzogText.body(
                           fontSize: 14,
-                          color: HerzogColors.navyBlue,
+                          color: isDark ? HerzogColors.gold : HerzogColors.navyBlue,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -536,15 +541,23 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
                       '#${inv.incidentId}',
                       style: HerzogText.body(
                         fontSize: 14,
-                        color: HerzogColors.navyBlue,
+                        color: isDark ? HerzogColors.gold : HerzogColors.navyBlue,
                       ),
                     ),
                   ),
                 ),
                 DataCell(_statusBadge(inv.status)),
-                DataCell(Text(inv.leadInvestigatorId)),
-                DataCell(Text(targetDate)),
-                DataCell(isOverdue ? _overdueBadge(level) : const Text('-')),
+                DataCell(Text(
+                  inv.leadInvestigatorId,
+                  style: TextStyle(color: isDark ? Colors.white : HerzogColors.richBlack),
+                )),
+                DataCell(Text(
+                  targetDate,
+                  style: TextStyle(color: isDark ? Colors.white : HerzogColors.richBlack),
+                )),
+                DataCell(isOverdue
+                    ? _overdueBadge(level)
+                    : Text('-', style: TextStyle(color: isDark ? Colors.white : HerzogColors.richBlack))),
               ],
             );
           }).toList(),
@@ -614,7 +627,7 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
   // Error / empty / pagination
   // ---------------------------------------------------------------------------
 
-  Widget _buildError() {
+  Widget _buildError(bool isDark) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -627,12 +640,15 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
           const SizedBox(height: 12),
           Text(
             'Failed to load investigations',
-            style: HerzogText.heading(fontSize: 18),
+            style: HerzogText.heading(
+              fontSize: 18,
+              color: isDark ? Colors.white : HerzogColors.richBlack,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             _error ?? '',
-            style: HerzogText.body(color: HerzogColors.midGray),
+            style: HerzogText.body(color: isDark ? Colors.white : HerzogColors.midGray),
           ),
           const SizedBox(height: 16),
           ElevatedButton.icon(
@@ -645,7 +661,7 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
     );
   }
 
-  Widget _buildEmpty() {
+  Widget _buildEmpty(bool isDark) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -658,22 +674,25 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
           const SizedBox(height: 12),
           Text(
             'No investigations found',
-            style: HerzogText.heading(fontSize: 18),
+            style: HerzogText.heading(
+              fontSize: 18,
+              color: isDark ? Colors.white : HerzogColors.richBlack,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             'Investigations appear here once assigned from incidents.',
-            style: HerzogText.body(color: HerzogColors.midGray),
+            style: HerzogText.body(color: isDark ? Colors.white : HerzogColors.midGray),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPagination() {
+  Widget _buildPagination(bool isDark) {
     final totalPages = (_total / 50).ceil();
     return Container(
-      color: HerzogColors.white,
+      color: isDark ? Colors.transparent : HerzogColors.white,
       padding: const EdgeInsets.all(12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -690,7 +709,10 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
           ),
           Text(
             'Page $_page of $totalPages',
-            style: HerzogText.body(fontSize: 13),
+            style: HerzogText.body(
+              fontSize: 13,
+              color: isDark ? Colors.white : HerzogColors.richBlack,
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.chevron_right),
