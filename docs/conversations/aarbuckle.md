@@ -781,3 +781,28 @@ Already installed: Flutter 3.41.4, Xcode 26.3, Playwright 1.58.2
 - Added DockerHub + GitHub links to Resources section
 - Clarified dev Quick Start: Docker web on :2780, Flutter hot reload on :3000
 - Multiple consistency passes removing stale Firebase and Qwen 7B references
+
+### Keyboard Shortcut Remap
+- SWE-1 remapped Ctrl+Shift+N → Ctrl+Shift+I (Incidents) and Ctrl+Shift+K → Ctrl+Shift+C (Chat)
+- Updated across 7 files: app_shell keybindings, shortcuts overlay, onboarding tour, wiki (both copies), README, eval script
+
+### Incident Trend Chart Improvements
+- SWE-2 improved the dashboard stacked bar chart
+- X-axis: raw month numbers → "Jan", "Feb", "Mar" abbreviations
+- Y-axis: added "Incident Count" axis title
+- Tooltips: full month/year header, per-type breakdown, total count
+- Added "Stacked by incident type" subtitle, improved legend spacing
+
+### Navigation Transition Fix
+- SWE-1 converted all 22 GoRoutes inside the ShellRoute from builder: to pageBuilder: with NoTransitionPage
+- Eliminates page content overlap during async loading transitions
+
+### MCP Server Documentation + Demo Key
+- Created docs/mcp-guide.md — comprehensive guide for connecting AI agents
+- Sections: overview, quick start, connection configs (Claude Code, Claude Desktop, curl, Python), full tool reference (47 tools by role), 3 example workflows, error codes, security notes, troubleshooting
+- SWE-1 seeded demo API key (stk_demo_judge_key_2026) with admin access for instant judge access
+- Verified end-to-end: initialize, tools/list (47 tools), tools/call (returns incident data)
+
+### Chart Tooltip Clipping Fix
+- SWE-2 fixed incident trend chart tooltips being clipped by card border
+- Added fitInsideHorizontally/Vertically, maxContentWidth, Clip.none on card
