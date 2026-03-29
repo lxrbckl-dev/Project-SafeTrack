@@ -10,13 +10,24 @@ class SettingSectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(top: 24, bottom: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: HerzogText.heading(fontSize: 14)),
-          const Divider(height: 8, thickness: 1),
+          Text(
+            title,
+            style: HerzogText.heading(
+              fontSize: 14,
+              color: isDark ? Colors.white : HerzogColors.richBlack,
+            ),
+          ),
+          Divider(
+            height: 8,
+            thickness: 1,
+            color: isDark ? HerzogDarkColors.border : null,
+          ),
         ],
       ),
     );
