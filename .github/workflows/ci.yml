@@ -97,6 +97,7 @@ jobs:
         working-directory: playwright
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:3000
+          API_BASE_URL: http://localhost:8000
         run: npx playwright test --config=playwright.config.ts --workers=4 --timeout=15000
 
       - name: Upload test results
