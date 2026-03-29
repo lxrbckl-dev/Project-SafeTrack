@@ -22,6 +22,8 @@ Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutt
 > 3. `docs/progress.md` — What's done, what's in progress, what's not started.
 > 4. `docs/branding.md` — Herzog brand system (colors, typography, components).
 > 5. `CLAUDE.md` — Agent orchestration rules, team structure, project conventions.
+> 6. `docs/autoresearch-guide.md` — AutoResearch eval suite: 42-case eval proving wiki-as-RAG improves AI assistant accuracy from 10% to 88%. Includes how to run the eval, category breakdown, and the optimization loop.
+> 7. `eval/wiki_eval.py` — The eval script itself. Runs baseline (no wiki) vs RAG (with wiki) and scores by keyword matching across 13 categories.
 
 ---
 
