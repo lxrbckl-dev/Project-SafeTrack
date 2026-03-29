@@ -74,6 +74,7 @@ jobs:
 
       # --- Playwright ---
       - name: Install Playwright
+        working-directory: playwright
         run: |
           npm ci
           npx playwright install chromium --with-deps
