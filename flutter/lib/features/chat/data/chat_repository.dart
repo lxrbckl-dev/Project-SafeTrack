@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -83,6 +84,10 @@ class ChatRepository {
           'Server error ${response.statusCode}. Please try again.',
         );
       }
+    } on TimeoutException {
+      return const ChatResult.failure(
+        'The AI assistant is taking too long to respond. Please try again.',
+      );
     } on Exception catch (e) {
       return ChatResult.failure('Could not reach the server: $e');
     }
