@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -46,6 +47,9 @@ class IncidentPdfService {
     List<AuditLogEntry> auditEntries = const [],
     required Role userRole,
   }) async {
+    final iconData = await rootBundle.load('assets/icon.png');
+    final iconImage = pw.MemoryImage(iconData.buffer.asUint8List());
+
     final pdf = pw.Document(
       title: 'Incident Report #${incident.id}',
       author: 'SafeTrack by Herzog',
@@ -60,7 +64,7 @@ class IncidentPdfService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.letter,
         margin: const pw.EdgeInsets.all(40),
-        header: (context) => _buildPageHeader(incident, context),
+        header: (context) => _buildPageHeader(incident, context, iconImage),
         footer: (context) => _buildPageFooter(context),
         build: (context) => [
           // --- Incident Summary ---
@@ -322,7 +326,11 @@ class IncidentPdfService {
 
   // ===== Page Header & Footer =====
 
-  static pw.Widget _buildPageHeader(Incident incident, pw.Context context) {
+  static pw.Widget _buildPageHeader(
+    Incident incident,
+    pw.Context context,
+    pw.MemoryImage iconImage,
+  ) {
     return pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 16),
       child: pw.Column(
@@ -332,11 +340,16 @@ class IncidentPdfService {
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.center,
                 children: [
-                  pw.Text(
-                    'SAFETRACK',
+                  pw.Image(iconImage, width: 32, height: 32),
+                  pw.SizedBox(width: 8),
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(
+                        'SAFETRACK',
                     style: pw.TextStyle(
                       font: pw.Font.helveticaBold(),
                       fontSize: 22,
@@ -352,6 +365,8 @@ class IncidentPdfService {
                       color: _midGray,
                     ),
                   ),
+                ],
+              ),
                 ],
               ),
               pw.Column(

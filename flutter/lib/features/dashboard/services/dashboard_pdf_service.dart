@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -37,6 +38,9 @@ class DashboardPdfService {
     required DashboardData data,
     required DateTime reportMonth,
   }) async {
+    final iconData = await rootBundle.load('assets/icon.png');
+    final iconImage = pw.MemoryImage(iconData.buffer.asUint8List());
+
     final monthLabel = DateFormat('MMMM yyyy').format(reportMonth);
     final generatedDate = DateFormat(
       'MM/dd/yyyy hh:mm a',
@@ -52,7 +56,7 @@ class DashboardPdfService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.letter,
         margin: const pw.EdgeInsets.all(40),
-        header: (context) => _buildPageHeader(monthLabel, context),
+        header: (context) => _buildPageHeader(monthLabel, context, iconImage),
         footer: (context) => _buildPageFooter(
           context,
           generatedDate: generatedDate,
@@ -115,7 +119,11 @@ class DashboardPdfService {
 
   // ===== Page Header & Footer =====
 
-  static pw.Widget _buildPageHeader(String monthLabel, pw.Context context) {
+  static pw.Widget _buildPageHeader(
+    String monthLabel,
+    pw.Context context,
+    pw.MemoryImage iconImage,
+  ) {
     return pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 16),
       child: pw.Column(
@@ -125,25 +133,32 @@ class DashboardPdfService {
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.center,
                 children: [
-                  pw.Text(
-                    'SAFETRACK',
-                    style: pw.TextStyle(
-                      font: pw.Font.helveticaBold(),
-                      fontSize: 22,
-                      color: _navyBlue,
-                      letterSpacing: 2,
-                    ),
-                  ),
-                  pw.Text(
-                    'by Herzog',
-                    style: pw.TextStyle(
-                      font: pw.Font.helvetica(),
-                      fontSize: 10,
-                      color: _midGray,
-                    ),
+                  pw.Image(iconImage, width: 32, height: 32),
+                  pw.SizedBox(width: 8),
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(
+                        'SAFETRACK',
+                        style: pw.TextStyle(
+                          font: pw.Font.helveticaBold(),
+                          fontSize: 22,
+                          color: _navyBlue,
+                          letterSpacing: 2,
+                        ),
+                      ),
+                      pw.Text(
+                        'by Herzog',
+                        style: pw.TextStyle(
+                          font: pw.Font.helvetica(),
+                          fontSize: 10,
+                          color: _midGray,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
