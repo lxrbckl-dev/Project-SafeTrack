@@ -508,64 +508,77 @@ class _KPITile extends StatelessWidget {
         ? HerzogDarkColors.border
         : HerzogColors.borderGray;
 
+    // ClipRRect + Row approach avoids the Flutter error caused by
+    // combining borderRadius with a non-uniform Border in BoxDecoration.
     return Semantics(
       label: semanticLabel ?? '$label: $value',
-      child: Container(
-        decoration: BoxDecoration(
-          color: cardColor,
-          borderRadius: BorderRadius.circular(8),
-          border: Border(
-            left: const BorderSide(color: HerzogColors.gold, width: 4),
-            top: BorderSide(color: borderColor),
-            right: BorderSide(color: borderColor),
-            bottom: BorderSide(color: borderColor),
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: IntrinsicHeight(
+          child: Row(
             children: [
-              Text(
-                label.toUpperCase(),
-                style: HerzogText.label(
-                  color: isDark
-                      ? HerzogDarkColors.textMuted
-                      : HerzogColors.midGray,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Text(
-                    value,
-                    style: HerzogText.heading(
-                      fontSize: 28,
-                      color: isDark
-                          ? HerzogDarkColors.textPrimary
-                          : HerzogColors.richBlack,
+              Container(width: 4, color: HerzogColors.gold),
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: cardColor,
+                    border: Border(
+                      top: BorderSide(color: borderColor),
+                      right: BorderSide(color: borderColor),
+                      bottom: BorderSide(color: borderColor),
                     ),
                   ),
-                  if (trend != null) ...[
-                    const SizedBox(width: 6),
-                    Icon(
-                      trend == _Trend.down
-                          ? Icons.arrow_downward
-                          : trend == _Trend.up
-                          ? Icons.arrow_upward
-                          : Icons.horizontal_rule,
-                      color: trend == _Trend.down
-                          ? HerzogColors.successGreen
-                          : trend == _Trend.up
-                          ? HerzogColors.errorRed
-                          : isDark
-                          ? HerzogDarkColors.textMuted
-                          : HerzogColors.midGray,
-                      size: 20,
-                    ),
-                  ],
-                ],
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 16,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label.toUpperCase(),
+                        style: HerzogText.label(
+                          color: isDark
+                              ? HerzogDarkColors.textMuted
+                              : HerzogColors.midGray,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Text(
+                            value,
+                            style: HerzogText.heading(
+                              fontSize: 28,
+                              color: isDark
+                                  ? HerzogDarkColors.textPrimary
+                                  : HerzogColors.richBlack,
+                            ),
+                          ),
+                          if (trend != null) ...[
+                            const SizedBox(width: 6),
+                            Icon(
+                              trend == _Trend.down
+                                  ? Icons.arrow_downward
+                                  : trend == _Trend.up
+                                  ? Icons.arrow_upward
+                                  : Icons.horizontal_rule,
+                              color: trend == _Trend.down
+                                  ? HerzogColors.successGreen
+                                  : trend == _Trend.up
+                                  ? HerzogColors.errorRed
+                                  : isDark
+                                  ? HerzogDarkColors.textMuted
+                                  : HerzogColors.midGray,
+                              size: 20,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
