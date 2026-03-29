@@ -153,7 +153,7 @@ func SeedData(db *gorm.DB) {
 	// String pools for realistic incident generation
 	// -------------------------------------------------------------------------
 	incidentTypes := []string{"Injury", "Near Miss", "Property Damage", "Environmental", "Vehicle", "Fire", "Utility Strike"}
-	typeWeights := []int{25, 30, 15, 10, 10, 5, 5} // percentage weights
+	typeWeights := []int{35, 15, 15, 10, 12, 8, 5} // percentage weights — more injuries, fewer near misses for realistic ratios
 
 	severities := []string{"Fatality", "Lost Time", "Medical Treatment", "First Aid", "Near Miss"}
 	sevWeights := []int{1, 10, 20, 30, 35} // cumulative approximate
@@ -609,7 +609,7 @@ func SeedData(db *gorm.DB) {
 		// OSHA/DART: ~20% OSHA recordable, ~10% DART (only for non-near-miss)
 		var isOsha, isDart *bool
 		if !isDraft && incType != "Near Miss" {
-			oshaVal := rng.Float64() < 0.20
+			oshaVal := rng.Float64() < 0.40 // 40% OSHA recordable for realistic TRIR
 			isOsha = boolPtr(oshaVal)
 			if oshaVal {
 				dartVal := rng.Float64() < 0.50 // 50% of OSHA = ~10% overall
@@ -795,7 +795,13 @@ func SeedData(db *gorm.DB) {
 		}
 
 		if invStatus == "Approved" || invStatus == "Completed" {
-			ad := targetDate.AddDate(0, 0, -rng.Intn(7))
+			// ~30% completed late (after target), ~70% on time (before target)
+			var ad time.Time
+			if rng.Float64() < 0.30 {
+				ad = targetDate.AddDate(0, 0, 1+rng.Intn(14)) // 1-14 days late
+			} else {
+				ad = targetDate.AddDate(0, 0, -rng.Intn(7)) // 0-6 days early
+			}
 			actualDate = &ad
 			reviewedBy = pick(managers)
 			reviewComments = "Investigation findings are thorough. Root cause analysis is well supported by evidence."
