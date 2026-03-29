@@ -150,7 +150,8 @@ class _CAPADashboardPageState extends State<CAPADashboardPage> {
 
   Widget _buildKPICards() {
     final d = _dashboard!;
-    return Wrap(
+    return Center(
+      child: Wrap(
       spacing: 12,
       runSpacing: 12,
       children: [
@@ -183,6 +184,7 @@ class _CAPADashboardPageState extends State<CAPADashboardPage> {
               : HerzogColors.warningAmber,
         ),
       ],
+    ),
     );
   }
 
@@ -229,7 +231,8 @@ class _CAPADashboardPageState extends State<CAPADashboardPage> {
 
   Widget _buildFilters() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Wrap(
+    return Center(
+      child: Wrap(
       spacing: 12,
       runSpacing: 8,
       crossAxisAlignment: WrapCrossAlignment.center,
@@ -306,6 +309,7 @@ class _CAPADashboardPageState extends State<CAPADashboardPage> {
           },
         ),
       ],
+    ),
     );
   }
 
@@ -384,9 +388,13 @@ class _CAPADashboardPageState extends State<CAPADashboardPage> {
       );
     }
 
-    return SingleChildScrollView(
+    return SizedBox(
+      width: double.infinity,
+      child: SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      child: DataTable(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minWidth: MediaQuery.of(context).size.width - 32),
+        child: DataTable(
         showCheckboxColumn: false,
         headingTextStyle: HerzogText.label(
           fontSize: 12,
@@ -407,16 +415,28 @@ class _CAPADashboardPageState extends State<CAPADashboardPage> {
           DataColumn(label: Text('DUE DATE')),
           DataColumn(label: Text('OVERDUE')),
         ],
-        rows: capas.map((capa) => _buildRow(capa)).toList(),
+        rows: capas.map((capa) => _buildRow(capa, isDark)).toList(),
+      ),
+      ),
       ),
     );
   }
 
-  DataRow _buildRow(CAPA capa) {
+  DataRow _buildRow(CAPA capa, bool isDark) {
     final isOverdue = capa.isOverdue;
-    final rowColor = isOverdue
-        ? WidgetStateProperty.all(HerzogColors.errorLight)
-        : null;
+    final isInProgress = capa.status == 'In Progress';
+    final WidgetStateProperty<Color?>? rowColor;
+    if (isOverdue) {
+      rowColor = WidgetStateProperty.all(
+        isDark ? Colors.red.withValues(alpha: 0.12) : Colors.red.withValues(alpha: 0.08),
+      );
+    } else if (isInProgress) {
+      rowColor = WidgetStateProperty.all(
+        isDark ? Colors.amber.withValues(alpha: 0.12) : Colors.amber.withValues(alpha: 0.08),
+      );
+    } else {
+      rowColor = null;
+    }
 
     return DataRow(
       color: rowColor,
