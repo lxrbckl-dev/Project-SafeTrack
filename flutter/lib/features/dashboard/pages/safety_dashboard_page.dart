@@ -1285,31 +1285,43 @@ class _RecentIncidentsTable extends StatelessWidget {
                     'No incidents yet',
                     style: HerzogText.body(color: HerzogColors.smoke),
                   )
-                : SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: DataTable(
-                      columns: const [
-                        DataColumn(label: Text('DATE')),
-                        DataColumn(label: Text('TYPE')),
-                        DataColumn(label: Text('SEVERITY')),
-                        DataColumn(label: Text('STATUS')),
-                        DataColumn(label: Text('DIVISION')),
-                      ],
-                      rows: incidents.map((inc) {
-                        return DataRow(
-                          onSelectChanged: (_) {
-                            context.push('/incidents/${inc.id}');
-                          },
-                          cells: [
-                            DataCell(Text(inc.date)),
-                            DataCell(Text(inc.type)),
-                            DataCell(_SeverityChip(severity: inc.severity)),
-                            DataCell(Text(inc.status)),
-                            DataCell(Text(inc.division)),
-                          ],
-                        );
-                      }).toList(),
-                    ),
+                : LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minWidth: constraints.maxWidth,
+                          ),
+                          child: DataTable(
+                            columnSpacing: 24,
+                            columns: const [
+                              DataColumn(label: Text('DATE')),
+                              DataColumn(label: Text('TYPE')),
+                              DataColumn(label: Text('SEVERITY')),
+                              DataColumn(label: Text('STATUS')),
+                              DataColumn(label: Text('DIVISION')),
+                            ],
+                            rows: incidents.map((inc) {
+                              return DataRow(
+                                onSelectChanged: (_) {
+                                  context.push('/incidents/${inc.id}');
+                                },
+                                cells: [
+                                  DataCell(Text(inc.date)),
+                                  DataCell(Text(inc.type)),
+                                  DataCell(
+                                    _SeverityChip(severity: inc.severity),
+                                  ),
+                                  DataCell(Text(inc.status)),
+                                  DataCell(Text(inc.division)),
+                                ],
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      );
+                    },
                   ),
           ],
         ),

@@ -176,7 +176,8 @@ class DivisionRadarChart extends StatelessWidget {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: DataTable(
-        columnSpacing: 16,
+        columnSpacing: 20,
+        horizontalMargin: 12,
         columns: const [
           DataColumn(label: Text('DIVISION')),
           DataColumn(label: Text('INCIDENTS'), numeric: true),

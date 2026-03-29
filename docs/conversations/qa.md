@@ -112,5 +112,7 @@
 
 [2026-03-29] QA PASSED PR #183 (stress test seed, 11 checks). QA PASSED PR #185 (investigations filters, 12 checks). Both merged.
 
+[2026-03-29] QA PASSED PRs: #187 (chat timeout), #189 (CRITICAL seed fix), #191 (dashboard layout). All merged.
+
 ### Current Status
-[2026-03-29] 185 PRs merged. All builds clean.
+[2026-03-29] 191 PRs merged. All builds clean.

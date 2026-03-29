@@ -162,5 +162,7 @@
 [22:30] #182 Stress test seed endpoint → PR #183 (SWE-1, Opus). 50 incidents, 15 investigations, 20 CAPAs, admin button. Merged.
 [23:00] #184 Investigations inline column header filters → PR #185 (SWE-2, Opus). Full filter bar redesign. Merged.
 
+[23:15] #186 Chat timeout → PR #187. #188 CRITICAL seed IsDraft → PR #189. #190 Dashboard layout → PR #191.
+
 ### Current Status
-49 feature tasks + 16 bug fixes + 37 polish = 185 PRs merged. All builds clean.
+49 feature tasks + 18 bug fixes + 38 polish = 191 PRs merged. All builds clean.
