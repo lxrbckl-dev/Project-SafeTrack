@@ -64,7 +64,7 @@ jobs:
         working-directory: flutter
         run: |
           flutter pub get
-          flutter build web --web-url-strategy=path
+          flutter build web
 
       - name: Serve Flutter web
         working-directory: flutter/build/web

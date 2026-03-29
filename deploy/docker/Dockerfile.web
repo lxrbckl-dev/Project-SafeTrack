@@ -11,7 +11,6 @@ COPY . .
 
 RUN flutter pub get && \
     flutter build web \
-      --web-url-strategy=path \
       --dart-define=SUPPORT_EMAIL=$SUPPORT_EMAIL \
       --dart-define=SUPPORT_PHONE=$SUPPORT_PHONE \
       --dart-define=SUPPORT_PHONE_TEL=$SUPPORT_PHONE_TEL \
