@@ -123,6 +123,7 @@ class _AuditLogFiltersState extends State<AuditLogFilters> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isNarrow = MediaQuery.of(context).size.width < 600;
 
     return Card(
@@ -133,9 +134,19 @@ class _AuditLogFiltersState extends State<AuditLogFilters> {
           children: [
             Row(
               children: [
-                Icon(Icons.filter_list, size: 18, color: HerzogColors.midGray),
+                Icon(
+                  Icons.filter_list,
+                  size: 18,
+                  color: isDark ? Colors.white : HerzogColors.midGray,
+                ),
                 const SizedBox(width: 8),
-                Text('Filters', style: HerzogText.label(fontSize: 12)),
+                Text(
+                  'Filters',
+                  style: HerzogText.label(
+                    fontSize: 12,
+                    color: isDark ? Colors.white : HerzogColors.midGray,
+                  ),
+                ),
                 const Spacer(),
                 if (_hasActiveFilters)
                   TextButton.icon(
@@ -163,6 +174,7 @@ class _AuditLogFiltersState extends State<AuditLogFilters> {
                     label: 'Entity Type',
                     value: widget.filter.entityType ?? '',
                     items: _entityTypes,
+                    isDark: isDark,
                     onChanged: (val) {
                       widget.onFilterChanged(
                         val == null || val.isEmpty
@@ -183,6 +195,7 @@ class _AuditLogFiltersState extends State<AuditLogFilters> {
                     label: 'Action',
                     value: widget.filter.action ?? '',
                     items: _actionTypes,
+                    isDark: isDark,
                     onChanged: (val) {
                       widget.onFilterChanged(
                         val == null || val.isEmpty
@@ -204,12 +217,18 @@ class _AuditLogFiltersState extends State<AuditLogFilters> {
                         labelText: 'User ID',
                         labelStyle: HerzogText.body(
                           fontSize: 12,
-                          color: HerzogColors.midGray,
+                          color: isDark ? Colors.white : HerzogColors.midGray,
                         ),
                         isDense: true,
                         suffixIcon: _userController.text.isNotEmpty
                             ? IconButton(
-                                icon: const Icon(Icons.clear, size: 16),
+                                icon: Icon(
+                                  Icons.clear,
+                                  size: 16,
+                                  color: isDark
+                                      ? Colors.white
+                                      : HerzogColors.midGray,
+                                ),
                                 tooltip: 'Clear user filter',
                                 onPressed: () {
                                   _userController.clear();
@@ -223,7 +242,10 @@ class _AuditLogFiltersState extends State<AuditLogFilters> {
                               )
                             : null,
                       ),
-                      style: HerzogText.body(fontSize: 13),
+                      style: HerzogText.body(
+                        fontSize: 13,
+                        color: isDark ? Colors.white : HerzogColors.darkGray,
+                      ),
                       onSubmitted: (val) {
                         widget.onFilterChanged(
                           val.isEmpty
@@ -252,22 +274,37 @@ class _AuditLogFiltersState extends State<AuditLogFilters> {
                           labelText: 'Date Range',
                           labelStyle: HerzogText.body(
                             fontSize: 12,
-                            color: HerzogColors.midGray,
+                            color: isDark ? Colors.white : HerzogColors.midGray,
                           ),
                           isDense: true,
                           suffixIcon: widget.filter.dateStart != null
                               ? IconButton(
-                                  icon: const Icon(Icons.clear, size: 16),
+                                  icon: Icon(
+                                    Icons.clear,
+                                    size: 16,
+                                    color: isDark
+                                        ? Colors.white
+                                        : HerzogColors.midGray,
+                                  ),
                                   tooltip: 'Clear date range',
                                   onPressed: _clearDateRange,
                                 )
-                              : const Icon(Icons.date_range, size: 18),
+                              : Icon(
+                                  Icons.date_range,
+                                  size: 18,
+                                  color: isDark
+                                      ? Colors.white
+                                      : HerzogColors.midGray,
+                                ),
                         ),
                         child: Text(
                           widget.filter.dateStart != null
                               ? '${_dateFormat.format(widget.filter.dateStart!)} - ${_dateFormat.format(widget.filter.dateEnd ?? DateTime.now())}'
                               : 'All dates',
-                          style: HerzogText.body(fontSize: 13),
+                          style: HerzogText.body(
+                            fontSize: 13,
+                            color: isDark ? Colors.white : HerzogColors.darkGray,
+                          ),
                         ),
                       ),
                     ),
@@ -286,20 +323,26 @@ class _AuditLogFiltersState extends State<AuditLogFilters> {
     required T value,
     required Map<T, String> items,
     required ValueChanged<T?> onChanged,
+    bool isDark = false,
   }) {
     return Semantics(
       label: 'Filter by $label',
       child: DropdownButtonFormField<T>(
         initialValue: value,
+        dropdownColor: isDark ? HerzogDarkColors.surfaceVariant : HerzogColors.white,
         decoration: InputDecoration(
           labelText: label,
           labelStyle: HerzogText.body(
             fontSize: 12,
-            color: HerzogColors.midGray,
+            color: isDark ? Colors.white : HerzogColors.midGray,
           ),
           isDense: true,
         ),
-        style: HerzogText.body(fontSize: 13),
+        style: HerzogText.body(
+          fontSize: 13,
+          color: isDark ? Colors.white : HerzogColors.darkGray,
+        ),
+        iconEnabledColor: isDark ? Colors.white : HerzogColors.midGray,
         items: items.entries
             .map((e) => DropdownMenuItem<T>(value: e.key, child: Text(e.value)))
             .toList(),
