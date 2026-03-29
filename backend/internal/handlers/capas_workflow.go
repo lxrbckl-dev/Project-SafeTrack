@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
 	"time"
 
@@ -209,14 +210,19 @@ func CAPADashboard(db *gorm.DB) http.HandlerFunc {
 		db.Model(&models.CAPA{}).Where("is_overdue = ?", true).Count(&resp.OverdueCAPAs)
 
 		// Average time to close: days from CreatedAt to VerificationDate for
-		// Verified Effective CAPAs.
+		// Verified Effective CAPAs. Only include records where verification_date
+		// is set. Guard against clock skew or data anomalies with math.Max.
 		var closedCAPAs []models.CAPA
 		db.Where("status = ? AND verification_date IS NOT NULL", "Verified Effective").
 			Find(&closedCAPAs)
 		if len(closedCAPAs) > 0 {
 			var totalDays float64
 			for _, c := range closedCAPAs {
-				totalDays += c.VerificationDate.Sub(c.CreatedAt).Hours() / 24
+				if c.VerificationDate == nil {
+					continue
+				}
+				days := c.VerificationDate.Sub(c.CreatedAt).Hours() / 24
+				totalDays += math.Max(0, days)
 			}
 			resp.AvgTimeToClose = totalDays / float64(len(closedCAPAs))
 		}
