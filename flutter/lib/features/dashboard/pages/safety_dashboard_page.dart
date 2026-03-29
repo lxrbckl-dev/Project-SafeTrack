@@ -637,6 +637,30 @@ class _IncidentTrendChart extends StatelessWidget {
     'Utility Strike',
   ];
 
+  static const _monthAbbr = [
+    '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  ];
+
+  static const _monthFull = [
+    '', 'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+  ];
+
+  /// Parse "2026-03" into month number, or return 0 on failure.
+  static int _parseMonth(String m) {
+    if (m.length >= 7) {
+      return int.tryParse(m.substring(5, 7)) ?? 0;
+    }
+    return int.tryParse(m) ?? 0;
+  }
+
+  /// Parse "2026-03" into the year string, or return empty.
+  static String _parseYear(String m) {
+    if (m.length >= 4) return m.substring(0, 4);
+    return '';
+  }
+
   @override
   Widget build(BuildContext context) {
     final trend = data.incidentTrend;
@@ -651,10 +675,18 @@ class _IncidentTrendChart extends StatelessWidget {
               'INCIDENT TREND (12 MONTHS)',
               style: HerzogText.heading(fontSize: 16),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
+            Text(
+              'Stacked by incident type',
+              style: HerzogText.body(
+                fontSize: 12,
+                color: HerzogColors.midGray,
+              ),
+            ),
+            const SizedBox(height: 8),
             Wrap(
-              spacing: 12,
-              runSpacing: 4,
+              spacing: 16,
+              runSpacing: 6,
               children: List.generate(_typeLabels.length, (i) {
                 return Row(
                   mainAxisSize: MainAxisSize.min,
@@ -667,8 +699,8 @@ class _IncidentTrendChart extends StatelessWidget {
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
-                    const SizedBox(width: 4),
-                    Text(_typeLabels[i], style: HerzogText.body(fontSize: 11)),
+                    const SizedBox(width: 6),
+                    Text(_typeLabels[i], style: HerzogText.body(fontSize: 12)),
                   ],
                 );
               }),
@@ -686,9 +718,69 @@ class _IncidentTrendChart extends StatelessWidget {
                   : BarChart(
                       BarChartData(
                         alignment: BarChartAlignment.spaceAround,
-                        barTouchData: BarTouchData(enabled: true),
+                        barTouchData: BarTouchData(
+                          enabled: true,
+                          touchTooltipData: BarTouchTooltipData(
+                            getTooltipColor: (_) =>
+                                HerzogColors.navyBlue.withValues(alpha: 0.9),
+                            tooltipPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            tooltipMargin: 8,
+                            getTooltipItem: (group, groupIdx, rod, rodIdx) {
+                              if (groupIdx < 0 || groupIdx >= trend.length) {
+                                return null;
+                              }
+                              final t = trend[groupIdx];
+                              final monthNum = _parseMonth(t.month);
+                              final year = _parseYear(t.month);
+                              final monthName = (monthNum >= 1 && monthNum <= 12)
+                                  ? _monthFull[monthNum]
+                                  : t.month;
+                              final header = year.isNotEmpty
+                                  ? '$monthName $year'
+                                  : monthName;
+
+                              final values = [
+                                t.injury,
+                                t.nearMiss,
+                                t.propertyDamage,
+                                t.environmental,
+                                t.vehicle,
+                                t.fire,
+                                t.utilityStrike,
+                              ];
+
+                              final buffer = StringBuffer(header);
+                              for (int i = 0; i < values.length; i++) {
+                                if (values[i] > 0) {
+                                  buffer.write(
+                                      '\n${_typeLabels[i]}: ${values[i]}');
+                                }
+                              }
+                              buffer.write('\nTotal: ${t.total}');
+
+                              return BarTooltipItem(
+                                buffer.toString(),
+                                HerzogText.body(
+                                  fontSize: 11,
+                                  color: Colors.white,
+                                ).copyWith(height: 1.4),
+                              );
+                            },
+                          ),
+                        ),
                         titlesData: FlTitlesData(
                           leftTitles: AxisTitles(
+                            axisNameWidget: Text(
+                              'Incident Count',
+                              style: HerzogText.body(
+                                fontSize: 10,
+                                color: HerzogColors.midGray,
+                              ),
+                            ),
+                            axisNameSize: 18,
                             sideTitles: SideTitles(
                               showTitles: true,
                               reservedSize: 28,
@@ -699,6 +791,14 @@ class _IncidentTrendChart extends StatelessWidget {
                             ),
                           ),
                           bottomTitles: AxisTitles(
+                            axisNameWidget: Text(
+                              'Month',
+                              style: HerzogText.body(
+                                fontSize: 10,
+                                color: HerzogColors.midGray,
+                              ),
+                            ),
+                            axisNameSize: 18,
                             sideTitles: SideTitles(
                               showTitles: true,
                               getTitlesWidget: (v, _) {
@@ -706,13 +806,15 @@ class _IncidentTrendChart extends StatelessWidget {
                                 if (idx < 0 || idx >= trend.length) {
                                   return const SizedBox.shrink();
                                 }
-                                final label = trend[idx].month;
+                                final monthNum =
+                                    _parseMonth(trend[idx].month);
+                                final label = (monthNum >= 1 && monthNum <= 12)
+                                    ? _monthAbbr[monthNum]
+                                    : trend[idx].month;
                                 return Padding(
                                   padding: const EdgeInsets.only(top: 4),
                                   child: Text(
-                                    label.length >= 7
-                                        ? label.substring(5)
-                                        : label,
+                                    label,
                                     style: HerzogText.body(fontSize: 9),
                                   ),
                                 );
