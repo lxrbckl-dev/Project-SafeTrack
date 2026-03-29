@@ -181,6 +181,7 @@ class _CAPADashboardPageState extends State<CAPADashboardPage> {
 
   Widget _buildKPICards() {
     final d = _dashboard!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Wrap(
       spacing: 12,
@@ -190,7 +191,7 @@ class _CAPADashboardPageState extends State<CAPADashboardPage> {
           'Open CAPAs',
           '${d.openCapas}',
           Icons.assignment,
-          HerzogColors.navyBlue,
+          isDark ? HerzogColors.gold : HerzogColors.navyBlue,
         ),
         _kpiCard(
           'Overdue',
@@ -204,7 +205,7 @@ class _CAPADashboardPageState extends State<CAPADashboardPage> {
           'Avg Time to Close',
           '${d.avgTimeToCloseDays.toStringAsFixed(1)} days',
           Icons.schedule,
-          HerzogColors.infoTeal,
+          isDark ? Colors.white : HerzogColors.infoTeal,
         ),
         _kpiCard(
           'Effectiveness Rate',
