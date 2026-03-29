@@ -123,4 +123,5 @@ All test accounts use password **`demo1234`**.
 | Need a fresh database | `docker-compose down -v && docker-compose up -d`, then re-seed |
 | AI chat spinning/timeout on first message | The Qwen model takes ~60s to load into memory on first use. Wait and retry. Subsequent messages are fast |
 | AI assistant returns empty/offline | Check `docker ps` — Ollama container must be running. If model missing: `docker exec -it highlander-ollama-1 ollama pull qwen2.5:7b` |
+| AI chat keeps going offline after idle | Ollama is using old config without keep-alive. Run `docker-compose restart ollama` to apply the permanent keep-alive setting |
 | Login returns "unauthorized" | Docker backend is running an old image. Stop it and run locally: `docker-compose stop backend` then `cd backend && go run ./cmd/server/; cd ..` |
