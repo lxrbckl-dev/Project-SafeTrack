@@ -1,0 +1,28 @@
+# Multi-stage build: Flutter SDK → compile web app → serve via nginx
+FROM ghcr.io/cirruslabs/flutter:3.41.6 AS builder
+
+ARG SUPPORT_EMAIL=aarbuckle@herzog.com
+ARG SUPPORT_PHONE=1-816-273-2285
+ARG SUPPORT_PHONE_TEL=18162732285
+
+WORKDIR /app
+COPY . .
+
+RUN flutter pub get && \
+    flutter build web \
+      --dart-define=SUPPORT_EMAIL=$SUPPORT_EMAIL \
+      --dart-define=SUPPORT_PHONE=$SUPPORT_PHONE \
+      --dart-define=SUPPORT_PHONE_TEL=$SUPPORT_PHONE_TEL
+
+FROM nginx:alpine
+COPY --from=builder /app/build/web /usr/share/nginx/html
+RUN echo 'server { \
+    listen 80; \
+    location / { \
+        root /usr/share/nginx/html; \
+        try_files $uri $uri/ /index.html; \
+        add_header Cross-Origin-Opener-Policy same-origin; \
+        add_header Cross-Origin-Embedder-Policy require-corp; \
+    } \
+}' > /etc/nginx/conf.d/default.conf
+EXPOSE 80

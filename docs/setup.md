@@ -177,6 +177,16 @@ Internet → Caddy (HTTPS/TLS) → :2780 → Flutter web (nginx container)
                                     Ollama (:11434, Qwen 2.5 3B)
 ```
 
+**Configurable environment variables** (set in `.env` or directly in docker-compose):
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `SUPPORT_EMAIL` | `aarbuckle@herzog.com` | Support email on login page (forgot password + contact) |
+| `SUPPORT_PHONE` | `1-816-273-2285` | Support phone number on login page |
+| `SUPPORT_PHONE_TEL` | `18162732285` | Phone number in `tel:` URI format (no dashes) |
+
+These are passed as `--dart-define` build args when the Flutter web container is built.
+
 **Production docker-compose** — all services in Docker:
 ```yaml
 services:
@@ -184,6 +194,10 @@ services:
     build:
       context: ./flutter
       dockerfile: ../deploy/docker/Dockerfile.web
+      args:
+        - SUPPORT_EMAIL=${SUPPORT_EMAIL:-aarbuckle@herzog.com}
+        - SUPPORT_PHONE=${SUPPORT_PHONE:-1-816-273-2285}
+        - SUPPORT_PHONE_TEL=${SUPPORT_PHONE_TEL:-18162732285}
     ports:
       - "2780:80"
     restart: unless-stopped

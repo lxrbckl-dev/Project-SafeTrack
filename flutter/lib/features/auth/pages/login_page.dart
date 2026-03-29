@@ -7,6 +7,20 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../app/herzog_theme.dart';
 import '../data/auth_service.dart';
 
+/// Configurable via `--dart-define` at build time or docker-compose build args.
+const String _supportEmail = String.fromEnvironment(
+  'SUPPORT_EMAIL',
+  defaultValue: 'aarbuckle@herzog.com',
+);
+const String _supportPhone = String.fromEnvironment(
+  'SUPPORT_PHONE',
+  defaultValue: '1-816-273-2285',
+);
+const String _supportPhoneTel = String.fromEnvironment(
+  'SUPPORT_PHONE_TEL',
+  defaultValue: '18162732285',
+);
+
 /// Email/password login page with forgot password and support contact links.
 ///
 /// Users enter email + password for seeded test accounts (all password: demo1234).
@@ -212,7 +226,7 @@ class _LoginPageState extends State<LoginPage> {
                               child: GestureDetector(
                                 onTap: () => launchUrl(
                                   Uri.parse(
-                                    'mailto:aarbuckle@herzog.com'
+                                    'mailto:$_supportEmail'
                                     '?subject=SafeTrack%20Forgot%20My%20Password'
                                     '&body=Hello%2C%20I%20need%20help%20resetting'
                                     '%20my%20SafeTrack%20password.%0A%0AName%3A%20'
@@ -250,10 +264,10 @@ class _LoginPageState extends State<LoginPage> {
                                   text: 'Need help? Contact support at ',
                                 ),
                                 TextSpan(
-                                  text: '1-816-273-2285',
+                                  text: _supportPhone,
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () => launchUrl(
-                                      Uri.parse('tel:18162732285'),
+                                      Uri.parse('tel:$_supportPhoneTel'),
                                       mode: LaunchMode.externalApplication,
                                     ),
                                   style:
@@ -268,10 +282,10 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                                 const TextSpan(text: ' or '),
                                 TextSpan(
-                                  text: 'aarbuckle@herzog.com',
+                                  text: _supportEmail,
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () => launchUrl(
-                                      Uri.parse('mailto:aarbuckle@herzog.com'),
+                                      Uri.parse('mailto:$_supportEmail'),
                                       mode: LaunchMode.externalApplication,
                                     ),
                                   style:

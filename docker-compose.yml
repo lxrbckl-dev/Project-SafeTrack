@@ -46,6 +46,20 @@ services:
       - OLLAMA_HOST=http://ollama:11434
     restart: "no"
 
+  # Flutter web build args — used by Dockerfile.web at build time via --dart-define.
+  # Change these values to customize the login page contact info.
+  web:
+    build:
+      context: ./flutter
+      dockerfile: ../deploy/docker/Dockerfile.web
+      args:
+        - SUPPORT_EMAIL=${SUPPORT_EMAIL:-aarbuckle@herzog.com}
+        - SUPPORT_PHONE=${SUPPORT_PHONE:-1-816-273-2285}
+        - SUPPORT_PHONE_TEL=${SUPPORT_PHONE_TEL:-18162732285}
+    ports:
+      - "2780:80"
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   ollama_data:
