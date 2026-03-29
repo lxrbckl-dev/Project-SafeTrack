@@ -88,7 +88,7 @@ class ChatRepository {
 
       final response = await _client
           .post(uri, headers: headers, body: jsonEncode(requestBody))
-          .timeout(const Duration(seconds: 60));
+          .timeout(const Duration(seconds: 120));
 
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body) as Map<String, dynamic>;

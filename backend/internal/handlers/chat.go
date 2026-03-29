@@ -268,7 +268,7 @@ func Chat(db *gorm.DB) http.HandlerFunc {
 			"stream": false,
 		})
 
-		chatClient := &http.Client{Timeout: 55 * time.Second}
+		chatClient := &http.Client{Timeout: 120 * time.Second}
 		resp, err := chatClient.Post(ollamaURL+"/api/generate", "application/json", bytes.NewReader(ollamaReq))
 		if err != nil {
 			// Edge case #8: never log API key material. Only log the error type.
