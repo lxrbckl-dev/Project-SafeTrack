@@ -1,14 +1,25 @@
+# SafeTrack — Production Deployment
+#
+# Run the full app from DockerHub images. No repo clone required.
+#
+#   docker-compose -f docker-compose.prod.yml up -d
+#
+# All values have working defaults. Override via .env file or inline:
+#
+#   SUPPORT_EMAIL=you@company.com docker-compose -f docker-compose.prod.yml up -d
+#
+# First startup pulls images + downloads the AI model (~2GB). Subsequent
+# starts are instant.
+
 services:
   web:
-    build:
-      context: ./flutter
-      dockerfile: ../deploy/docker/Dockerfile.web
+    image: lxrbckl/pap-highlander-web:latest
     ports:
       - "2780:80"
     restart: unless-stopped
 
   backend:
-    build: ./backend
+    image: lxrbckl/pap-highlander-backend:latest
     ports:
       - "8000:8000"
     depends_on:
@@ -16,8 +27,11 @@ services:
         condition: service_healthy
     environment:
       - PORT=8000
-      - DATABASE_URL=postgres://highlander:marchpass@postgres:5432/highlander?sslmode=disable
+      - DATABASE_URL=postgres://${POSTGRES_USER:-highlander}:${POSTGRES_PASSWORD:-marchpass}@postgres:5432/${POSTGRES_DB:-highlander}?sslmode=disable
       - OLLAMA_URL=http://ollama:11434
+      - SEED_DATA=${SEED_DATA:-true}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-}
+      - DEV_JWT_SECRET=${DEV_JWT_SECRET:-}
     restart: unless-stopped
 
   postgres:
@@ -27,11 +41,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=highlander
-      - POSTGRES_USER=highlander
-      - POSTGRES_PASSWORD=marchpass
+      - POSTGRES_DB=${POSTGRES_DB:-highlander}
+      - POSTGRES_USER=${POSTGRES_USER:-highlander}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-marchpass}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U highlander -d highlander"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-highlander} -d ${POSTGRES_DB:-highlander}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -43,7 +57,18 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_KEEP_ALIVE=-1
     restart: unless-stopped
+
+  ollama-pull:
+    image: ollama/ollama
+    depends_on:
+      - ollama
+    entrypoint: ["sh", "-c", "sleep 5 && ollama pull qwen2.5:3b"]
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    restart: "no"
 
 volumes:
   postgres_data:
