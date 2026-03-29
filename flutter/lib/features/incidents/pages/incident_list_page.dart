@@ -293,7 +293,7 @@ class _IncidentListPageState extends State<IncidentListPage> {
             child: Semantics(
               label: 'Clear all filters',
               button: true,
-              child: TextButton.icon(
+              child: ElevatedButton.icon(
                 onPressed: () {
                   setState(() {
                     _statusFilter = '';
@@ -302,6 +302,10 @@ class _IncidentListPageState extends State<IncidentListPage> {
                   });
                   _loadIncidents();
                 },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: HerzogColors.navyBlue,
+                  foregroundColor: HerzogColors.white,
+                ),
                 icon: const Icon(Icons.filter_alt_off, size: 18),
                 label: const Text('Clear'),
               ),
