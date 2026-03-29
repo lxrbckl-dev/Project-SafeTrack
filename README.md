@@ -44,11 +44,12 @@ Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutt
 |---|---|---|
 | [Docker Desktop](https://www.docker.com/products/docker-desktop/) | Any recent | Download from docker.com |
 | [Homebrew](https://brew.sh) | Any | `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"` |
-| [Go](https://go.dev/dl/) | 1.23+ | `brew install go` |
 | [Flutter](https://flutter.dev/docs/get-started/install) | 3.41+ (Dart 3.11+) | See below |
-| [Ollama](https://ollama.com) | Any | Runs in Docker (included in docker-compose) |
+| [Go](https://go.dev/dl/) | 1.23+ | `brew install go` (optional — only for local backend dev) |
 | [Node.js](https://nodejs.org) | 18+ | `brew install node` (for Playwright tests) |
 | [GitHub CLI](https://cli.github.com) | Any | `brew install gh` then `gh auth login` |
+
+> **Note:** The Go backend, PostgreSQL, and Ollama (Qwen 2.5 3B) all run in Docker via `docker-compose up`. You only need Go installed locally if you want to run the backend outside Docker for live code reloading.
 
 ### Install Flutter
 
@@ -175,7 +176,7 @@ All test accounts use password **`demo1234`**.
 | Port 3000 in use | `lsof -ti:3000 \| xargs kill -9` |
 | PostgreSQL connection refused | Start Docker Desktop, then `docker-compose up -d` |
 | Port 5432 conflict (local Postgres) | `lsof -ti:5432 \| xargs kill -9` then `docker-compose up -d` |
-| Need a fresh database | `docker-compose down -v && docker-compose up -d postgres`, then restart Go with `SEED_DATA=true` |
+| Need a fresh database | `docker-compose down -v && docker-compose up -d` (wipes DB + re-seeds on startup) |
 | AI chat spinning on first message | The Qwen model takes 30-60s to load into memory on first use. Wait and retry. Subsequent messages are faster |
 | AI assistant returns empty/offline | Check Ollama container is running: `docker ps \| grep ollama`. If missing: `docker-compose up -d ollama ollama-pull` |
 | AI chat keeps going offline after idle | The docker-compose sets `OLLAMA_KEEP_ALIVE=-1` to keep the model loaded permanently. Restart: `docker-compose restart ollama` |

@@ -286,15 +286,17 @@ flutter build macos
 
 ---
 
-**Deploy steps (web + backend):**
+**Deploy steps (production):**
 ```bash
 # Build Flutter web
 cd flutter && flutter build web && cd ..
 
-# Start all Docker services (PostgreSQL + Ollama + backend + web)
-# Ollama auto-pulls Qwen 2.5 3B on first run
+# Use the production docker-compose (shown above) which adds the nginx web container
+# Copy it to docker-compose.yml or use -f to specify it, then:
 docker-compose up -d
 ```
+
+> **Local dev** uses the repo's `docker-compose.yml` (PostgreSQL + Ollama + Go backend) and runs Flutter separately with `flutter run`. **Production** adds an nginx container serving the Flutter web build on port 2780 (see production docker-compose above).
 
 ---
 
