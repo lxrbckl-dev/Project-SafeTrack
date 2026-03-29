@@ -35,9 +35,65 @@ Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutt
 
 ---
 
+## Development Environment Setup
+
+### Prerequisites
+
+| Tool | Version | Install |
+|---|---|---|
+| [Docker Desktop](https://www.docker.com/products/docker-desktop/) | Any recent | Download from docker.com |
+| [Homebrew](https://brew.sh) | Any | `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"` |
+| [Go](https://go.dev/dl/) | 1.23+ | `brew install go` |
+| [Flutter](https://flutter.dev/docs/get-started/install) | 3.41+ (Dart 3.11+) | See below |
+| [Node.js](https://nodejs.org) | 18+ | `brew install node` (for Playwright tests) |
+| [GitHub CLI](https://cli.github.com) | Any | `brew install gh` then `gh auth login` |
+
+### Install Flutter (macOS ARM64)
+
+Flutter requires a manual SDK download — it's not in Homebrew:
+
+```bash
+mkdir -p ~/development && cd ~/development
+curl -LO https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_arm64_3.41.6-stable.zip
+unzip -qo flutter_macos_arm64_3.41.6-stable.zip
+```
+
+Add Flutter to your PATH (add to `~/.zshrc` for persistence):
+```bash
+export PATH="$HOME/development/flutter/bin:$PATH"
+```
+
+Verify: `flutter --version` should show Flutter 3.41.x with Dart 3.11.x.
+
+### Install Dependencies
+
+```bash
+# Flutter packages
+cd flutter && flutter pub get && cd ..
+
+# Go modules
+cd backend && go mod tidy && cd ..
+
+# Playwright (for running tests)
+npm install
+npx playwright install chromium
+```
+
+### Verify Everything Builds
+
+```bash
+# Dart analysis (should show "No issues found")
+cd flutter && dart analyze && cd ..
+
+# Go build (should complete without errors)
+cd backend && go build ./cmd/server/ && cd ..
+```
+
+---
+
 ## Quick Start
 
-**Prerequisites:** [Docker Desktop](https://www.docker.com/products/docker-desktop/), [Flutter](https://flutter.dev/docs/get-started/install), [Go](https://go.dev/dl/)
+**Prerequisites:** Complete the [Development Environment Setup](#development-environment-setup) above.
 
 **1. Start PostgreSQL and Ollama** (database + AI model):
 ```bash
