@@ -158,23 +158,6 @@ class _IncidentListPageState extends State<IncidentListPage> {
       appBar: AppBar(
         title: const Text('INCIDENTS'),
         actions: [
-          if (canCreate)
-            Semantics(
-              label: 'Create new incident report',
-              button: true,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                child: ElevatedButton.icon(
-                  onPressed: () => context.go('/incidents/new'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: HerzogColors.navyBlue,
-                    foregroundColor: HerzogColors.white,
-                  ),
-                  icon: const Icon(Icons.add),
-                  label: const Text('NEW INCIDENT'),
-                ),
-              ),
-            ),
           Semantics(
             label: 'Switch to map view',
             button: true,
@@ -191,7 +174,7 @@ class _IncidentListPageState extends State<IncidentListPage> {
           // Welcome header shown to Field Reporter (their primary landing page).
           if (auth.currentRole == Role.fieldReporter) const WelcomeHeader(),
           // Filters
-          _buildFilters(),
+          _buildFilters(canCreate: canCreate),
           const Divider(height: 1),
           // Content
           Expanded(
@@ -208,42 +191,66 @@ class _IncidentListPageState extends State<IncidentListPage> {
     );
   }
 
-  Widget _buildFilters() {
+  Widget _buildFilters({required bool canCreate}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      color: HerzogColors.white,
-      child: Wrap(
-        spacing: 12,
-        runSpacing: 8,
+      child: Row(
         children: [
           // Status filter
-          _FilterDropdown(
-            label: 'Status',
-            value: _statusFilter,
-            items: _statuses,
-            onChanged: (v) {
-              setState(() => _statusFilter = v);
-              _loadIncidents();
-            },
+          SizedBox(
+            width: 180,
+            height: 48,
+            child: _FilterDropdown(
+              label: 'Status',
+              value: _statusFilter,
+              items: _statuses,
+              onChanged: (v) {
+                setState(() => _statusFilter = v);
+                _loadIncidents();
+              },
+            ),
           ),
+          const SizedBox(width: 12),
           // Type filter
-          _FilterDropdown(
-            label: 'Type',
-            value: _typeFilter,
-            items: _incidentTypes,
-            onChanged: (v) {
-              setState(() => _typeFilter = v);
-              _loadIncidents();
-            },
+          SizedBox(
+            width: 180,
+            height: 48,
+            child: _FilterDropdown(
+              label: 'Type',
+              value: _typeFilter,
+              items: _incidentTypes,
+              onChanged: (v) {
+                setState(() => _typeFilter = v);
+                _loadIncidents();
+              },
+            ),
           ),
+          const SizedBox(width: 12),
           // Division filter
           SizedBox(
             width: 180,
+            height: 48,
             child: TextField(
               decoration: InputDecoration(
                 labelText: 'Division',
                 labelStyle: HerzogText.label(fontSize: 11),
-                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
+                ),
+                border: const OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(4)),
+                ),
+                enabledBorder: const OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(4)),
+                ),
+                focusedBorder: const OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(4)),
+                  borderSide: BorderSide(
+                    color: HerzogColors.navyBlue,
+                    width: 2,
+                  ),
+                ),
                 suffixIcon:
                     _divisionFilter != null && _divisionFilter!.isNotEmpty
                     ? IconButton(
@@ -262,6 +269,25 @@ class _IncidentListPageState extends State<IncidentListPage> {
               },
             ),
           ),
+          const Spacer(),
+          // New Incident button
+          if (canCreate)
+            Semantics(
+              label: 'Create new incident report',
+              button: true,
+              child: SizedBox(
+                height: 48,
+                child: ElevatedButton.icon(
+                  onPressed: () => context.go('/incidents/new'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: HerzogColors.navyBlue,
+                    foregroundColor: HerzogColors.white,
+                  ),
+                  icon: const Icon(Icons.add),
+                  label: const Text('NEW INCIDENT'),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -739,29 +765,39 @@ class _FilterDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 180,
-      child: DropdownButtonFormField<String>(
-        initialValue: value,
-        isExpanded: true,
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: HerzogText.label(fontSize: 11),
-          isDense: true,
+    return DropdownButtonFormField<String>(
+      initialValue: value,
+      isExpanded: true,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: HerzogText.label(fontSize: 11),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 12,
         ),
-        style: HerzogText.body(fontSize: 13, color: HerzogColors.darkGray),
-        dropdownColor: HerzogColors.white,
-        items: [
-          DropdownMenuItem<String>(
-            value: null,
-            child: Text('All', style: HerzogText.body(fontSize: 13)),
-          ),
-          ...items.map(
-            (item) => DropdownMenuItem<String>(value: item, child: Text(item)),
-          ),
-        ],
-        onChanged: onChanged,
+        border: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(4)),
+        ),
+        enabledBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(4)),
+        ),
+        focusedBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(4)),
+          borderSide: BorderSide(color: HerzogColors.navyBlue, width: 2),
+        ),
       ),
+      style: HerzogText.body(fontSize: 13, color: HerzogColors.darkGray),
+      dropdownColor: HerzogColors.white,
+      items: [
+        DropdownMenuItem<String>(
+          value: null,
+          child: Text('All', style: HerzogText.body(fontSize: 13)),
+        ),
+        ...items.map(
+          (item) => DropdownMenuItem<String>(value: item, child: Text(item)),
+        ),
+      ],
+      onChanged: onChanged,
     );
   }
 }
