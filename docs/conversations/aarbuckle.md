@@ -699,3 +699,42 @@ Already installed: Flutter 3.41.4, Xcode 26.3, Playwright 1.58.2
 ### Wiki-as-RAG Wiring
 - Wired wiki.md asset into AI chat: ChatRepository now loads assets/wiki.md via rootBundle on first message, caches in memory, sends as `system` field in chat API request
 - Backend ChatRequest.System field already existed — no Go changes needed
+
+### README & Documentation
+- Added Development Environment Setup section to README (Flutter, Go, gh install steps)
+- Added multi-platform Flutter install notes (Apple Silicon, Intel, Linux/Windows)
+- Multiple consistency passes across README, setup.md, CLAUDE.md, architecture.md, progress.md
+
+### Ollama: Docker vs Native
+- Discovered Docker for Mac cannot access Metal GPU — Ollama in Docker = CPU-only = 60s+ per response
+- Tested native Ollama: sub-second inference with Metal GPU on M4
+- Alex decided all services must run in Docker per project requirements
+- Switched from Qwen 2.5 7B to 3B for viable Docker CPU inference
+- Restored Ollama + ollama-pull services to docker-compose.yml
+- Updated model refs across 16 files (Go backend, Flutter UI, all docs, wiki, agent definitions)
+- Tested end-to-end: login → AI chat → 88% eval accuracy with wiki RAG
+
+### AutoResearch Eval Suite
+- Built eval/wiki_eval.py — 42 test cases across 13 categories
+- Runs baseline (no wiki) vs RAG (with wiki) comparison
+- Results: 10% baseline → 88% with wiki RAG = +79 percentage point improvement
+- Routes, RBAC, accounts, incidents, OSHA, tech all score 100%
+- Rewrote docs/autoresearch-guide.md with actual results and optimization loop documentation
+
+### Configurable Environment Variables
+- Extracted hardcoded login page values (support email, phone) to `--dart-define` env vars
+- Created deploy/docker/Dockerfile.web — multi-stage Flutter SDK → nginx build
+- Added web service to docker-compose.yml with build args
+- Made production API URL configurable via `API_BASE_URL` dart-define
+- Added ENCRYPTION_KEY, DEV_JWT_SECRET, configurable Postgres credentials to docker-compose
+- Full env var audit — confirmed all deployment-sensitive values are now configurable
+
+### CI/CD Pipeline
+- Created .github/workflows/ci.yml — GitHub Action triggered on push to main
+- Pipeline: spin up full stack → Playwright tests (15 suites) → build + push to DockerHub
+- Images: lxrbckl/pap-highlander-backend and lxrbckl/pap-highlander-web
+- Created docker-compose.prod.yml — standalone production deployment from DockerHub images, no repo clone needed
+
+### Judge Session Prompt
+- Created docs/judge-session-prompt.md — LLM system prompt for judge Q&A demo
+- Agents respond in character (TPM, SWE-1, SWE-2, QA) with AutoResearch stats and file references
