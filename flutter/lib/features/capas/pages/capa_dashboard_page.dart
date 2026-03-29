@@ -34,12 +34,24 @@ class _CAPADashboardPageState extends State<CAPADashboardPage> {
   String _assignedToFilter = '';
   bool _overdueFilter = false;
 
+  /// Tracks whether the initial load has completed, so that
+  /// [didChangeDependencies] can trigger a refresh on subsequent visits.
+  bool _initialLoadDone = false;
+
   @override
   void initState() {
     super.initState();
     _auth = context.read<AuthService>();
     _repo = CAPARepository(_auth);
     _loadData();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_initialLoadDone) {
+      _loadData();
+    }
   }
 
   Future<void> _loadData() async {
@@ -62,6 +74,7 @@ class _CAPADashboardPageState extends State<CAPADashboardPage> {
           _dashboard = results[0] as CAPADashboard;
           _listResponse = results[1] as CAPAListResponse;
           _loading = false;
+          _initialLoadDone = true;
         });
       }
     } catch (e) {
@@ -98,6 +111,24 @@ class _CAPADashboardPageState extends State<CAPADashboardPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Refresh button row
+                  Builder(builder: (context) {
+                    final isDark = Theme.of(context).brightness == Brightness.dark;
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Semantics(
+                          label: 'Refresh CAPA data',
+                          button: true,
+                          child: IconButton(
+                            icon: Icon(Icons.refresh, color: isDark ? Colors.white : HerzogColors.navyBlue),
+                            onPressed: _loadData,
+                            tooltip: 'Refresh',
+                          ),
+                        ),
+                      ],
+                    );
+                  }),
                   if (_dashboard != null) _buildKPICards(),
                   const SizedBox(height: 20),
                   _buildFilters(),

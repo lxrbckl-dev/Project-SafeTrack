@@ -63,12 +63,24 @@ class _IncidentListPageState extends State<IncidentListPage> {
     'Reopened',
   ];
 
+  /// Tracks whether the initial load has completed, so that
+  /// [didChangeDependencies] can trigger a refresh on subsequent visits.
+  bool _initialLoadDone = false;
+
   @override
   void initState() {
     super.initState();
     final auth = context.read<AuthService>();
     _repo = IncidentRepository(auth);
     _loadIncidents();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_initialLoadDone) {
+      _loadIncidents();
+    }
   }
 
   Future<void> _loadIncidents() async {
@@ -96,6 +108,7 @@ class _IncidentListPageState extends State<IncidentListPage> {
         setState(() {
           _incidents = response.data;
           _loading = false;
+          _initialLoadDone = true;
         });
       }
     } catch (e) {
@@ -164,6 +177,18 @@ class _IncidentListPageState extends State<IncidentListPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
+              Builder(builder: (context) {
+                final isDark = Theme.of(context).brightness == Brightness.dark;
+                return Semantics(
+                  label: 'Refresh incidents',
+                  button: true,
+                  child: IconButton(
+                    icon: Icon(Icons.refresh, color: isDark ? Colors.white : HerzogColors.navyBlue),
+                    onPressed: _loadIncidents,
+                    tooltip: 'Refresh',
+                  ),
+                );
+              }),
               Semantics(
                 label: 'Switch to map view',
                 button: true,

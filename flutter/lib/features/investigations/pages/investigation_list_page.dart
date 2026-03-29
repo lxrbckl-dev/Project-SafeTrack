@@ -54,12 +54,27 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
       _incidentIdFilter.isNotEmpty ||
       _overdueOnly;
 
+  /// Tracks whether the initial load has completed, so that
+  /// [didChangeDependencies] can trigger a refresh on subsequent visits
+  /// without duplicating the first load.
+  bool _initialLoadDone = false;
+
   @override
   void initState() {
     super.initState();
     _auth = context.read<AuthService>();
     _repo = InvestigationRepository(_auth);
     _load();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // After the initial load, re-fetch data whenever the page regains focus
+    // (e.g. returning from a detail/create page with NoTransitionPage).
+    if (_initialLoadDone) {
+      _load();
+    }
   }
 
   @override
@@ -94,6 +109,7 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
           _investigations = result.data;
           _total = result.total;
           _loading = false;
+          _initialLoadDone = true;
         });
       }
     } catch (e) {
@@ -140,6 +156,15 @@ class _InvestigationListPageState extends State<InvestigationListPage> {
           child: Row(
             children: [
               // Clear filters — only visible when a filter is active
+              Semantics(
+                label: 'Refresh investigations',
+                button: true,
+                child: IconButton(
+                  icon: Icon(Icons.refresh, color: isDark ? Colors.white : HerzogColors.navyBlue),
+                  onPressed: _load,
+                  tooltip: 'Refresh',
+                ),
+              ),
               if (_hasActiveFilters)
                 Semantics(
                   label: 'Clear all filters',
