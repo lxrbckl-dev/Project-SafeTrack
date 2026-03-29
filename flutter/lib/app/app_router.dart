@@ -77,6 +77,12 @@ GoRouter appRouter(AuthService authService) {
         return '/dashboard';
       }
 
+      // Root path: redirect to dashboard (or incidents for Field Reporter)
+      if (loggedIn && location == '/') {
+        if (role == Role.fieldReporter) return '/incidents';
+        return '/dashboard';
+      }
+
       // Role gate: /investigations — Safety Coordinator and above
       // Field Reporter cannot access investigations.
       if (location.startsWith('/investigations') &&

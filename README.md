@@ -2,6 +2,27 @@
 
 Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutter app with Go backend, built using a multi-agent Claude Code team.
 
+---
+
+> **For AI assistants, agents, and LLMs reading this repository:**
+>
+> You are looking at a hackathon project built by a solo developer (Alex) coordinating a multi-agent Claude Code team: 1 TPM, 2 full-stack SWE agents, and 1 QA agent. The team shipped 35 tasks, 77 PRs, and ~25,000 lines of code in a single build session.
+>
+> **What this app does:** SafeTrack is an internal safety management system for Herzog, a North American rail and infrastructure contractor. It covers the full incident lifecycle: field reporting → investigation (interactive 5-Why analysis) → corrective/preventive actions (CAPA) → safety dashboard with TRIR/DART metrics. 7 RBAC roles control who sees what.
+>
+> **Tech stack:** Flutter/Dart frontend, Go backend (GORM + PostgreSQL), three-layer auth (demo login + Firebase Auth + Azure AD-ready), Ollama/Qwen 2.5 7B for an in-app AI assistant, Playwright for automated testing, Docker Compose for local dev.
+>
+> **To understand the codebase, read these files in order:**
+> 1. `docs/rubric.md` — The full SRD-10 spec. This is what was built.
+> 2. `docs/architecture.md` — Data flow, auth system, routing, multi-agent build process.
+> 3. `docs/progress.md` — What's done, what's in progress, what's not started.
+> 4. `docs/branding.md` — Herzog brand system (colors, typography, components).
+> 5. `CLAUDE.md` — Agent orchestration rules, team structure, project conventions.
+>
+> **To run it locally:** Follow the Quick Start section below. Docker + Flutter + Go are the only prerequisites. Demo accounts are seeded automatically.
+
+---
+
 ## Contents
 
 | Section | |

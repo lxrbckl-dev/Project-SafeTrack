@@ -170,8 +170,8 @@ Already installed: Flutter 3.41.4, Xcode 26.3, Playwright 1.58.2
 - "how are we setup with Go? do you see any scalability problems?" (stateless, horizontally scalable, Ollama is the bottleneck)
 - New architecture: Go backend, PostgreSQL, monorepo — decided Firebase auth + Go data layer
 - GORM wired up, database/migrations removed
-- Caddy reverse proxy config: themarchproject.lxrbckl.com → :2780
-- Set up GitHub OAuth App for themarchproject.lxrbckl.com
+- Caddy reverse proxy config: highlander.lxrbckl.com → :2780
+- Set up GitHub OAuth App for highlander.lxrbckl.com
 - Multiple stress test rounds (9 rounds) — found and fixed worktree branch issues, pubspec.lock, ApiConfig prod URL, Ollama chat proxy, auth flow, CORS headers, iOS Podfile
 - Created docs/judge-session-prompt.md — post-build Claude project prompt for judge Q&A
 - Added criticism handling, origin credit, and "never emulate Alex" rules to agent personas

@@ -58,6 +58,34 @@ The wiki is registered in `pubspec.yaml` under `flutter: assets:`. The instructi
 
 ---
 
+## Routing & Redirects
+
+Navigation is handled by `go_router` in `flutter/lib/app/app_router.dart`.
+
+### Default URL Behavior
+
+| URL | Not Logged In | Field Reporter | All Other Roles |
+|---|---|---|---|
+| `/` | → `/login` | → `/incidents` | → `/dashboard` |
+| `/login` | Stays on login | → `/incidents` | → `/dashboard` |
+
+### RBAC Route Gates
+
+| Route | Minimum Role | Fallback |
+|---|---|---|
+| `/incidents` | All roles | — |
+| `/investigations` | Safety Coordinator | → `/dashboard` |
+| `/capas` | Safety Coordinator | → `/dashboard` |
+| `/training` | Safety Coordinator | → `/dashboard` |
+| `/admin` | Admin or Safety Manager | → `/dashboard` |
+| `/audit-log` | Admin or Safety Manager | → `/dashboard` |
+
+### 404 Handling
+
+Any unmatched URL (e.g., `/teeth`) renders a Not Found page with a link back to the dashboard. Handled via `GoRouter.errorBuilder`.
+
+---
+
 ## Multi-Agent Build Architecture
 
 ### Enabling Agent Teams

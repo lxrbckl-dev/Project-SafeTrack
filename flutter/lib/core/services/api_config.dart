@@ -11,7 +11,7 @@ class ApiConfig {
       return 'http://localhost:$port';
     }
     // In production, Caddy proxies /api/* to the Go backend.
-    return 'https://themarchproject.lxrbckl.com';
+    return 'https://highlander.lxrbckl.com';
   }
 
   /// Ollama calls should go through the Go backend, not directly from Flutter.

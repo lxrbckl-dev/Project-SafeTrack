@@ -63,7 +63,8 @@
       "Read(//Users/highlander/Desktop/highlander/**)",
       "Bash(docker-compose -f /Users/highlander/Desktop/highlander/docker-compose.yml down)",
       "Bash(docker-compose -f /Users/highlander/Desktop/highlander/docker-compose.yml up -d)",
-      "Bash(dart analyze:*)"
+      "Bash(dart analyze:*)",
+      "Bash(sips -g pixelWidth -g pixelHeight /Users/highlander/Desktop/highlander/flutter/assets/icon_sidebar.png)"
     ],
     "deny": [],
     "defaultMode": "bypassPermissions",
