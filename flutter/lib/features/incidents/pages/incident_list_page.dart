@@ -7,6 +7,7 @@ import '../../../app/herzog_theme.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/services/sync_service.dart';
 import '../../../core/services/sync_status.dart';
+import '../../../core/constants/divisions.dart';
 import '../../auth/data/auth_service.dart';
 import '../../auth/data/role.dart';
 import '../../dashboard/widgets/welcome_header.dart';
@@ -254,63 +255,37 @@ class _IncidentListPageState extends State<IncidentListPage> {
           ),
           const SizedBox(width: 12),
           // Division filter
-          Builder(builder: (context) {
-            final isDark = Theme.of(context).brightness == Brightness.dark;
-            return SizedBox(
+          SizedBox(
             width: 180,
             height: 48,
-            child: TextField(
-              decoration: InputDecoration(
-                labelText: 'Division',
-                labelStyle: HerzogText.label(
-                  fontSize: 11,
-                  color: isDark ? HerzogDarkColors.textMuted : HerzogColors.midGray,
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: const BorderRadius.all(Radius.circular(4)),
-                  borderSide: BorderSide(
-                    color: isDark ? HerzogDarkColors.inputBorder : HerzogColors.borderGray,
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: const BorderRadius.all(Radius.circular(4)),
-                  borderSide: BorderSide(
-                    color: isDark ? HerzogDarkColors.inputBorder : HerzogColors.borderGray,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: const BorderRadius.all(Radius.circular(4)),
-                  borderSide: BorderSide(
-                    color: isDark ? HerzogColors.gold : HerzogColors.navyBlue,
-                    width: 2,
-                  ),
-                ),
-                suffixIcon:
-                    _divisionFilter != null && _divisionFilter!.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, size: 16),
-                        onPressed: () {
-                          setState(() => _divisionFilter = null);
-                          _loadIncidents();
-                        },
-                      )
-                    : null,
-              ),
-              style: HerzogText.body(
-                fontSize: 13,
-                color: isDark ? HerzogDarkColors.textPrimary : HerzogColors.darkGray,
-              ),
-              onSubmitted: (v) {
-                setState(() => _divisionFilter = v.isEmpty ? null : v);
+            child: _FilterDropdown(
+              label: 'Division',
+              value: _divisionFilter,
+              items: kDivisions,
+              onChanged: (v) {
+                setState(() => _divisionFilter = v);
                 _loadIncidents();
               },
             ),
-          );
-          }),
+          ),
+          const SizedBox(width: 12),
+          // Search button
+          SizedBox(
+            height: 48,
+            child: Semantics(
+              label: 'Search incidents',
+              button: true,
+              child: ElevatedButton.icon(
+                onPressed: _loadIncidents,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: HerzogColors.navyBlue,
+                  foregroundColor: HerzogColors.white,
+                ),
+                icon: const Icon(Icons.search),
+                label: const Text('Search'),
+              ),
+            ),
+          ),
           const Spacer(),
           // New Incident button
           if (canCreate)

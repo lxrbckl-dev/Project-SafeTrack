@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/herzog_theme.dart';
+import '../../../core/constants/divisions.dart';
 import '../../../shared/widgets/app_dropdown.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../auth/data/auth_service.dart';
@@ -157,11 +158,15 @@ class InjuredPersonForm extends StatelessWidget {
             const SizedBox(height: 12),
 
             // Division
-            AppTextField(
+            AppDropdown<String>(
               label: 'Division',
-              initialValue: person.division,
+              options: kDivisions
+                  .map((d) => AppDropdownOption(value: d, label: d))
+                  .toList(),
+              value: person.division.isEmpty ? null : person.division,
               enabled: enabled,
-              onChanged: (v) => onChanged(_update(division: v)),
+              onChanged: (v) => onChanged(_update(division: v ?? '')),
+              hint: 'Select division',
             ),
             const SizedBox(height: 12),
 

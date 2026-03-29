@@ -12,6 +12,7 @@ import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/voice_input_button.dart';
 import '../../auth/data/auth_service.dart';
 import '../../chat/data/form_fill_service.dart';
+import '../../../core/constants/divisions.dart';
 import '../data/incident_repository.dart';
 import '../widgets/completion_indicator.dart';
 import '../widgets/gps_location_field.dart';
@@ -698,14 +699,19 @@ class _IncidentFormPageState extends State<IncidentFormPage> {
                     },
                   ),
                   const SizedBox(height: 12),
-                  AppTextField(
+                  AppDropdown<String>(
                     label: 'Division',
-                    controller: _divisionController,
-                    hint: 'e.g., HCC, HRSI, HSI',
-                    onChanged: (_) {
-                      setState(() {});
+                    options: kDivisions
+                        .map((d) => AppDropdownOption(value: d, label: d))
+                        .toList(),
+                    value: _divisionController.text.isEmpty
+                        ? null
+                        : _divisionController.text,
+                    onChanged: (v) {
+                      setState(() => _divisionController.text = v ?? '');
                       _markDirty();
                     },
+                    hint: 'Select division',
                   ),
                   const SizedBox(height: 12),
                   AppTextField(

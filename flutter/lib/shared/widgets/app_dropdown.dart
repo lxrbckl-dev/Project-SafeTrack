@@ -72,6 +72,7 @@ class AppDropdown<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     final effectiveLabel = required ? '$label *' : label;
     final effectiveSemanticLabel = semanticLabel ?? label;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Semantics(
       label: effectiveSemanticLabel,
@@ -87,7 +88,9 @@ class AppDropdown<T> extends StatelessWidget {
               style: HerzogText.label(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: HerzogColors.darkGray,
+                color: isDark
+                    ? HerzogDarkColors.textSecondary
+                    : HerzogColors.darkGray,
               ),
             ),
           ),
@@ -97,18 +100,27 @@ class AppDropdown<T> extends StatelessWidget {
             onChanged: enabled ? onChanged : null,
             validator: validator,
             isExpanded: true,
-            icon: const Icon(
+            icon: Icon(
               Icons.keyboard_arrow_down,
-              color: HerzogColors.darkGray,
+              color: isDark
+                  ? HerzogDarkColors.textSecondary
+                  : HerzogColors.darkGray,
             ),
-            dropdownColor: HerzogColors.white,
-            style: HerzogText.body(fontSize: 14, color: HerzogColors.darkGray),
+            dropdownColor: isDark
+                ? HerzogDarkColors.surfaceVariant
+                : HerzogColors.white,
+            style: HerzogText.body(
+              fontSize: 14,
+              color: isDark ? Colors.white : HerzogColors.darkGray,
+            ),
             hint: hint != null
                 ? Text(
                     hint!,
                     style: HerzogText.body(
                       fontSize: 14,
-                      color: HerzogColors.smoke,
+                      color: isDark
+                          ? HerzogDarkColors.textMuted
+                          : HerzogColors.smoke,
                     ),
                   )
                 : null,
@@ -116,7 +128,9 @@ class AppDropdown<T> extends StatelessWidget {
               filled: !enabled,
               fillColor: enabled
                   ? null
-                  : HerzogColors.lightGray.withValues(alpha: 0.5),
+                  : isDark
+                      ? HerzogDarkColors.surface.withValues(alpha: 0.5)
+                      : HerzogColors.lightGray.withValues(alpha: 0.5),
             ),
             items: options
                 .map(

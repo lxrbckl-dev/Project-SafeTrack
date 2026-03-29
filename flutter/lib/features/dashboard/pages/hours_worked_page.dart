@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../app/herzog_theme.dart';
+import '../../../core/constants/divisions.dart';
+import '../../../shared/widgets/app_dropdown.dart';
 import '../../auth/data/auth_service.dart';
 import '../data/dashboard_repository.dart';
 
@@ -198,12 +200,20 @@ class _HoursWorkedPageState extends State<HoursWorkedPage> {
                         },
                       ),
                       const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _divisionController,
-                        decoration: const InputDecoration(
-                          labelText: 'Division (optional)',
-                          hintText: 'e.g. Track',
-                        ),
+                      AppDropdown<String>(
+                        label: 'Division (optional)',
+                        options: kDivisions
+                            .map((d) =>
+                                AppDropdownOption(value: d, label: d))
+                            .toList(),
+                        value: _divisionController.text.isEmpty
+                            ? null
+                            : _divisionController.text,
+                        onChanged: (v) {
+                          setState(
+                              () => _divisionController.text = v ?? '');
+                        },
+                        hint: 'Select division',
                       ),
                       const SizedBox(height: 16),
                       Align(
