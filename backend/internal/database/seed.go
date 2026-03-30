@@ -624,31 +624,33 @@ func SeedData(db *gorm.DB) {
 		name     string
 	}
 	usSites := []gpsPoint{
-		{39.0997, -94.5786, "Kansas City, MO"}, // Herzog HQ
-		{38.6270, -90.1994, "St. Louis, MO"},
-		{41.8781, -87.6298, "Chicago, IL"},
-		{32.7767, -96.7970, "Dallas, TX"},
-		{29.7604, -95.3698, "Houston, TX"},
-		{33.4484, -112.0740, "Phoenix, AZ"},
-		{34.0522, -118.2437, "Los Angeles, CA"},
-		{37.7749, -122.4194, "San Francisco, CA"},
-		{47.6062, -122.3321, "Seattle, WA"},
-		{39.7392, -104.9903, "Denver, CO"},
-		{35.4676, -97.5164, "Oklahoma City, OK"},
-		{36.1627, -86.7816, "Nashville, TN"},
-		{30.2672, -97.7431, "Austin, TX"},
-		{32.2217, -110.9265, "Tucson, AZ"},
-		{35.2271, -80.8431, "Charlotte, NC"},
-		{33.7490, -84.3880, "Atlanta, GA"},
+		// Corporate HQ
+		{39.7516, -94.8460, "St. Joseph, MO"},
+		// Regional Offices
+		{32.7157, -117.1611, "San Diego, CA"},
+		{26.0535, -80.1373, "Dania Beach, FL"},
+		{32.8141, -96.9489, "Irving, TX"},
+		{32.7555, -97.3308, "Fort Worth, TX"},
+		{41.9779, -91.6656, "Cedar Rapids, IA"},
+		// Canada
+		{53.2655, -113.5517, "Leduc, AB"},
+		// Passenger Rail Operations
+		{37.9577, -121.2908, "Stockton, CA"},
+		{28.5383, -81.3792, "Orlando, FL"},
+		{37.3382, -121.8863, "San Jose, CA"},
+		{34.1064, -117.5931, "Rancho Cucamonga, CA"},
 		{25.7617, -80.1918, "Miami, FL"},
-		{42.3314, -83.0458, "Detroit, MI"},
-		{44.9778, -93.2650, "Minneapolis, MN"},
-		{41.2565, -95.9345, "Omaha, NE"},
-		{38.2527, -85.7585, "Louisville, KY"},
-		{39.9612, -82.9988, "Columbus, OH"},
-		{37.6879, -97.3375, "Wichita, KS"},
-		{36.7468, -119.7726, "Fresno, CA"},
-		{31.9686, -99.9018, "San Angelo, TX"},
+		{41.2982, -72.9265, "New Haven, CT"},
+		{28.8003, -81.2737, "Sanford, FL"},
+		{39.0997, -94.5786, "Kansas City, MO"},
+		{35.0844, -106.6504, "Albuquerque, NM"},
+		{30.2672, -97.7431, "Austin, TX"},
+		{40.7178, -74.0431, "Jersey City, NJ"},
+		{33.0198, -96.6989, "Plano, TX"},
+		{32.7555, -97.3308, "Fort Worth, TX"},
+		{32.8141, -96.9489, "Irving, TX"},
+		{18.4153, -66.1057, "Guaynabo, PR"},
+		{34.2368, -84.3258, "Canton, GA"},
 	}
 
 	// -------------------------------------------------------------------------
