@@ -37,6 +37,7 @@ SafeTrack is an Incident Investigation & Corrective Action System built for work
 | `/search` | Global Search | Cross-entity search across incidents, investigations, and CAPAs with debounced results and RBAC scoping |
 | `/notification-preferences` | Notification Preferences | Choose notification delivery: in-app only, email, or both |
 | `/activity` | Activity Feed | Live system-wide action stream with real-time WebSocket updates and human-readable messages |
+| `/help` | Help Guide | Full user manual rendered from bundled wiki.md with branded markdown |
 
 ---
 
@@ -267,6 +268,7 @@ Supported query parameters by route:
 - **Desktop (>=900px):** Sidebar navigation with section icons and labels
 - **Mobile (<900px):** Bottom navigation bar
 - Dark mode toggle in sidebar footer
+- Help Guide button in sidebar footer (renders this wiki as a formatted page)
 - Logout button in sidebar footer
 - "Restart Tour" option in sidebar
 - `go_router` handles all navigation with deep linking and web URL support

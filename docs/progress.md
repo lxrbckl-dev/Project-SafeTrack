@@ -128,6 +128,29 @@
 | Seed data visibility | #189 | Draft incidents visible only to correct reporter |
 | Dashboard uniform layout | #191 | Consistent spacing and card sizing |
 | Seed data ratios | latest | Realistic near miss rate, investigation timeliness, OSHA rates |
+| Wiki-as-RAG wired | latest | Flutter loads wiki.md, sends as system context to AI chat |
+| Firebase removed | latest | Unused dependency stripped, Azure AD-ready via JWT middleware |
+| Login background image | latest | Herzog worker photo with dark overlay, WCAG compliant |
+| Help Guide page | latest | /help route renders wiki.md with branded markdown, sidebar button, Ctrl+Shift+G shortcut |
+| Division dropdowns | latest | Shared kDivisions constant, dropdowns on incident list/form, injured person, hours worked |
+| Searchable investigation form | latest | Autocomplete for Incident ID and Lead Investigator (GET /api/users endpoint) |
+| CI/CD pipeline | latest | GitHub Action: Playwright → DockerHub push (lxrbckl/pap-highlander-web + backend) |
+| DockerHub deployment | latest | docker-compose.prod.yml — one-command deploy from pre-built images |
+| Configurable env vars | latest | SUPPORT_EMAIL, SUPPORT_PHONE, API_BASE_URL, ENCRYPTION_KEY, DB credentials |
+| MCP guide + demo key | latest | docs/mcp-guide.md, pre-seeded stk_demo_judge_key_2026 |
+| GitHub stats | latest | docs/github-stats.md — 237 commits, 103 issues, 94 PRs |
+| Comprehensive dark mode audit | latest | 28+ files fixed across all pages for WCAG contrast |
+| Dark mode toggle fix | latest | Theme toggle no longer navigates away from current page |
+| Seed data: Herzog locations | latest | 23 actual Herzog operating locations across US + Canada + PR |
+| Seed data: randomized times | latest | Weighted hour distribution (70% day, 20% evening, 10% overnight) |
+| Incident filter polish | latest | Search + Clear buttons, Division dropdown |
+| Refresh + auto-refresh | latest | Refresh button + didChangeDependencies on Investigations, Incidents, CAPAs |
+| PDF report icons | latest | SafeTrack icon in incident and dashboard PDF headers |
+| Sort header visibility | latest | Active sort arrow gold/navy, hover highlight on investigations table |
+| Chart improvements | latest | Incident trend: readable months, axis titles, rich tooltips, tooltip clipping fix |
+| 404 page updates | latest | Configurable GIF via dart-define, dashboard redirect button |
+| Keyboard shortcut remap | latest | N→I (Incidents), K→C (Chat), G (Help Guide) |
+| Navigation transitions | latest | NoTransitionPage on all 22 shell routes — instant page swap |
 | Login page links not clickable | #127 | Forgot Password + support contact fixed |
 | Forgot Password + support contact | #125 | Added to login page |
 | Graceful Ollama offline degradation | #123 | Chat works when Ollama unavailable |
@@ -157,7 +180,7 @@
 | Agent worktree isolation | All agents work in separate git worktrees, SWEs open PRs, peer review |
 | Agent conversation logging | Each agent logs exchanges to docs/conversations/ |
 | Playwright setup | Installed, browser downloaded, 15 spec files, 100+ test cases |
-| AutoResearch eval loop | 5/5 evals passing — wiki RAG context validated |
+| AutoResearch eval suite | 42-case eval: 10% baseline → 88% with wiki RAG (+79 points) |
 | Integration stress test | 17/17 cross-feature tests passed, zero bugs |
 | Resilience stress test | 14 tests: High/Medium fixed, Low deferred, clean re-pass |
 | SafeTrack logo/icon | 2048px icon deployed across all platforms + sidebar |

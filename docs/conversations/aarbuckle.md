@@ -895,3 +895,8 @@ Already installed: Flutter 3.41.4, Xcode 26.3, Playwright 1.58.2
 - Replaced 25 generic US cities with 23 actual Herzog locations
 - St. Joseph HQ, San Diego, Dania Beach, Irving, Fort Worth, Cedar Rapids, Leduc AB, Stockton, Orlando, San Jose, Rancho Cucamonga, Miami, New Haven, Sanford, Kansas City, Albuquerque, Austin, Jersey City, Plano, Guaynabo PR, Canton GA
 - Texas corridor weighted with duplicate entries (realistic for Herzog's heavy TX presence)
+
+### Dark Mode Toggle Navigation Fix
+- GoRouter was recreated on every theme toggle because appRouter() was called inside Consumer<ThemeService>
+- Converted MyApp to StatefulWidget, create GoRouter once in initState
+- Toggling dark mode no longer navigates away from the current page
