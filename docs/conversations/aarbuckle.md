@@ -878,3 +878,20 @@ Already installed: Flutter 3.41.4, Xcode 26.3, Playwright 1.58.2
 - Moved Search button to far left of filter row
 - Added Clear Filters button (navy blue, matches Search style) — resets all three filters
 - Production API URL rebuild triggered for DockerHub images
+
+### Refresh Button Overlap Fix
+- Refresh buttons on CAPAs, Admin, Incidents, and Audit Log pages were positioned top-right, overlapping the notification bell
+- Moved all to MainAxisAlignment.start (left side) to prevent tap conflicts
+
+### Audit Log Filter Dark Mode
+- SWE-2 fixed filter section: labels, dropdowns, icons, date text, borders all dark-mode-aware
+- Separate widget file (audit_log_filters.dart) needed the isDark treatment
+
+### CAPA KPI Card Dark Mode
+- Open CAPAs value was navyBlue (invisible on dark) → gold in dark mode
+- Avg Time to Close was infoTeal → white in dark mode
+
+### Seed Data: Herzog Operating Locations
+- Replaced 25 generic US cities with 23 actual Herzog locations
+- St. Joseph HQ, San Diego, Dania Beach, Irving, Fort Worth, Cedar Rapids, Leduc AB, Stockton, Orlando, San Jose, Rancho Cucamonga, Miami, New Haven, Sanford, Kansas City, Albuquerque, Austin, Jersey City, Plano, Guaynabo PR, Canton GA
+- Texas corridor weighted with duplicate entries (realistic for Herzog's heavy TX presence)
