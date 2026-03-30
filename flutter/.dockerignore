@@ -1,0 +1,20 @@
+# Build artifacts
+build/
+.dart_tool/
+.packages
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Test
+test/
+integration_test/
+
+# Platform dirs not needed for web
+android/
+ios/
+macos/
+windows/
+linux/

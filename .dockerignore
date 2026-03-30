@@ -1,0 +1,28 @@
+# Documentation — not needed in any Docker image
+docs/
+.logs/
+.claude/
+
+# GitHub Pages
+docs/index.html
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# CI
+.github/
+
+# Tests
+playwright/
+eval/
+
+# Misc
+README.md
+CLAUDE.md
+*.md

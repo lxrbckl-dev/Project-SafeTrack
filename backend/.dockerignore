@@ -1,2 +1,10 @@
 server
 tmp/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Docs not needed in backend image
+README.md
