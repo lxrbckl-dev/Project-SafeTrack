@@ -52,10 +52,6 @@ func SeedData(db *gorm.DB) {
 		return choices[rng.Intn(len(choices))]
 	}
 
-	pickFloat := func(min, max float64) float64 {
-		return min + rng.Float64()*(max-min)
-	}
-
 	randDate := func(monthsBack int) time.Time {
 		mo := rng.Intn(monthsBack)
 		dy := rng.Intn(28)
@@ -619,6 +615,43 @@ func SeedData(db *gorm.DB) {
 	}
 
 	// -------------------------------------------------------------------------
+	// GPS locations — realistic US sites where a rail/infrastructure company
+	// like Herzog would operate.  A small random offset (±0.05°, ~3 mi) is
+	// added so incidents at the same city don't share the exact same point.
+	// -------------------------------------------------------------------------
+	type gpsPoint struct {
+		lat, lon float64
+		name     string
+	}
+	usSites := []gpsPoint{
+		{39.0997, -94.5786, "Kansas City, MO"}, // Herzog HQ
+		{38.6270, -90.1994, "St. Louis, MO"},
+		{41.8781, -87.6298, "Chicago, IL"},
+		{32.7767, -96.7970, "Dallas, TX"},
+		{29.7604, -95.3698, "Houston, TX"},
+		{33.4484, -112.0740, "Phoenix, AZ"},
+		{34.0522, -118.2437, "Los Angeles, CA"},
+		{37.7749, -122.4194, "San Francisco, CA"},
+		{47.6062, -122.3321, "Seattle, WA"},
+		{39.7392, -104.9903, "Denver, CO"},
+		{35.4676, -97.5164, "Oklahoma City, OK"},
+		{36.1627, -86.7816, "Nashville, TN"},
+		{30.2672, -97.7431, "Austin, TX"},
+		{32.2217, -110.9265, "Tucson, AZ"},
+		{35.2271, -80.8431, "Charlotte, NC"},
+		{33.7490, -84.3880, "Atlanta, GA"},
+		{25.7617, -80.1918, "Miami, FL"},
+		{42.3314, -83.0458, "Detroit, MI"},
+		{44.9778, -93.2650, "Minneapolis, MN"},
+		{41.2565, -95.9345, "Omaha, NE"},
+		{38.2527, -85.7585, "Louisville, KY"},
+		{39.9612, -82.9988, "Columbus, OH"},
+		{37.6879, -97.3375, "Wichita, KS"},
+		{36.7468, -119.7726, "Fresno, CA"},
+		{31.9686, -99.9018, "San Angelo, TX"},
+	}
+
+	// -------------------------------------------------------------------------
 	// Generate 110 incidents
 	// -------------------------------------------------------------------------
 	numIncidents := 110
@@ -699,8 +732,9 @@ func SeedData(db *gorm.DB) {
 		action := actions[rng.Intn(len(actions))]
 
 		potSev := pick(potentialSeverities)
-		lat := pickFloat(41.860, 41.930)
-		lon := pickFloat(-87.730, -87.610)
+		site := usSites[rng.Intn(len(usSites))]
+		lat := site.lat + (rng.Float64()-0.5)*0.1
+		lon := site.lon + (rng.Float64()-0.5)*0.1
 
 		inc := &models.Incident{
 			Type:                        incType,
