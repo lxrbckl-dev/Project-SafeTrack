@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Highlander — SRD-10 Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gold: #C9A84C; --gold-dim: #7A5E28;
+      --teal: #3A9E8F; --teal-dim: #1E5C55;
+      --red: #E04E3A; --red-dim: #7A2A1E;
+      --purple: #7C6FCD; --amber: #D4880A;
+      --green: #4CAF82;
+      --bg: #0e0e0e; --bg2: #161616; --bg3: #1e1e1e;
+      --border: rgba(255,255,255,0.08);
+      --border2: rgba(255,255,255,0.14);
+      --text: #e8e6df; --text2: #9e9c94; --text3: #5a5955;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { background: var(--bg); }
+    body { font-family: 'Syne', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 3rem 1.5rem 5rem; }
+    .root { max-width: 760px; margin: 0 auto; }
+
+    .hero { padding-bottom: 1.5rem; margin-bottom: 1.75rem; border-bottom: 0.5px solid var(--border); }
+    .eyebrow { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+    .h-title { font-size: 52px; font-weight: 800; letter-spacing: -0.04em; line-height: 1.0; }
+    .h-title em { font-style: normal; color: var(--gold); }
+    .h-sub { font-size: 14px; color: var(--text2); margin-top: 10px; line-height: 1.7; max-width: 620px; font-weight: 400; }
+    .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+    .badge { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.06em; padding: 4px 10px; border-radius: 3px; border: 0.5px solid; text-decoration: none; display: inline-block; transition: opacity 0.15s; }
+    .badge:hover { opacity: 0.7; }
+    .bg { color: var(--gold); border-color: var(--gold-dim); }
+    .bt { color: var(--teal); border-color: var(--teal-dim); }
+    .bn { color: var(--text2); border-color: rgba(255,255,255,0.12); }
+
+    .links-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.75rem; }
+    .link-btn { font-family: 'DM Mono', monospace; font-size: 11px; padding: 8px 16px; border-radius: 6px; border: 0.5px solid var(--border2); color: var(--text2); text-decoration: none; display: inline-flex; align-items: center; gap: 7px; transition: background 0.15s, color 0.15s, border-color 0.15s; }
+    .link-btn:hover { background: var(--bg3); color: var(--text); border-color: rgba(255,255,255,0.2); }
+    .link-btn.primary { border-color: var(--teal-dim); color: var(--teal); }
+    .link-btn.primary:hover { background: rgba(58,158,143,0.1); border-color: var(--teal); }
+    .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .dot-live { background: #4CAF82; box-shadow: 0 0 0 2px rgba(76,175,130,0.2); }
+    .dot-gpt { background: var(--amber); }
+    .dot-gh { background: var(--text3); }
+
+    .sec { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text3); margin-bottom: 12px; }
+    .divider { height: 0.5px; background: var(--border); margin: 1.5rem 0; }
+
+    .sg4 { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; margin-bottom: 1.5rem; }
+    @media (max-width: 560px) { .sg4 { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+    .scard { background: var(--bg2); border-radius: 8px; padding: 14px 16px; position: relative; overflow: hidden; border: 0.5px solid var(--border); }
+    .scard::before { content:''; position:absolute; top:0; left:0; width:3px; height:100%; }
+    .scard.cg::before { background: var(--gold); }
+    .scard.ct::before { background: var(--teal); }
+    .scard.cn::before { background: var(--border2); }
+    .scard.cv::before { background: var(--green); }
+    .slabel { font-size: 11px; color: var(--text3); margin-bottom: 5px; font-weight: 400; }
+    .sval { font-size: 24px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+    .sval.vg { color: var(--gold); }
+    .sval.vt { color: var(--teal); }
+    .sval.vv { color: var(--green); }
+    .ssub { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); margin-top: 4px; }
+
+    .contrib-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; margin-bottom: 1.5rem; }
+    @media (max-width: 480px) { .contrib-grid { grid-template-columns: 1fr; } }
+    .contrib-card { border: 0.5px solid var(--border); border-radius: 8px; padding: 14px 16px; background: var(--bg2); }
+    .contrib-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .contrib-name { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500; color: var(--text); }
+    .contrib-rank { font-family: 'DM Mono', monospace; font-size: 10px; padding: 2px 7px; border-radius: 3px; }
+    .rank-1 { background: rgba(201,168,76,0.15); color: var(--gold); }
+    .rank-2 { background: rgba(58,158,143,0.12); color: var(--teal); }
+    .contrib-commits { font-size: 28px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; margin-bottom: 4px; }
+    .contrib-commits.ai { color: var(--gold); }
+    .contrib-commits.human { color: var(--teal); }
+    .contrib-sub { font-size: 11px; color: var(--text3); margin-bottom: 10px; font-weight: 400; }
+    .diff-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+    .diff-symbol { font-family: 'DM Mono', monospace; font-size: 11px; min-width: 20px; font-weight: 500; }
+    .diff-symbol.add { color: var(--green); }
+    .diff-symbol.del { color: var(--red); }
+    .diff-track { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .diff-fill { height: 100%; border-radius: 2px; transition: width 1.2s cubic-bezier(.4,0,.2,1); }
+    .diff-num { font-family: 'DM Mono', monospace; font-size: 10px; min-width: 58px; text-align: right; }
+    .diff-num.add { color: var(--green); }
+    .diff-num.del { color: var(--red); }
+
+    .totals-banner { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; margin-bottom: 1.5rem; }
+    .tcard { text-align: center; padding: 12px 8px; border-radius: 8px; border: 0.5px solid var(--border); }
+    .tval { font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 500; line-height: 1; }
+    .tlbl { font-size: 11px; margin-top: 4px; font-weight: 400; }
+    .tcard.tadd { background: rgba(76,175,130,0.06); border-color: rgba(76,175,130,0.2); }
+    .tcard.tadd .tval, .tcard.tadd .tlbl { color: var(--green); }
+    .tcard.tdel { background: rgba(224,78,58,0.05); border-color: rgba(224,78,58,0.15); }
+    .tcard.tdel .tval, .tcard.tdel .tlbl { color: var(--red); }
+    .tcard.tcom { background: var(--bg2); }
+    .tcard.tcom .tval { color: var(--text); }
+    .tcard.tcom .tlbl { color: var(--text3); }
+
+    .bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .bar-label { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text2); min-width: 110px; }
+    .bar-track { flex: 1; height: 5px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 3px; transition: width 1.2s cubic-bezier(.4,0,.2,1); }
+    .bar-count { font-family: 'DM Mono', monospace; font-size: 11px; min-width: 70px; text-align: right; color: var(--text3); }
+    .bar-count.hl { color: var(--teal); font-weight: 500; }
+
+    .loc-table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+    .loc-table th { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); text-align: left; padding: 0 12px 8px 0; border-bottom: 0.5px solid var(--border); }
+    .loc-table th:last-child { text-align: right; padding-right: 0; }
+    .loc-table td { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text2); padding: 9px 12px 9px 0; border-bottom: 0.5px solid var(--border); vertical-align: middle; }
+    .loc-table td:last-child { text-align: right; padding-right: 0; color: var(--text3); }
+    .loc-table tr:last-child td { border-bottom: none; }
+    .loc-mini-track { height: 3px; background: var(--bg3); border-radius: 2px; overflow: hidden; margin-top: 4px; }
+    .loc-mini-fill { height: 100%; border-radius: 2px; }
+    .loc-name { color: var(--text); font-weight: 500; }
+    .loc-lines { color: var(--gold); }
+
+    .diff-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 6px; margin-bottom: 1.5rem; }
+    .diff-card { text-align: center; padding: 12px 8px; background: var(--bg2); border-radius: 8px; border: 0.5px solid var(--border); }
+    .diff-val { font-family: 'DM Mono', monospace; font-size: 20px; font-weight: 500; line-height: 1; }
+    .diff-lbl { font-size: 11px; color: var(--text3); margin-top: 4px; font-weight: 400; }
+
+    .agent-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; margin-bottom: 1.5rem; }
+    @media (max-width: 480px) { .agent-grid { grid-template-columns: 1fr; } }
+    .acard { border: 0.5px solid var(--border); border-radius: 8px; padding: 14px 16px; display: flex; flex-direction: column; background: var(--bg2); }
+    .ahead { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .achip { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; padding: 3px 8px; border-radius: 3px; letter-spacing: 0.06em; }
+    .chip-tpm { background: rgba(201,168,76,0.15); color: var(--gold); }
+    .chip-s1  { background: rgba(58,158,143,0.15); color: var(--teal); }
+    .chip-s2  { background: rgba(58,158,143,0.10); color: var(--teal); }
+    .chip-qa  { background: rgba(224,78,58,0.12);  color: var(--red); }
+    .aname { font-size: 13px; font-weight: 600; color: var(--text); }
+    .adesc { font-size: 12px; color: var(--text2); line-height: 1.6; flex: 1; font-weight: 400; }
+    .atags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+    .atag { font-family: 'DM Mono', monospace; font-size: 9px; padding: 2px 7px; border-radius: 2px; background: var(--bg3); color: var(--text3); border: 0.5px solid var(--border); }
+    .aprompt { font-family: 'DM Mono', monospace; font-size: 10px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 0.5px solid var(--border); transition: color 0.15s; }
+    .acard:nth-child(1) .aprompt { color: var(--gold-dim); }
+    .acard:nth-child(1) .aprompt:hover { color: var(--gold); }
+    .acard:nth-child(2) .aprompt { color: var(--teal-dim); }
+    .acard:nth-child(2) .aprompt:hover { color: var(--teal); }
+    .acard:nth-child(3) .aprompt { color: var(--teal-dim); }
+    .acard:nth-child(3) .aprompt:hover { color: var(--teal); }
+    .acard:nth-child(4) .aprompt { color: var(--red-dim); }
+    .acard:nth-child(4) .aprompt:hover { color: var(--red); }
+
+    .phases { display: flex; flex-direction: column; margin-bottom: 1.5rem; }
+    .phase-row { display: flex; align-items: flex-start; gap: 14px; padding: 12px 0; border-bottom: 0.5px solid var(--border); }
+    .phase-row:last-child { border-bottom: none; }
+    .phase-num { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); min-width: 24px; padding-top: 3px; }
+    .phase-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); margin-top: 5px; flex-shrink: 0; }
+    .phase-body { flex: 1; }
+    .phase-name { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.3; }
+    .phase-summary { font-size: 12px; color: var(--text2); margin-top: 4px; line-height: 1.6; font-weight: 400; }
+    .phase-meta { display: flex; align-items: center; gap: 10px; margin-top: 7px; }
+    .phase-tasks-badge { font-family: 'DM Mono', monospace; font-size: 9px; padding: 2px 7px; border-radius: 2px; background: var(--bg3); color: var(--text3); border: 0.5px solid var(--border); }
+    .phase-link { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--gold-dim); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: color 0.15s; }
+    .phase-link:hover { color: var(--gold); }
+
+    .ar-callout { background: rgba(201,168,76,0.05); border: 0.5px solid rgba(201,168,76,0.2); border-radius: 8px; padding: 16px 18px; margin-bottom: 1.5rem; }
+    .ar-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .ar-chip { font-family: 'DM Mono', monospace; font-size: 10px; padding: 3px 8px; border-radius: 3px; background: rgba(201,168,76,0.15); color: var(--gold); letter-spacing: 0.06em; }
+    .ar-title { font-size: 14px; font-weight: 600; color: var(--text); }
+    .ar-body { font-size: 12px; color: var(--text2); line-height: 1.7; font-weight: 400; }
+    .ar-stats { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 6px; margin-top: 12px; }
+    .ar-stat { text-align: center; padding: 8px; background: rgba(201,168,76,0.06); border-radius: 6px; }
+    .ar-stat-val { font-family: 'DM Mono', monospace; font-size: 16px; font-weight: 500; color: var(--gold); line-height: 1; }
+    .ar-stat-lbl { font-size: 10px; color: var(--text3); margin-top: 3px; font-weight: 400; }
+
+    .usage-chart { background: var(--bg2); border: 0.5px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 1.5rem; position: relative; height: 200px; }
+    .token-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 6px; margin-bottom: 1.5rem; }
+    .token-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+    .token-day { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); margin-bottom: 4px; }
+    .token-val { font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 500; color: var(--purple); line-height: 1; }
+    .token-lbl { font-size: 10px; color: var(--text3); margin-top: 3px; font-weight: 400; }
+
+    .cov-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 6px; margin-bottom: 1.5rem; }
+    .cov-card { text-align: center; padding: 12px 8px; background: var(--bg2); border-radius: 8px; border: 0.5px solid var(--border); }
+    .cov-val { font-family: 'DM Mono', monospace; font-size: 20px; font-weight: 500; color: var(--teal); line-height: 1; }
+    .cov-lbl { font-size: 11px; color: var(--text3); margin-top: 4px; line-height: 1.3; font-weight: 400; }
+    .cov-card.lift { background: rgba(58,158,143,0.07); border-color: rgba(58,158,143,0.2); }
+    .cov-card.lift .cov-val, .cov-card.lift .cov-lbl { color: var(--teal); }
+
+    .stack-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1.5rem; }
+    .spill { font-family: 'DM Mono', monospace; font-size: 11px; padding: 5px 13px; border: 0.5px solid var(--border); border-radius: 20px; color: var(--text2); }
+    .spill.hl { border-color: var(--gold-dim); color: var(--gold); }
+    .spill.tl { border-color: var(--teal-dim); color: var(--teal); }
+    .spill.pl { border-color: rgba(124,111,205,0.4); color: var(--purple); }
+
+    .footer { font-size: 12px; color: var(--text3); line-height: 1.7; border-top: 0.5px solid var(--border); padding-top: 12px; font-weight: 400; }
+    .generated { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); margin-top: 2rem; letter-spacing: 0.06em; }
+  </style>
+</head>
+<body>
+<div class="root">
+
+  <div class="hero">
+    <div class="eyebrow">SRD-10 &nbsp;·&nbsp; Incident Investigation & Corrective Action System &nbsp;·&nbsp; Mar 27–29, 2026</div>
+    <div class="h-title"><em>Highlander</em></div>
+    <div class="h-sub">Built solo during a 59-hour hackathon by coordinating a multi-agent AI team — TPM, two SWEs, and QA — across a Flutter + Go stack. One developer. Four agents. 281 commits. Zero open issues.</div>
+    <div class="badges">
+      <span class="badge bg">Claude Opus + Sonnet</span>
+      <span class="badge bt">Flutter · Go</span>
+      <span class="badge bt">ADA / WCAG</span>
+      <span class="badge bn">Playwright · 542 tests</span>
+      <span class="badge bn">RAG · AutoResearch</span>
+      <span class="badge bn">MCP · JSON-RPC 2.0</span>
+    </div>
+  </div>
+
+  <div class="sec">Quick links</div>
+  <div class="links-row">
+    <a class="link-btn primary" href="https://highlander.lxrbckl.com" target="_blank"><span class="dot dot-live"></span>Live App</a>
+    <a class="link-btn" href="https://github.com/lxRbckl/highlander" target="_blank"><span class="dot dot-gh"></span>GitHub Repo</a>
+    <a class="link-btn" href="https://chatgpt.com/g/g-p-69c74ae034ec819195829b4e55b5936f-prompt-a-palooza-highlander/project" target="_blank"><span class="dot dot-gpt"></span>Ask the Team (GPT)</a>
+  </div>
+
+  <div class="sec">By the numbers</div>
+  <div class="sg4">
+    <div class="scard cg"><div class="slabel">Build time</div><div class="sval vg">59h</div><div class="ssub">Mar 27 08:35 → Mar 29 19:18</div></div>
+    <div class="scard ct"><div class="slabel">Commits</div><div class="sval vt">281</div><div class="ssub">main branch</div></div>
+    <div class="scard cn"><div class="slabel">Branches</div><div class="sval">93</div><div class="ssub">all merged</div></div>
+    <div class="scard cn"><div class="slabel">Pull requests</div><div class="sval">94</div><div class="ssub">93 merged · 0 open</div></div>
+  </div>
+  <div class="sg4">
+    <div class="scard ct"><div class="slabel">Issues</div><div class="sval vt">103</div><div class="ssub">all closed</div></div>
+    <div class="scard cn"><div class="slabel">Build phases</div><div class="sval">12</div><div class="ssub">phases 0–11</div></div>
+    <div class="scard cn"><div class="slabel">Test cases</div><div class="sval">542</div><div class="ssub">15 Playwright suites</div></div>
+    <div class="scard cg"><div class="slabel">AI agents</div><div class="sval vg">4</div><div class="ssub">TPM · SWE-1 · SWE-2 · QA</div></div>
+  </div>
+  <div class="sg4">
+    <div class="scard cv"><div class="slabel">Lines of code</div><div class="sval vv">69,282</div><div class="ssub">across all components</div></div>
+    <div class="scard cn"><div class="slabel">API endpoints</div><div class="sval">76+</div><div class="ssub">registered handlers</div></div>
+    <div class="scard cn"><div class="slabel">Docker services</div><div class="sval">5</div><div class="ssub">backend · web · pg · ollama</div></div>
+    <div class="scard cn"><div class="slabel">Flutter modules</div><div class="sval">15</div><div class="ssub">feature modules</div></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="sec">Lines of code breakdown</div>
+  <table class="loc-table">
+    <thead>
+      <tr><th>Component</th><th>Files</th><th style="width:38%"></th><th>Lines</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="loc-name">Flutter / Dart</span><br><span style="font-size:10px;color:var(--text3)">frontend</span></td>
+        <td>113</td>
+        <td><div class="loc-mini-track"><div class="loc-mini-fill" id="loc1" style="width:0%;background:var(--teal)"></div></div></td>
+        <td><span class="loc-lines">39,452</span></td>
+      </tr>
+      <tr>
+        <td><span class="loc-name">Go</span><br><span style="font-size:10px;color:var(--text3)">backend</span></td>
+        <td>65</td>
+        <td><div class="loc-mini-track"><div class="loc-mini-fill" id="loc2" style="width:0%;background:var(--teal)"></div></div></td>
+        <td><span class="loc-lines">13,268</span></td>
+      </tr>
+      <tr>
+        <td><span class="loc-name">Playwright</span><br><span style="font-size:10px;color:var(--text3)">tests</span></td>
+        <td>15</td>
+        <td><div class="loc-mini-track"><div class="loc-mini-fill" id="loc3" style="width:0%;background:var(--red)"></div></div></td>
+        <td><span class="loc-lines">10,544</span></td>
+      </tr>
+      <tr>
+        <td><span class="loc-name">Documentation</span><br><span style="font-size:10px;color:var(--text3)">markdown</span></td>
+        <td>25</td>
+        <td><div class="loc-mini-track"><div class="loc-mini-fill" id="loc4" style="width:0%;background:var(--text3)"></div></div></td>
+        <td><span class="loc-lines">6,018</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="divider"></div>
+
+  <div class="sec">Contributor breakdown</div>
+  <div class="contrib-grid">
+    <div class="contrib-card">
+      <div class="contrib-header">
+        <span class="contrib-name">claude (AI agents)</span>
+        <span class="contrib-rank rank-1">#1 commits</span>
+      </div>
+      <div class="contrib-commits ai">249</div>
+      <div class="contrib-sub">commits on feature branches</div>
+      <div class="diff-row">
+        <span class="diff-symbol add">++</span>
+        <div class="diff-track"><div class="diff-fill" id="ca-add" style="width:0%;background:var(--green)"></div></div>
+        <span class="diff-num add">73,500</span>
+      </div>
+      <div class="diff-row">
+        <span class="diff-symbol del">--</span>
+        <div class="diff-track"><div class="diff-fill" id="ca-del" style="width:0%;background:var(--red)"></div></div>
+        <span class="diff-num del">7,700</span>
+      </div>
+    </div>
+    <div class="contrib-card">
+      <div class="contrib-header">
+        <span class="contrib-name">lxRbckl (human)</span>
+        <span class="contrib-rank rank-2">#1 lines</span>
+      </div>
+      <div class="contrib-commits human">183</div>
+      <div class="contrib-sub">commits on feature branches</div>
+      <div class="diff-row">
+        <span class="diff-symbol add">++</span>
+        <div class="diff-track"><div class="diff-fill" id="lx-add" style="width:0%;background:var(--green)"></div></div>
+        <span class="diff-num add">109,285</span>
+      </div>
+      <div class="diff-row">
+        <span class="diff-symbol del">--</span>
+        <div class="diff-track"><div class="diff-fill" id="lx-del" style="width:0%;background:var(--red)"></div></div>
+        <span class="diff-num del">6,406</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">Total lines changed</div>
+  <div class="totals-banner">
+    <div class="tcard tadd"><div class="tval">182,785</div><div class="tlbl">lines added</div></div>
+    <div class="tcard tdel"><div class="tval">14,106</div><div class="tlbl">lines removed</div></div>
+    <div class="tcard tcom"><div class="tval">432</div><div class="tlbl">total commits</div></div>
+  </div>
+
+  <div class="sec">Commit split (432 total)</div>
+  <div style="margin-bottom:1.5rem;">
+    <div class="bar-row"><span class="bar-label">claude (AI)</span><div class="bar-track"><div class="bar-fill" id="cs1" style="width:0%;background:var(--gold)"></div></div><span class="bar-count">249 &nbsp;(58%)</span></div>
+    <div class="bar-row"><span class="bar-label">lxRbckl</span><div class="bar-track"><div class="bar-fill" id="cs2" style="width:0%;background:var(--teal)"></div></div><span class="bar-count">183 &nbsp;(42%)</span></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="sec">Claude Max usage — 59-hour build window</div>
+  <div class="usage-chart">
+    <canvas id="usageChart"></canvas>
+  </div>
+
+  <div class="sec">Token consumption by day</div>
+  <div class="token-grid">
+    <div class="token-card"><div class="token-day">Mar 27</div><div class="token-val">430M</div><div class="token-lbl">tokens</div></div>
+    <div class="token-card"><div class="token-day">Mar 28</div><div class="token-val">953M</div><div class="token-lbl">tokens — peak day</div></div>
+    <div class="token-card"><div class="token-day">Mar 29</div><div class="token-val">410M</div><div class="token-lbl">tokens</div></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="sec">AI optimization — AutoResearch</div>
+  <div class="ar-callout">
+    <div class="ar-header">
+      <span class="ar-chip">AutoResearch</span>
+      <span class="ar-title">Automated RAG wiki pipeline</span>
+    </div>
+    <div class="ar-body">
+      AutoResearch was used to systematically improve the in-app AI assistant by auto-generating a structured wiki from the codebase on every commit. Rather than manually tuning prompts, the eval pipeline measures accuracy before and after each update — creating a continuous optimization loop. The same pattern Shopify used for a 53% improvement across 120 experiments.
+    </div>
+    <div class="ar-stats">
+      <div class="ar-stat"><div class="ar-stat-val">10%</div><div class="ar-stat-lbl">baseline accuracy</div></div>
+      <div class="ar-stat"><div class="ar-stat-val">88%</div><div class="ar-stat-lbl">with RAG wiki</div></div>
+      <div class="ar-stat"><div class="ar-stat-val">+79pt</div><div class="ar-stat-lbl">net lift</div></div>
+    </div>
+  </div>
+
+  <div class="sec">Eval results by domain (42 test cases)</div>
+  <div style="margin-bottom:1rem;">
+    <div class="bar-row"><span class="bar-label">Baseline</span><div class="bar-track"><div class="bar-fill" id="ev1" style="width:0%;background:rgba(255,255,255,0.15)"></div></div><span class="bar-count">10%</span></div>
+    <div class="bar-row"><span class="bar-label">With wiki RAG</span><div class="bar-track"><div class="bar-fill" id="ev2" style="width:0%;background:var(--teal)"></div></div><span class="bar-count hl">88%</span></div>
+  </div>
+  <div class="cov-grid">
+    <div class="cov-card"><div class="cov-val">100%</div><div class="cov-lbl">Routes &amp; RBAC</div></div>
+    <div class="cov-card"><div class="cov-val">100%</div><div class="cov-lbl">Accounts</div></div>
+    <div class="cov-card"><div class="cov-val">100%</div><div class="cov-lbl">Incidents</div></div>
+    <div class="cov-card"><div class="cov-val">100%</div><div class="cov-lbl">OSHA compliance</div></div>
+    <div class="cov-card"><div class="cov-val">100%</div><div class="cov-lbl">Tech architecture</div></div>
+    <div class="cov-card lift"><div class="cov-val">+79pt</div><div class="cov-lbl">net accuracy lift</div></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="sec">Issue breakdown</div>
+  <div style="margin-bottom:1rem;">
+    <div class="bar-row"><span class="bar-label">Enhancement</span><div class="bar-track"><div class="bar-fill" id="ie1" style="width:0%;background:var(--gold)"></div></div><span class="bar-count">74 &nbsp;(72%)</span></div>
+    <div class="bar-row"><span class="bar-label">Bug</span><div class="bar-track"><div class="bar-fill" id="ie2" style="width:0%;background:var(--red)"></div></div><span class="bar-count">26 &nbsp;(25%)</span></div>
+    <div class="bar-row"><span class="bar-label">Documentation</span><div class="bar-track"><div class="bar-fill" id="ie3" style="width:0%;background:var(--teal)"></div></div><span class="bar-count">3 &nbsp;&nbsp;&nbsp;(3%)</span></div>
+  </div>
+
+  <div class="sec">Difficulty distribution</div>
+  <div class="diff-grid">
+    <div class="diff-card"><div class="diff-val" style="color:var(--text3)">9</div><div class="diff-lbl">Trivial</div></div>
+    <div class="diff-card"><div class="diff-val" style="color:var(--teal)">30</div><div class="diff-lbl">Routine</div></div>
+    <div class="diff-card"><div class="diff-val" style="color:var(--gold)">30</div><div class="diff-lbl">Complex</div></div>
+    <div class="diff-card"><div class="diff-val" style="color:var(--red)">1</div><div class="diff-lbl">Critical</div></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="sec">Agent team</div>
+  <div class="agent-grid">
+    <div class="acard">
+      <div class="ahead"><span class="achip chip-tpm">TPM</span><span class="aname">Technical Program Manager</span></div>
+      <div class="adesc">Orchestration, GitHub Issues, architecture decisions, model routing — Sonnet for routine, Opus for complex.</div>
+      <div class="atags"><span class="atag">task decomp</span><span class="atag">model routing</span><span class="atag">trade-offs</span></div>
+      <a class="aprompt" href="https://github.com/lxRbckl/highlander/blob/main/.claude/agents/tpm.md" target="_blank">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 2h5v1.5H3.5v9h9V9H14v5H2V2z" fill="currentColor"/><path d="M9 2h5v5h-1.5V4.56L7.03 10.03 5.97 8.97 11.44 3.5H9V2z" fill="currentColor"/></svg>
+        view prompt · tpm.md
+      </a>
+    </div>
+    <div class="acard">
+      <div class="ahead"><span class="achip chip-s1">SWE-1</span><span class="aname">Full-Stack Developer</span></div>
+      <div class="adesc">Flutter UI, Go API, database models, offline sync. Owned 52 feature branches.</div>
+      <div class="atags"><span class="atag">flutter</span><span class="atag">go api</span><span class="atag">52 branches</span></div>
+      <a class="aprompt" href="https://github.com/lxRbckl/highlander/blob/main/.claude/agents/swe-1.md" target="_blank">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 2h5v1.5H3.5v9h9V9H14v5H2V2z" fill="currentColor"/><path d="M9 2h5v5h-1.5V4.56L7.03 10.03 5.97 8.97 11.44 3.5H9V2z" fill="currentColor"/></svg>
+        view prompt · swe-1.md
+      </a>
+    </div>
+    <div class="acard">
+      <div class="ahead"><span class="achip chip-s2">SWE-2</span><span class="aname">Full-Stack Developer</span></div>
+      <div class="adesc">Parallel feature track — distinct ownership across the feature set. 39 feature branches merged.</div>
+      <div class="atags"><span class="atag">flutter</span><span class="atag">go api</span><span class="atag">39 branches</span></div>
+      <a class="aprompt" href="https://github.com/lxRbckl/highlander/blob/main/.claude/agents/swe-2.md" target="_blank">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 2h5v1.5H3.5v9h9V9H14v5H2V2z" fill="currentColor"/><path d="M9 2h5v5h-1.5V4.56L7.03 10.03 5.97 8.97 11.44 3.5H9V2z" fill="currentColor"/></svg>
+        view prompt · swe-2.md
+      </a>
+    </div>
+    <div class="acard">
+      <div class="ahead"><span class="achip chip-qa">QA</span><span class="aname">Quality Assurance</span></div>
+      <div class="adesc">542 Playwright test cases across 15 suites. Tested in isolated git worktrees — no persistent branches needed.</div>
+      <div class="atags"><span class="atag">playwright</span><span class="atag">ada/wcag</span><span class="atag">git worktree</span></div>
+      <a class="aprompt" href="https://github.com/lxRbckl/highlander/blob/main/.claude/agents/qa.md" target="_blank">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 2h5v1.5H3.5v9h9V9H14v5H2V2z" fill="currentColor"/><path d="M9 2h5v5h-1.5V4.56L7.03 10.03 5.97 8.97 11.44 3.5H9V2z" fill="currentColor"/></svg>
+        view prompt · qa.md
+      </a>
+    </div>
+  </div>
+
+  <div class="sec">Branch ownership</div>
+  <div style="margin-bottom:1.5rem;">
+    <div class="bar-row"><span class="bar-label">SWE-1</span><div class="bar-track"><div class="bar-fill" id="br1" style="width:0%;background:var(--teal)"></div></div><span class="bar-count">52 branches</span></div>
+    <div class="bar-row"><span class="bar-label">SWE-2</span><div class="bar-track"><div class="bar-fill" id="br2" style="width:0%;background:rgba(58,158,143,0.5)"></div></div><span class="bar-count">39 branches</span></div>
+    <div class="bar-row"><span class="bar-label">QA</span><div class="bar-track"><div class="bar-fill" style="width:0%;background:var(--border2)"></div></div><span class="bar-count">0 (worktree)</span></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="sec">Build phases — 59 hours</div>
+  <div class="phases">
+
+    <div class="phase-row"><span class="phase-num">00</span><span class="phase-dot"></span><div class="phase-body"><div class="phase-name">Foundation</div><div class="phase-summary">Set up auth, navigation shell, and admin settings as the base for all features.</div><div class="phase-meta"><span class="phase-tasks-badge">3 tasks</span><a class="phase-link" href="https://github.com/lxRbckl/highlander/blob/main/docs/build-plan.md#phase-0-foundation" target="_blank"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M2 2h5v1.5H3.5v9h9V9H14v5H2V2z" fill="currentColor"/><path d="M9 2h5v5h-1.5V4.56L7.03 10.03 5.97 8.97 11.44 3.5H9V2z" fill="currentColor"/></svg>build-plan.md</a></div></div></div>
+
+    <div class="phase-row"><span class="phase-num">01</span><span class="phase-dot"></span><div class="phase-body"><div class="phase-name">Incident Reporting</div><div class="phase-summary">Build the incident data model, API, and full reporting UI with OSHA determination and railroad notifications.</div><div class="phase-meta"><span class="phase-tasks-badge">2 tasks</span><a class="phase-link" href="https://github.com/lxRbckl/highlander/blob/main/docs/build-plan.md#phase-1-incident-reporting" target="_blank"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M2 2h5v1.5H3.5v9h9V9H14v5H2V2z" fill="currentColor"/><path d="M9 2h5v5h-1.5V4.56L7.03 10.03 5.97 8.97 11.44 3.5H9V2z" fill="currentColor"/></svg>build-plan.md</a></div></div></div>
+
+    <div class="phase-row"><span class="phase-num">02</span><span class="phase-dot"></span><div class="phase-body"><div class="phase-name">Investigation + CAPA</div><div class="phase-summary">Add investigation lifecycle — 5-Why, contributing factors, witness statements — and CAPA management with verification workflows.</div><div class="phase-meta"><span class="phase-tasks-badge">4 tasks</span><a class="phase-link" href="https://github.com/lxRbckl/highlander/blob/main/docs/build-plan.md#phase-2-investigation--capa" target="_blank"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M2 2h5v1.5H3.5v9h9V9H14v5H2V2z" fill="currentColor"/><path d="M9 2h5v5h-1.5V4.56L7.03 10.03 5.97 8.97 11.44 3.5H9V2z" fill="currentColor"/></svg>build-plan.md</a></div></div></div>
+
+    <div class="phase-row"><span class="phase-num">03</span><span class="phase-dot"></span><div class="phase-body"><div class="phase-name">Dashboard, Recurrence, Audit, Notifications</div><div class="phase-summary">Build the safety dashboard with TRIR/DART metrics, incident recurrence linking, audit log viewer, and escalation notifications.</div><div class="phase-meta"><span class="phase-tasks-badge">4 tasks</span><a class="phase-link" href="https://github.com/lxRbckl/highlander/blob/main/docs/build-plan.md#phase-3-dashboard-recurrence-audit-notifications" target="_blank"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M2 2h5v1.5H3.5v9h9V9H14v5H2V2z" fill="currentColor"/><path d="M9 2h5v5h-1.5V4.56L7.03 10.03 5.97 8.97 11.44 3.5H9V2z" fill="currentColor"/></svg>build-plan.md</a></div></div></div>
+
+    <div class="phase-row"><span class="phase-num">04</span><span class="phase-dot"></span><div class="phase-body"><div class="phase-name">Hardening + Polish</div><div class="phase-summary">Lock down RBAC across all endpoints, seed realistic demo data, and run full integration testing.</div><div class="phase-meta"><span class="phase-tasks-badge">3 tasks</span><a class="phase-link" href="https://github.com/lxRbckl/highlander/blob/main/docs/build-plan.md#phase-4-hardening--polish" target="_blank"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M2 2h5v1.5H3.5v9h9V9H14v5H2V2z" fill="currentColor"/><path d="M9 2h5v5h-1.5V4.56L7.03 10.03 5.97 8.97 11.44 3.5H9V2z" fill="currentColor"/></svg>build-plan.md</a></div></div></div>
+
+    <div class="phase-row"><span class="phase-num">05</span><span class="phase-dot"></span><div class="phase-body"><div class="phase-name">Differentiators</div><div class="phase-summary">Add the in-app AI chat assistant, keyboard shortcuts, and AI-driven page navigation with form filling.</div><div class="phase-meta"><span class="phase-tasks-badge">3 tasks</span><a class="phase-link" href="https://github.com/lxRbckl/highlander/blob/main/docs/build-plan.md#phase-5-differentiators-if-time-permits" target="_blank"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M2 2h5v1.5H3.5v9h9V9H14v5H2V2z" fill="currentColor"/><path d="M9 2h5v5h-1.5V4.56L7.03 10.03 5.97 8.97 11.44 3.5H9V2z" fill="currentColor"/></svg>build-plan.md</a></div></div></div>
+
+    <div class="phase-row"><span class="phase-num">06</span><span class="phase-dot"></span><div class="phase-body"><div class="phase-name">Future Roadmap</div><div class="phase-summary">Implement deferred rubric items: real login system, offline mode, fishbone diagrams, auto-recurrence detection, advanced analytics, OSHA exports, email notifications, and training verification.</div><div class="phase-meta"><span class="phase-tasks-badge">7 tasks — largest phase</span><a class="phase-link" href="https://github.com/lxRbckl/highlander/blob/main/docs/build-plan.md#phase-6-future-roadmap" target="_blank"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M2 2h5v1.5H3.5v9h9V9H14v5H2V2z" fill="currentColor"/><path d="M9 2h5v5h-1.5V4.56L7.03 10.03 5.97 8.97 11.44 3.5H9V2z" fill="currentColor"/></svg>build-plan.md</a></div></div></div>
+
+    <div class="phase-row"><span class="phase-num">07</span><span class="phase-dot"></span><div class="phase-body"><div class="phase-name">Judge Differentiators</div><div class="phase-summary">Add PDF exports, global search, incident timeline, dark mode, role-based landing pages, and live activity feed.</div><div class="phase-meta"><span class="phase-tasks-badge">6 tasks</span><a class="phase-link" href="https://github.com/lxRbckl/highlander/blob/main/docs/build-plan.md#phase-7-judge-differentiators" target="_blank"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M2 2h5v1.5H3.5v9h9V9H14v5H2V2z" fill="currentColor"/><path d="M9 2h5v5h-1.5V4.56L7.03 10.03 5.97 8.97 11.44 3.5H9V2z" fill="currentColor"/></svg>build-plan.md</a></div></div></div>
+
+    <div class="phase-row"><span class="phase-num">08</span><span class="phase-dot"></span><div class="phase-body"><div class="phase-name">Domain Innovation</div><div class="phase-summary">Build the incident map view with GPS markers, voice-to-text reporting, and dashboard PDF summary reports.</div><div class="phase-meta"><span class="phase-tasks-badge">3 tasks</span><a class="phase-link" href="https://github.com/lxRbckl/highlander/blob/main/docs/build-plan.md#phase-8-domain-innovation" target="_blank"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M2 2h5v1.5H3.5v9h9V9H14v5H2V2z" fill="currentColor"/><path d="M9 2h5v5h-1.5V4.56L7.03 10.03 5.97 8.97 11.44 3.5H9V2z" fill="currentColor"/></svg>build-plan.md</a></div></div></div>
+
+    <div class="phase-row"><span class="phase-num">09</span><span class="phase-dot"></span><div class="phase-body"><div class="phase-name">Demo Polish</div><div class="phase-summary">Add the onboarding coach-mark tour and real-time WebSocket updates for instant notifications.</div><div class="phase-meta"><span class="phase-tasks-badge">2 tasks</span><a class="phase-link" href="https://github.com/lxRbckl/highlander/blob/main/docs/build-plan.md#phase-9-demo-polish" target="_blank"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M2 2h5v1.5H3.5v9h9V9H14v5H2V2z" fill="currentColor"/><path d="M9 2h5v5h-1.5V4.56L7.03 10.03 5.97 8.97 11.44 3.5H9V2z" fill="currentColor"/></svg>build-plan.md</a></div></div></div>
+
+    <div class="phase-row"><span class="phase-num">10</span><span class="phase-dot"></span><div class="phase-body"><div class="phase-name">AI-Powered Navigation</div><div class="phase-summary">Enable query parameter pre-fill on forms and AI chat URL generation so the assistant can create clickable deep links.</div><div class="phase-meta"><span class="phase-tasks-badge">2 tasks</span><a class="phase-link" href="https://github.com/lxRbckl/highlander/blob/main/docs/build-plan.md#phase-10-ai-powered-navigation" target="_blank"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M2 2h5v1.5H3.5v9h9V9H14v5H2V2z" fill="currentColor"/><path d="M9 2h5v5h-1.5V4.56L7.03 10.03 5.97 8.97 11.44 3.5H9V2z" fill="currentColor"/></svg>build-plan.md</a></div></div></div>
+
+    <div class="phase-row"><span class="phase-num">11</span><span class="phase-dot"></span><div class="phase-body"><div class="phase-name">MCP Agent Integration</div><div class="phase-summary">Build the agent API key system, capabilities endpoint, full MCP server protocol, and agent session monitoring.</div><div class="phase-meta"><span class="phase-tasks-badge">4 tasks</span><a class="phase-link" href="https://github.com/lxRbckl/highlander/blob/main/docs/build-plan.md#phase-11-mcp-agent-integration" target="_blank"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M2 2h5v1.5H3.5v9h9V9H14v5H2V2z" fill="currentColor"/><path d="M9 2h5v5h-1.5V4.56L7.03 10.03 5.97 8.97 11.44 3.5H9V2z" fill="currentColor"/></svg>build-plan.md</a></div></div></div>
+
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="sec">Tech stack</div>
+  <div class="stack-row">
+    <span class="spill hl">Claude Opus + Sonnet</span>
+    <span class="spill pl">AutoResearch</span>
+    <span class="spill tl">Flutter / Dart</span>
+    <span class="spill tl">Go + GORM</span>
+    <span class="spill tl">PostgreSQL</span>
+    <span class="spill">Ollama / Qwen 2.5 3B</span>
+    <span class="spill">MCP JSON-RPC 2.0</span>
+    <span class="spill">bcrypt + JWT</span>
+    <span class="spill">Playwright</span>
+    <span class="spill">GitHub Actions</span>
+    <span class="spill">Docker Compose</span>
+    <span class="spill">WCAG 2.1 AA</span>
+    <span class="spill">Azure AD-ready</span>
+  </div>
+
+  <div class="footer">
+    AutoResearch auto-regenerates a structured wiki on every commit — the in-app assistant improves as features ship. Eval pipeline (eval/wiki_eval.py) measures accuracy before and after each update, creating a systematic optimization loop. All commits attributed to a single GitHub account; SWE agents committed on feature branches, many squash-merged into main.
+  </div>
+
+  <div class="generated">Generated 2026-03-29 · lxRbckl/highlander</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+  const animate = () => {
+    document.getElementById('ev1').style.width = '10%';
+    document.getElementById('ev2').style.width = '88%';
+    document.getElementById('ie1').style.width = '72%';
+    document.getElementById('ie2').style.width = '25%';
+    document.getElementById('ie3').style.width = '3%';
+    document.getElementById('br1').style.width = '56%';
+    document.getElementById('br2').style.width = '42%';
+    document.getElementById('cs1').style.width = '58%';
+    document.getElementById('cs2').style.width = '42%';
+    document.getElementById('ca-add').style.width = '67%';
+    document.getElementById('ca-del').style.width = '55%';
+    document.getElementById('lx-add').style.width = '100%';
+    document.getElementById('lx-del').style.width = '47%';
+    document.getElementById('loc1').style.width = '100%';
+    document.getElementById('loc2').style.width = '34%';
+    document.getElementById('loc3').style.width = '27%';
+    document.getElementById('loc4').style.width = '15%';
+  };
+
+  const buildChart = () => {
+    const labels = ['Mar 27\n1PM','Mar 27\n6PM','Mar 27\n11PM','Mar 28\n2AM','Mar 28\n7AM','Mar 28\n2PM','Mar 28\n7PM','Mar 29\n12AM','Mar 29\n5AM','Mar 29\n10AM','Mar 29\n3PM','Mar 29\n8PM'];
+    const data = [75, 43, 86, 17, 26, 19, 22, 30, 10, 1, 9, 31];
+    const ctx = document.getElementById('usageChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          data,
+          borderColor: '#C9A84C',
+          backgroundColor: 'rgba(201,168,76,0.07)',
+          borderWidth: 1.5,
+          pointBackgroundColor: data.map(v => v >= 75 ? '#E04E3A' : v >= 40 ? '#C9A84C' : '#3A9E8F'),
+          pointBorderColor: 'transparent',
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          fill: true,
+          tension: 0.35,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1e1e1e',
+            titleColor: '#9e9c94',
+            bodyColor: '#e8e6df',
+            borderColor: 'rgba(255,255,255,0.08)',
+            borderWidth: 1,
+            callbacks: { label: c => ` ${c.parsed.y}% used` }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#5a5955', font: { family: "'DM Mono', monospace", size: 9 }, maxRotation: 45 },
+            grid: { color: 'rgba(255,255,255,0.04)' },
+            border: { color: 'rgba(255,255,255,0.08)' }
+          },
+          y: {
+            min: 0, max: 100,
+            ticks: { color: '#5a5955', font: { family: "'DM Mono', monospace", size: 9 }, callback: v => v + '%' },
+            grid: { color: 'rgba(255,255,255,0.04)' },
+            border: { color: 'rgba(255,255,255,0.08)' }
+          }
+        }
+      }
+    });
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => { setTimeout(animate, 300); buildChart(); });
+  } else {
+    setTimeout(animate, 300);
+    buildChart();
+  }
+</script>
+</body>
+</html>
