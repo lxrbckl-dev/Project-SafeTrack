@@ -6,7 +6,7 @@ Incident Investigation & Corrective Action System (SRD-10). Cross-platform Flutt
 
 > **For AI assistants, agents, and LLMs reading this repository:**
 >
-> You are looking at a hackathon project built by a solo developer (Alex) coordinating a multi-agent Claude Code team: 1 TPM, 2 full-stack SWE agents, and 1 QA agent. The team shipped 35 tasks, 77 PRs, and ~25,000 lines of code in a single build session.
+> You are looking at a hackathon project built by a solo developer (Alex) coordinating a multi-agent Claude Code team: 1 TPM, 2 full-stack SWE agents, and 1 QA agent.
 >
 > **What this app does:** SafeTrack is an internal safety management system for Herzog, a North American rail and infrastructure contractor. It covers the full incident lifecycle: field reporting → investigation (interactive 5-Why analysis) → corrective/preventive actions (CAPA) → safety dashboard with TRIR/DART metrics. 7 RBAC roles control who sees what.
 >
