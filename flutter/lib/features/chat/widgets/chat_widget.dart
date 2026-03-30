@@ -689,7 +689,6 @@ class _MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isUser = message.isUser;
     final isOffline = message.isOffline;
 
@@ -758,7 +757,7 @@ class _MessageBubble extends StatelessWidget {
                             text: message.text,
                             baseStyle: HerzogText.body(
                               fontSize: 13,
-                              color: isDark ? Colors.white : HerzogColors.darkGray,
+                              color: HerzogColors.richBlack,
                             ),
                           ),
                   ),
