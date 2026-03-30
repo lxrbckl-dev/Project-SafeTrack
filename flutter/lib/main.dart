@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'app/app_router.dart';
@@ -33,17 +34,30 @@ void main() async {
   runApp(MyApp(prefs: prefs, authService: authService));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   final SharedPreferences prefs;
   final AuthService authService;
 
   const MyApp({super.key, required this.prefs, required this.authService});
 
   @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  late final GoRouter _router;
+
+  @override
+  void initState() {
+    super.initState();
+    _router = appRouter(widget.authService);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider.value(value: authService),
+        ChangeNotifierProvider.value(value: widget.authService),
         // NotificationService depends on the JWT from AuthService.
         // ProxyProvider propagates the token whenever AuthService changes.
         ChangeNotifierProxyProvider<AuthService, NotificationService>(
@@ -107,7 +121,7 @@ class MyApp extends StatelessWidget {
         // ThemeService — persists light/dark preference to SharedPreferences.
         ChangeNotifierProvider(create: (_) => ThemeService()..loadPreference()),
         // OnboardingService — tracks whether the first-run tour has been shown.
-        Provider<OnboardingService>(create: (_) => OnboardingService(prefs)),
+        Provider<OnboardingService>(create: (_) => OnboardingService(widget.prefs)),
       ],
       child: Builder(
         builder: (context) {
@@ -119,7 +133,7 @@ class MyApp extends StatelessWidget {
               themeMode: themeService.isDarkMode
                   ? ThemeMode.dark
                   : ThemeMode.light,
-              routerConfig: appRouter(context.read<AuthService>()),
+              routerConfig: _router,
               debugShowCheckedModeBanner: false,
             ),
           );
