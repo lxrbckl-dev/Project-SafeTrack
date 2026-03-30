@@ -900,3 +900,14 @@ Already installed: Flutter 3.41.4, Xcode 26.3, Playwright 1.58.2
 - GoRouter was recreated on every theme toggle because appRouter() was called inside Consumer<ThemeService>
 - Converted MyApp to StatefulWidget, create GoRouter once in initState
 - Toggling dark mode no longer navigates away from the current page
+
+### Production Deployment
+- Tested prod deploy from DockerHub images on this Mac Mini
+- Discovered Caddy runs in Docker — needed host.docker.internal instead of localhost
+- Updated Caddy config in setup.md with /mcp/* and /ws routes
+- App live at https://highlander.lxrbckl.com — login, seed data, AI chat all verified
+- Multi-platform Docker builds (amd64 + arm64) added to CI via QEMU
+
+### AI Chat Dark Mode Text Fix
+- AI message bubble is always offWhite — text was switching to white in dark mode (invisible)
+- Fixed to always use HerzogColors.richBlack regardless of theme
